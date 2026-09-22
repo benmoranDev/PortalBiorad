@@ -40,6 +40,36 @@ export interface Course {
   price?: number;
 }
 
+export interface LessonResource {
+  id: string;
+  lessonId: string;
+  title: string;
+  description: string;
+  type: 'pdf' | 'protocol' | 'case_study' | 'article' | 'podcast' | 'spreadsheet';
+  fileSize?: string;
+  url?: string;
+  dateAdded: string;
+  authorName?: string;
+  previewContent?: string;
+}
+
+export interface LessonQuizQuestion {
+  id: string;
+  lessonId: string;
+  question: string;
+  options: string[];
+  correctAnswerIndex: number;
+  explanation: string;
+}
+
+export interface LessonNote {
+  id: string;
+  lessonId: string;
+  timeSeconds: number;
+  content: string;
+  createdAt: string;
+}
+
 export interface Lesson {
   id: string;
   courseId: string;
@@ -48,11 +78,16 @@ export interface Lesson {
   description: string;
   durationMinutes: number;
   videoUrl: string;
+  videoSource?: 'youtube' | 'vimeo' | 'direct_mp4' | 'live';
+  thumbnailUrl?: string;
   isCompleted: boolean;
   testScore?: number;
   currentPlaybackPercent?: number;
   markers: { timeSeconds: number; label: string }[];
   ctWindowType?: 'pulmonary' | 'bone' | 'mediastinum' | 'brain';
+  resources?: LessonResource[];
+  quizQuestions?: LessonQuizQuestion[];
+  studentNotes?: LessonNote[];
 }
 
 export interface TaskPendency {

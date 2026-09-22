@@ -272,6 +272,7 @@ export default function App() {
               activeLesson={activeLesson}
               onSelectLesson={setActiveLesson}
               onOpenSimulator={() => setIsSimulatorOpen(true)}
+              currentUser={currentUser}
               theme={theme}
             />
           )}

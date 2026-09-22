@@ -2,6 +2,9 @@ import {
   User,
   Course,
   Lesson,
+  LessonResource,
+  LessonQuizQuestion,
+  LessonNote,
   TaskPendency,
   StudentGradeRecord,
   Certificate,
@@ -76,6 +79,73 @@ export const storageService = {
   setLessons(lessons: Lesson[]): void {
     localStorage.setItem(KEYS.LESSONS, JSON.stringify(lessons));
     window.dispatchEvent(new CustomEvent('radbio_state_changed'));
+  },
+
+  updateLesson(updatedLesson: Lesson): void {
+    const list = this.getLessons();
+    const index = list.findIndex(l => l.id === updatedLesson.id);
+    if (index >= 0) {
+      list[index] = updatedLesson;
+    } else {
+      list.push(updatedLesson);
+    }
+    this.setLessons(list);
+  },
+
+  addLesson(newLesson: Lesson): void {
+    const list = this.getLessons();
+    list.push(newLesson);
+    this.setLessons(list);
+  },
+
+  deleteLesson(lessonId: string): void {
+    const list = this.getLessons().filter(l => l.id !== lessonId);
+    this.setLessons(list);
+  },
+
+  addResourceToLesson(lessonId: string, resource: LessonResource): void {
+    const list = this.getLessons();
+    const lesson = list.find(l => l.id === lessonId);
+    if (lesson) {
+      lesson.resources = [...(lesson.resources || []), resource];
+      this.setLessons(list);
+    }
+  },
+
+  removeResourceFromLesson(lessonId: string, resourceId: string): void {
+    const list = this.getLessons();
+    const lesson = list.find(l => l.id === lessonId);
+    if (lesson && lesson.resources) {
+      lesson.resources = lesson.resources.filter(r => r.id !== resourceId);
+      this.setLessons(list);
+    }
+  },
+
+  addQuizQuestionToLesson(lessonId: string, question: LessonQuizQuestion): void {
+    const list = this.getLessons();
+    const lesson = list.find(l => l.id === lessonId);
+    if (lesson) {
+      lesson.quizQuestions = [...(lesson.quizQuestions || []), question];
+      this.setLessons(list);
+    }
+  },
+
+  addNoteToLesson(lessonId: string, note: LessonNote): void {
+    const list = this.getLessons();
+    const lesson = list.find(l => l.id === lessonId);
+    if (lesson) {
+      lesson.studentNotes = [...(lesson.studentNotes || []), note];
+      this.setLessons(list);
+    }
+  },
+
+  deleteNoteFromLesson(lessonId: string, noteId: string): void {
+    const list = this.getLessons();
+    const lesson = list.find(l => l.id === lessonId);
+    if (lesson && lesson.studentNotes) {
+      lesson.studentNotes = lesson.studentNotes.filter(n => n.id !== noteId);
+      this.setLessons(list);
+    }
   },
 
   getTasks(): TaskPendency[] {

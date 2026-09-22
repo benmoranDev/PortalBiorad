@@ -105,6 +105,8 @@ export const initialLessons: Lesson[] = [
     description: 'Princípios matemáticos de reconstrução Radon, matriz 512x512, pitch e formação do vóxel isotrópico.',
     durationMinutes: 45,
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
     isCompleted: true,
     testScore: 98,
     markers: [
@@ -112,7 +114,69 @@ export const initialLessons: Lesson[] = [
       { timeSeconds: 600, label: 'Cálculo de Pitch e Espessura de Corte' },
       { timeSeconds: 1500, label: 'Reconstrução Iterativa e Redução de Dose' }
     ],
-    ctWindowType: 'bone'
+    ctWindowType: 'bone',
+    resources: [
+      {
+        id: 'res_01',
+        lessonId: 'les_01',
+        title: 'Apostila Oficial: Princípios da Tomografia Computadorizada Multislice',
+        description: 'Capítulo 1 completo com diagramas do Gantry, rotação contínua e colimação pré e pós-paciente.',
+        type: 'pdf',
+        fileSize: '14.2 MB',
+        dateAdded: '15/Jan/2026',
+        authorName: 'Prof. Dr. Marcus Vinicius',
+        previewContent: 'Sumário Teórico:\n1. Histórico: Da invenção de Godfrey Hounsfield aos tomógrafos multislice de 128 cortes.\n2. Geometria do Feixe de Raios-X e detectores de estado sólido (cerâmicos).\n3. O conceito de Pitch = Deslocamento da mesa por rotação de 360° / Colimação do feixe.\n4. Relação Pitch > 1 (aquisição rápida, menor dose, menor resolução axial) vs Pitch < 1 (sobreposição de dados, alta resolução, maior dose).\n5. Reconstrução de Projeções Filtradas (FBP) e Algoritmos Iterativos modernos (ASiR, MBIR, AIDR 3D).'
+      },
+      {
+        id: 'res_02',
+        lessonId: 'les_01',
+        title: 'Tabela Rápida de Parâmetros Técnicos (kVp, mAs e Pitch)',
+        description: 'Guia de bolso plastificado para parametrização no console de aquisição clínica.',
+        type: 'protocol',
+        fileSize: '2.8 MB',
+        dateAdded: '18/Jan/2026',
+        authorName: 'Coordenação Acadêmica RadBio',
+        previewContent: 'Parâmetros Recomendados por Biotipo:\n- Crânio Adulto: 120 kVp / 250-300 mAs / Pitch 0.7-0.9 / Corte 1mm a 2mm.\n- Tórax Alta Resolução: 120 kVp / 80-120 mAs com modulação de corrente automática (Smart/Care Dose) / Pitch 1.0-1.2 / Corte 0.625mm.\n- Abdômen Total: 120 kVp / 160-220 mAs / Pitch 0.9-1.0 / Corte 1.25mm.'
+      },
+      {
+        id: 'res_03',
+        lessonId: 'les_01',
+        title: 'Podcast RadBio Ep. 01: Vóxel Isotrópico na Prática',
+        description: 'Áudio explicativo de 15 minutos com o Professor Marcus debatendo a importância do vóxel cúbico para cortes coronais e sagitais sem perda de nitidez.',
+        type: 'podcast',
+        fileSize: '18.0 MB',
+        dateAdded: '20/Jan/2026',
+        authorName: 'Prof. Dr. Marcus Vinicius'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_01',
+        lessonId: 'les_01',
+        question: 'O que ocorre quando o operador seleciona um fator Pitch estritamente maior que 1 (Pitch > 1.0) em uma aquisição helicoidal?',
+        options: [
+          'A velocidade da mesa diminui e o paciente recebe o dobro da dose de radiação.',
+          'Há lacunas na hélice com redução do tempo de exame e diminuição da dose de radiação no paciente.',
+          'O feixe de raios-X para de girar e a imagem passa a ser adquirida de modo exclusivamente sequencial.',
+          'A resolução espacial no eixo Z é dobrada devido à sobreposição total dos cortes.'
+        ],
+        correctAnswerIndex: 1,
+        explanation: 'Correto! Pitch > 1 significa que o avanço da mesa a cada 360° é maior que a largura do feixe colimado. Isso encurta o tempo total de varredura e reduz a dose (CTDIvol), sendo crucial em pacientes pediátricos ou com dispneia.'
+      },
+      {
+        id: 'quiz_02',
+        lessonId: 'les_01',
+        question: 'Qual é a principal vantagem do Vóxel Isotrópico em tomografia computadorizada multislice?',
+        options: [
+          'Possibilita reconstruções multiplanares (coronal, sagital e oblíquo) com a mesma resolução geométrica da aquisição axial original, sem efeito de degrau ou distorção.',
+          'Permite eliminar totalmente o uso do tubo de raios-X.',
+          'Torna desnecessário o uso de bombas injetoras de contraste iodado em qualquer exame vascular.',
+          'Garante que a imagem seja visualizada sem qualquer filtro de atenuação ou janelamento.'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Exato! Um vóxel isotrópico possui dimensões idênticas em X, Y e Z (ex: 0.5 x 0.5 x 0.5 mm), permitindo reconstruções 3D MPR e VR perfeitamente nítidas em qualquer plano.'
+      }
+    ]
   },
   {
     id: 'les_02',
@@ -122,6 +186,8 @@ export const initialLessons: Lesson[] = [
     description: 'Controle de Window Width (WW) e Window Level (WL). Calibração e diferenciação entre ar (-1000 HU), água (0 HU) e osso cortical (+1000 HU).',
     durationMinutes: 52,
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80',
     isCompleted: true,
     testScore: 95,
     markers: [
@@ -129,7 +195,45 @@ export const initialLessons: Lesson[] = [
       { timeSeconds: 840, label: 'Janela de Parênquima Pulmonar (WW 1500 / WL -600)' },
       { timeSeconds: 1800, label: 'Janela de Mediastino e Diferenciação Vascular' }
     ],
-    ctWindowType: 'pulmonary'
+    ctWindowType: 'pulmonary',
+    resources: [
+      {
+        id: 'res_04',
+        lessonId: 'les_02',
+        title: 'Tabela de Unidades Hounsfield (HU) para Estruturas Humanas',
+        description: 'Compilado de valores normais de HU: gordura (-100 HU), água (0 HU), sangue fluido (30-45 HU), músculo (40-50 HU) e contraste iodado (>200 HU).',
+        type: 'spreadsheet',
+        fileSize: '1.9 MB',
+        dateAdded: '24/Jan/2026',
+        authorName: 'Prof. Dr. Marcus Vinicius',
+        previewContent: 'Escala Oficial de HU:\n- Ar atmosférico: -1000 HU\n- Pulmão insuflado: -850 a -600 HU\n- Tecido Adiposo / Gordura: -120 a -60 HU\n- Água Pura: 0 HU\n- Líquor Cefalorraquidiano: +5 a +15 HU\n- Sangue Descoagulado: +35 a +45 HU\n- Hematoma Agudo Coagulado: +60 a +80 HU\n- Parênquima Hepático: +55 a +65 HU\n- Osso Esponjoso: +200 a +400 HU\n- Osso Cortical Compacto: +800 a +1500 HU'
+      },
+      {
+        id: 'res_05',
+        lessonId: 'les_02',
+        title: 'Atlas Ilustrado de Janelas Tomográficas em Tórax e Crânio',
+        description: 'Imagens lado a lado demonstrando como a mesma matriz é filtrada para avaliação pulmonar, partes moles e janela óssea.',
+        type: 'case_study',
+        fileSize: '31.5 MB',
+        dateAdded: '28/Jan/2026',
+        authorName: 'Dra. Sofia Albarracín'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_03',
+        lessonId: 'les_02',
+        question: 'Para a análise minuciosa de bronquiectasias e enfisema no parênquima pulmonar, qual a combinação padrão de Window Width (WW) e Window Level (WL)?',
+        options: [
+          'WW: 400 HU / WL: +40 HU (Janela de Mediastino/Partes Moles)',
+          'WW: 1500 a 1600 HU / WL: -600 a -700 HU (Janela Pulmonar)',
+          'WW: 2500 HU / WL: +450 HU (Janela Óssea)',
+          'WW: 80 HU / WL: +35 HU (Janela de Crânio Encéfalo)'
+        ],
+        correctAnswerIndex: 1,
+        explanation: 'Perfeito! O pulmão possui densidades predominantemente aéreas (-600 HU), necessitando de uma largura de janela ampla (WW 1500) centrada em valor negativo (WL -600) para contrastar a trama brônquica contra os alvéolos.'
+      }
+    ]
   },
   {
     id: 'les_03',
@@ -139,6 +243,8 @@ export const initialLessons: Lesson[] = [
     description: 'Cálculo de vazão de bomba injetora (3 a 5 mL/s), tempos de fase arterial, portal e equilíbrio tardio.',
     durationMinutes: 48,
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80',
     isCompleted: true,
     testScore: 92,
     markers: [
@@ -146,7 +252,45 @@ export const initialLessons: Lesson[] = [
       { timeSeconds: 960, label: 'Bolus Tracking e SmartPrep na Aorta Abdominal' },
       { timeSeconds: 1920, label: 'Conduta de Emergência em Reações Anafilactoides' }
     ],
-    ctWindowType: 'mediastinum'
+    ctWindowType: 'mediastinum',
+    resources: [
+      {
+        id: 'res_06',
+        lessonId: 'les_03',
+        title: 'Manual de Segurança e Conduta em Reações Adversas a Meios de Contraste',
+        description: 'Diretriz oficial do Colégio Brasileiro de Radiologia (CBR) com fluxograma de atendimento para reações leves, moderadas e graves.',
+        type: 'protocol',
+        fileSize: '6.4 MB',
+        dateAdded: '03/Fev/2026',
+        authorName: 'Prof. Cláudio Silveira',
+        previewContent: 'Fluxograma de Urgência no Serviço de Tomografia:\n1. Urticária leve / prurido limitado: Observação clínica, controle de sinais vitais, compressas frias e anti-histamínico se necessário.\n2. Broncoespasmo / Estridor laringeo: Oxigênio sob máscara (6-10 L/min), salbutamol spray inalatório e preparo de Adrenalina 1:1.000.\n3. Choque Anafilactoide / Colapso: Chamar equipe médica imediatamente, Adrenalina 1:1.000 IM 0,3-0,5 mg no vasto lateral da coxa, reposição volêmica rápida com Ringer Lactato e elevação de membros.'
+      },
+      {
+        id: 'res_07',
+        lessonId: 'les_03',
+        title: 'Artigo Científico: Timing de Injeção e Bolus Tracking em TC Hepática',
+        description: 'Publicação de referência sobre a caracterização de hepatocarcinomas em fase arterial tardia (35s) e wash-out portal.',
+        type: 'article',
+        fileSize: '3.1 MB',
+        dateAdded: '05/Fev/2026',
+        authorName: 'Prof. Dr. Marcus Vinicius'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_04',
+        lessonId: 'les_03',
+        question: 'Qual o tempo aproximado de delay (atraso) recomendado para a Fase Portal Venosa em um estudo tomográfico de abdômen total?',
+        options: [
+          '15 a 20 segundos após início da injeção.',
+          '65 a 75 segundos após início da injeção.',
+          '5 a 10 minutos após início da injeção.',
+          'Imediatamente ao término da infusão rápida sem qualquer delay.'
+        ],
+        correctAnswerIndex: 1,
+        explanation: 'Correto! A fase portal venosa atinge seu pico entre 65 e 75 segundos, garantindo a opacificação homogênea do parênquima hepático e facilitando a detecção de lesões hipovasculares como metástases.'
+      }
+    ]
   },
   {
     id: 'les_04',
@@ -156,6 +300,8 @@ export const initialLessons: Lesson[] = [
     description: 'Sincronização com ECG (gating prospectivo/retrospectivo), escore de cálcio Agatston e pós-processamento multiplanar.',
     durationMinutes: 58,
     videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
     isCompleted: false,
     currentPlaybackPercent: 42,
     markers: [
@@ -164,7 +310,45 @@ export const initialLessons: Lesson[] = [
       { timeSeconds: 1458, label: 'Volume Rendering (VR) e Detecção de Estenoses' },
       { timeSeconds: 2600, label: 'Exportação e Arquivamento de Exames de TC' }
     ],
-    ctWindowType: 'brain'
+    ctWindowType: 'brain',
+    resources: [
+      {
+        id: 'res_08',
+        lessonId: 'les_04',
+        title: 'Guia Prático: Pós-Processamento MPR e CPR de Artérias Coronárias',
+        description: 'Passo a passo com telas do console para alinhamento da Descendente Anterior (DA), Circunflexa (Cx) e Coronária Direita (CD).',
+        type: 'pdf',
+        fileSize: '16.8 MB',
+        dateAdded: '12/Fev/2026',
+        authorName: 'Prof. Dr. Marcus Vinicius',
+        previewContent: 'Rotina de Pós-Processamento Coronariano:\n1. Seleção da fase diastólica com menor artefato de movimento (geralmente 70-75% do intervalo R-R do ECG).\n2. Geração do Curved Multiplanar Reformation (CPR) ao longo da linha média da artéria coronária.\n3. Análise da luz do vaso em corte perpendicular verdadeiro para graduação de estenose luminal (CAD-RADS).\n4. Renderização Volumétrica 3D (Volume Rendering - VR) para visualização global da anatomia cardíaca e pontes de safena/mamária.'
+      },
+      {
+        id: 'res_09',
+        lessonId: 'les_04',
+        title: 'Planilha de Classificação CAD-RADS 2.0 e Escore de Cálcio Agatston',
+        description: 'Tabela de referência para cálculo rápido de estenose coronariana e conduta clínica preconizada pela SCCT.',
+        type: 'spreadsheet',
+        fileSize: '2.4 MB',
+        dateAdded: '14/Fev/2026',
+        authorName: 'Prof. Dr. Aris Thorne'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_05',
+        lessonId: 'les_04',
+        question: 'Qual a frequência cardíaca alvo ideal para a realização de Angiotomografia de Coronárias com gating prospectivo (menor dose de radiação)?',
+        options: [
+          'Acima de 100 batimentos por minuto (bpm).',
+          'Abaixo de 60 a 65 batimentos por minuto (bpm) com ritmo sinusal regular.',
+          'Não há restrição de frequência, qualquer arritmia severa pode ser ignorada.',
+          'Exclusivamente em pacientes com marca-passo cardíaco artificial programado em 90 bpm.'
+        ],
+        correctAnswerIndex: 1,
+        explanation: 'Exato! Frequências cardíacas inferiores a 65 bpm aumentam a duração da diástole cardíaca, período em que o coração permanece relativamente imóvel, permitindo cortes nítidos sem artefatos de movimento cinético.'
+      }
+    ]
   }
 ];
 
