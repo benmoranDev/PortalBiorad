@@ -1,0 +1,204 @@
+import React from 'react';
+import { UserRole, ThemeMode } from '../../types';
+
+interface SideNavBarProps {
+  currentTab: string;
+  onSelectTab: (tab: string) => void;
+  userRole: UserRole;
+  pendingCount: number;
+  theme: ThemeMode;
+  onOpenLabSupport: () => void;
+  isOpenMobile: boolean;
+  onCloseMobile: () => void;
+}
+
+export const SideNavBar: React.FC<SideNavBarProps> = ({
+  currentTab,
+  onSelectTab,
+  userRole,
+  pendingCount,
+  theme,
+  onOpenLabSupport,
+  isOpenMobile,
+  onCloseMobile
+}) => {
+  const isDark = theme === 'dark';
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: 'space_dashboard', roles: ['student', 'professor', 'admin'] },
+    { id: 'aulas', label: 'Minhas Aulas', icon: 'biotech', roles: ['student', 'professor', 'admin'] },
+    { id: 'boletim', label: 'Boletim & Notas', icon: 'assignment_turned_in', roles: ['student', 'professor', 'admin'] },
+    { id: 'pendencias', label: 'Central de Pendências', icon: 'pending_actions', badge: pendingCount > 0 ? pendingCount : undefined, roles: ['student', 'professor', 'admin'] },
+    { id: 'professor_notas', label: 'Lançamento de Notas', icon: 'fact_check', roles: ['professor', 'admin'] },
+    { id: 'certificados', label: 'Diplomas & Certificados', icon: 'workspace_premium', roles: ['student', 'professor', 'admin'] },
+    { id: 'admin', label: 'Painel Administrativo', icon: 'admin_panel_settings', roles: ['admin'] },
+    { id: 'pagamentos', label: 'Planos & Matrícula', icon: 'credit_card', roles: ['student', 'professor', 'admin'] },
+    { id: 'configuracoes', label: 'Configurações & Supabase', icon: 'tune', roles: ['student', 'professor', 'admin'] }
+  ];
+
+  const filteredItems = navItems.filter(item => item.roles.includes(userRole));
+
+  return (
+    <>
+      {/* Mobile Backdrop */}
+      {isOpenMobile && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          onClick={onCloseMobile}
+        />
+      )}
+
+      <aside
+        className={`fixed top-0 left-0 h-screen w-64 z-40 backdrop-blur-xl border-r shadow-2xl flex flex-col justify-between p-4 transition-all duration-300 ${
+          isDark
+            ? 'bg-[#181b25]/90 border-[#3d494c]/30 shadow-black/50 text-[#dfe2ef]'
+            : 'bg-white/95 border-slate-200/90 shadow-slate-200/50 text-slate-800'
+        } ${
+          isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
+      >
+        {/* Header / Brand */}
+        <div className="overflow-y-auto">
+          <div className="flex items-center justify-between px-2 py-3 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#06b6d4] to-[#10b981] p-0.5 shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+                <div
+                  className={`w-full h-full rounded-[10px] flex items-center justify-center ${
+                    isDark ? 'bg-[#0a0e17]/90' : 'bg-white'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-cyan-500 text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    biotech
+                  </span>
+                </div>
+              </div>
+              <div>
+                <div
+                  className={`text-xl font-bold tracking-tight flex items-center gap-1.5 font-['Plus_Jakarta_Sans'] ${
+                    isDark ? 'text-[#4cd7f6]' : 'text-cyan-800'
+                  }`}
+                >
+                  RadBio
+                </div>
+                <span
+                  className={`text-[10px] font-mono tracking-wider uppercase font-semibold ${
+                    isDark ? 'text-[#bcc9cd]/80' : 'text-slate-400'
+                  }`}
+                >
+                  TC &amp; Radio v2.4
+                </span>
+              </div>
+            </div>
+
+            {/* Mobile close button */}
+            <button
+              onClick={onCloseMobile}
+              className={`p-1 rounded-lg lg:hidden ${isDark ? 'text-gray-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'}`}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          {/* Navigation Links */}
+          <nav aria-label="Navegação Principal" className="space-y-1.5">
+            {filteredItems.map(item => {
+              const isActive = currentTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onSelectTab(item.id);
+                    onCloseMobile();
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 text-left font-medium ${
+                    isActive
+                      ? isDark
+                        ? 'bg-[#1c1f29]/90 text-[#4cd7f6] border border-[#3d494c]/60 shadow-sm shadow-[#4cd7f6]/10'
+                        : 'bg-cyan-50 text-cyan-900 border border-cyan-200 shadow-sm font-semibold'
+                      : isDark
+                        ? 'text-[#bcc9cd] hover:text-[#dfe2ef] hover:bg-[#1c1f29]/40'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[20px] ${
+                      isActive
+                        ? isDark ? 'text-[#4cd7f6]' : 'text-cyan-700'
+                        : isDark ? 'text-[#869397]' : 'text-slate-400'
+                    }`}
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {item.badge !== undefined && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
+                      {item.badge}
+                    </span>
+                  )}
+                  {isActive && (
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isDark ? 'bg-[#4cd7f6] shadow-[0_0_8px_#4cd7f6]' : 'bg-cyan-600'
+                      }`}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Sidebar Footer / CTA & Secondary Tabs */}
+        <div
+          className={`pt-3 border-t space-y-2 mt-2 shrink-0 ${
+            isDark ? 'border-[#3d494c]/30' : 'border-slate-200'
+          }`}
+        >
+          <div
+            className={`px-3 py-3 rounded-xl border backdrop-blur-md ${
+              isDark ? 'bg-[#262a34]/40 border-[#3d494c]/30' : 'bg-slate-50 border-slate-200'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span
+                className={`text-[11px] flex items-center gap-1.5 font-semibold ${
+                  isDark ? 'text-[#4edea3]' : 'text-emerald-700'
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                Monitoria Online
+              </span>
+              <span className={`text-[10px] font-mono ${isDark ? 'text-[#bcc9cd]' : 'text-slate-500'}`}>
+                Ativa
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenLabSupport}
+              className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                isDark
+                  ? 'text-[#4cd7f6] bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 border-[#4cd7f6]/30'
+                  : 'text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border-cyan-200'
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm">support_agent</span>
+              Tirar Dúvida com Tutor
+            </button>
+          </div>
+
+          <div
+            className={`flex flex-col gap-0.5 text-xs ${
+              isDark ? 'text-[#869397]' : 'text-slate-400'
+            }`}
+          >
+            <div className="flex items-center justify-between px-2 text-[11px]">
+              <span>Portal Acadêmico</span>
+              <span className={`font-mono font-medium ${isDark ? 'text-[#4edea3]' : 'text-emerald-600'}`}>Turma 2026.1</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+};
