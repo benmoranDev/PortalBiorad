@@ -1,6 +1,22 @@
 import { User, Course, Lesson, TaskPendency, StudentGradeRecord, RecentGradeItem, Certificate, EmailNotification, PaymentPlan, SupabaseConfig } from '../types';
 
-export const initialCurrentUser: User = {
+export const adminUserBen: User = {
+  id: 'usr_admin_ben',
+  name: 'Ben Moran',
+  email: 'benmoran29dev@gmail.com',
+  role: 'admin',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+  enrollmentId: 'ADM-BEN-2026',
+  specialty: 'Administrador Geral do Sistema & Diretor de Tecnologia RadBio',
+  gpa: 4.0,
+  completedHours: 500,
+  totalRequiredHours: 500,
+  attendanceRate: 100,
+  status: 'honor',
+  password: '123'
+};
+
+export const studentLucas: User = {
   id: 'usr_student_01',
   name: 'Lucas Mendonça',
   email: 'lucas.mendonca@radbio.edu.br',
@@ -12,8 +28,46 @@ export const initialCurrentUser: User = {
   completedHours: 142,
   totalRequiredHours: 180,
   attendanceRate: 94,
-  status: 'regular'
+  status: 'regular',
+  password: '123'
 };
+
+export const initialCurrentUser: User = adminUserBen;
+
+export const demoAccounts: User[] = [
+  adminUserBen,
+  studentLucas,
+  {
+    id: 'usr_prof_01',
+    name: 'Prof. Dr. Marcus Vinicius',
+    email: 'marcus.vinicius@radbio.edu.br',
+    role: 'professor',
+    avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
+    enrollmentId: 'DOC-TC-09',
+    specialty: 'Especialista em Tomografia Computadorizada CBR',
+    gpa: 4.0,
+    completedHours: 320,
+    totalRequiredHours: 320,
+    attendanceRate: 99,
+    status: 'honor',
+    password: '123'
+  },
+  {
+    id: 'usr_admin_01',
+    name: 'Dra. Helena Vasconcelos',
+    email: 'helena.vasconcelos@radbio.edu.br',
+    role: 'admin',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
+    enrollmentId: 'ADM-01',
+    specialty: 'Coordenação Acadêmica Geral',
+    gpa: 4.0,
+    completedHours: 400,
+    totalRequiredHours: 400,
+    attendanceRate: 100,
+    status: 'honor',
+    password: '123'
+  }
+];
 
 export const initialCourses: Course[] = [
   {
@@ -93,6 +147,46 @@ export const initialCourses: Course[] = [
     status: 'completed',
     coverImage: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80',
     price: 399.00
+  },
+  {
+    id: 'course_contrastados_601',
+    code: 'RAD-601',
+    title: 'Exames Contrastados & Farmacologia dos Meios de Contraste',
+    description: 'Estudo aprofundado de contraste iodado (iônico vs não-iônico), gadolínio e bário. Reações adversas, nefropatia induzida por contraste, extravasamento, bomba injetora e protocolos de Urografia, EED, Enema Opaco e Fistulografia.',
+    credits: 4,
+    instructor: 'Dra. Camila Albuquerque',
+    instructorTitle: 'Especialista em Imagenologia Contrastada & Emergências',
+    instructorAvatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=250&q=80',
+    category: 'Exames Contrastados',
+    progress: 82,
+    currentModule: 7,
+    totalModules: 8,
+    grade: 9.4,
+    status: 'active',
+    nextDeadline: '15/Mar',
+    nextDeliveryTitle: 'Protocolo Clínico: Manejo de Choque Anafilactoide por Contraste Iodado',
+    coverImage: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
+    price: 440.00
+  },
+  {
+    id: 'course_cirurgico_720',
+    code: 'RAD-720',
+    title: 'Radiologia em Centro Cirúrgico & Arco Cirúrgico (C-Arm)',
+    description: 'Atuação do tecnólogo no bloco cirúrgico: arco em C, escopia intraoperatória em ortopedia, cirurgia vascular (endopróteses), neurocirurgia, esterilização de campo, paramentação cirúrgica e radioproteção da equipe.',
+    credits: 4,
+    instructor: 'Prof. Rafael Medeiros',
+    instructorTitle: 'Tecnólogo Especialista em Imagem Cirúrgica e Intervencionismo',
+    instructorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
+    category: 'Centro Cirúrgico',
+    progress: 74,
+    currentModule: 5,
+    totalModules: 7,
+    grade: 9.0,
+    status: 'active',
+    nextDeadline: '18/Mar',
+    nextDeliveryTitle: 'Guia de Angulação do Arco Cirúrgico em Fixação de Fêmur e Pelve',
+    coverImage: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80',
+    price: 465.00
   }
 ];
 
@@ -349,6 +443,183 @@ export const initialLessons: Lesson[] = [
         explanation: 'Exato! Frequências cardíacas inferiores a 65 bpm aumentam a duração da diástole cardíaca, período em que o coração permanece relativamente imóvel, permitindo cortes nítidos sem artefatos de movimento cinético.'
       }
     ]
+  },
+  {
+    id: 'les_05',
+    courseId: 'course_contrastados_601',
+    chapterNumber: 1,
+    title: 'Meios de Contraste Iodados: Iônicos, Não-Iônicos e Reações Adversas',
+    description: 'Osmolalidade, viscosidade, barreira hematoencefálica e perfil de segurança. Fatores de risco para Nefropatia Induzida por Contraste (NIC) e dosagem de creatinina/Taxa de Filtração Glomerular (eGFR).',
+    durationMinutes: 58,
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=800&q=80',
+    isCompleted: true,
+    testScore: 96,
+    markers: [
+      { timeSeconds: 150, label: 'Estrutura Molecular do Monômero Não-Iônico' },
+      { timeSeconds: 780, label: 'Prevenção de Nefropatia: Hidratação com SF 0.9%' },
+      { timeSeconds: 1620, label: 'Kit de Emergência e Administração de Adrenalina 1:1000' }
+    ],
+    ctWindowType: 'mediastinum',
+    resources: [
+      {
+        id: 'res_contrast_01',
+        lessonId: 'les_05',
+        title: 'Manual de Meios de Contraste: Classificação e Condutas Clínicas',
+        description: 'Diretrizes completas de contraste iodado e gadolínio, reações leves (urticária), moderadas (broncoespasmo) e graves (choque anafilactoide).',
+        type: 'pdf',
+        fileSize: '12.4 MB',
+        dateAdded: '15/Jan/2026',
+        authorName: 'Dra. Camila Albuquerque',
+        previewContent: 'Guia Rápido de Emergência com Contraste:\n1. Reações Leves: Náuseas, calor facial, poucas placas de urticária -> Suporte, observação e anti-histamínico oral se necessário.\n2. Reações Moderadas: Broncoespasmo com sibilos, edema facial sem estridor -> Oxigênio por máscara (6-10 L/min), salbutamol spray, hidrocortisona EV.\n3. Reações Graves: Choque anafilactoide, hipotensão severa (PAS < 80 mmHg), estridor laríngeo -> Chamar time de emergência médica, Adrenalina 0.3 a 0.5 mg IM (1:1000) no vasto lateral da coxa, reposição rápida de Ringer Lactato ou SF 0.9% EV.'
+      },
+      {
+        id: 'res_contrast_02',
+        lessonId: 'les_05',
+        title: 'Checklist Pré-Contraste: Filtração Glomerular (eGFR) e Alergias',
+        description: 'Formulário padrão de triagem do paciente antes da injeção no setor de TC e Hemodinâmica.',
+        type: 'protocol',
+        fileSize: '1.7 MB',
+        dateAdded: '18/Jan/2026',
+        authorName: 'Coordenação RadBio'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_contrast_01',
+        lessonId: 'les_05',
+        title: 'Reações Adversas a Contraste',
+        question: 'Qual é a conduta farmacológica prioritária de primeira linha no caso de reação anafilactoide grave com hipotensão e broncoespasmo após injeção de contraste iodado?',
+        options: [
+          'Administrar Adrenalina (Epinefrina) 1:1000 por via intramuscular no músculo vasto lateral da coxa.',
+          'Oferecer um copo de água mineral fria com açúcar ao paciente.',
+          'Aplicar apenas pomada de hidrocortisona sobre o antebraço.',
+          'Aguardar 2 horas em repouso absoluto sem qualquer medicação.'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Correto! A adrenalina por via intramuscular (1:1000, 0.3 a 0.5 mg no vasto lateral) é a medicação salvadora de primeira linha, revertendo rapidamente a vasodilatação, hipotensão e o broncoespasmo severo.'
+      },
+      {
+        id: 'quiz_contrast_02',
+        lessonId: 'les_05',
+        title: 'Segurança Renal',
+        question: 'Em relação à Nefropatia Induzida por Contraste (NIC), qual a medida preventiva isolada com maior evidência científica comprovada?',
+        options: [
+          'Hidratação endovenosa com solução isotônica (Soro Fisiológico 0.9% ou Bicarbonato) antes e após o procedimento.',
+          'Uso de contraste iônico de altíssima osmolalidade.',
+          'Administração de anti-inflamatórios não-esteroidais em doses altas.',
+          'Restrição hídrica severa 24 horas antes do exame.'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Exato! A expansão volêmica com soro fisiológico 0.9% promove diluição do contraste no túbulo renal, aumentando o fluxo urinário e reduzindo a toxicidade tubular direta e a vasoconstrição medular renal.'
+      }
+    ]
+  },
+  {
+    id: 'les_06',
+    courseId: 'course_cirurgico_720',
+    chapterNumber: 1,
+    title: 'Operação do Arco Cirúrgico (C-Arm) e Escopia em Traumatologia Ortopédica',
+    description: 'Paramentação, campos estéreis, posicionamento do intensificador de imagem, incidências AP e Perfil verdadeiro de quadril/fêmur, controle de pedal e colimação.',
+    durationMinutes: 50,
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=800&q=80',
+    isCompleted: false,
+    testScore: 92,
+    markers: [
+      { timeSeconds: 180, label: 'Zonas Estéreis e Capa Plástica Protetora do C-Arm' },
+      { timeSeconds: 840, label: 'Posicionamento para Fratura de Colo de Fêmur (AP e Axial)' },
+      { timeSeconds: 1560, label: 'Modo Pulsado e Redução de Dose para o Cirurgião e Equipe' }
+    ],
+    ctWindowType: 'bone',
+    resources: [
+      {
+        id: 'res_cirurgico_01',
+        lessonId: 'les_06',
+        title: 'Manual Prático: Operação do Intensificador de Imagem e Arco Cirúrgico',
+        description: 'Técnicas de rotação orbital, angulação cefálica/podálica e movimentos transversais no bloco cirúrgico.',
+        type: 'pdf',
+        fileSize: '15.6 MB',
+        dateAdded: '20/Jan/2026',
+        authorName: 'Prof. Rafael Medeiros',
+        previewContent: 'Regras de Ouro no Centro Cirúrgico:\n1. Tubo de Raios-X SEMPRE posicionado sob a mesa cirúrgica quando possível, e o Intensificador/Detector plano acima do paciente. Isso reduz drasticamente a radiação espalhada direcionada aos olhos e tireoide do cirurgião e instrumentador.\n2. Uso obrigatório do modo de Escopia Pulsada (ex: 7.5 ou 15 pulsos/segundo) em vez de escopia contínua, economizando até 70% da dose de radiação.\n3. Colimação estrita da área de interesse: melhora o contraste da imagem ortopédica e diminui o volume irradiado.\n4. Jamais encostar em campos azuis estéreis ou na mesa de instrumentais sem estar devidamente paramentado com avental cirúrgico e luvas estéreis.'
+      },
+      {
+        id: 'res_cirurgico_02',
+        lessonId: 'les_06',
+        title: 'Protocolo de Blindagem e Paramentação com Aventais Plumbíferos',
+        description: 'Checklist de integridade de aventais de chumbo (0.5 mm Pb equivalente) e protetores de tireoide na sala cirúrgica.',
+        type: 'protocol',
+        fileSize: '2.1 MB',
+        dateAdded: '22/Jan/2026',
+        authorName: 'Coordenação RadBio'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_cirurgico_01',
+        lessonId: 'les_06',
+        title: 'Posicionamento do Arco em C',
+        question: 'Durante uma cirurgia ortopédica com uso do Arco Cirúrgico (C-Arm), qual é a posição recomendada do tubo emissor de raios-X em relação ao paciente para minimizar a radiação espalhada recebida pela equipe cirúrgica?',
+        options: [
+          'Tubo posicionado abaixo da mesa cirúrgica, com o intensificador/detector posicionado acima do paciente.',
+          'Tubo posicionado acima do paciente apontando diretamente para o rosto da equipe.',
+          'Tubo em rotação contínua sem colimação.',
+          'Posicionamento horizontal fixo colado à cabeça do anestesiologista.'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Exato! O tubo de raios-X sob a mesa direciona a maior parte da radiação retroespalhada para o chão e membros inferiores (protegidos pela saia de chumbo da mesa e aventais), protegendo a tireoide e o cristalino dos profissionais.'
+      }
+    ]
+  },
+  {
+    id: 'les_07',
+    courseId: 'course_tc_701',
+    chapterNumber: 5,
+    title: 'Tomografia de Abdômen Total: Fases Contratadas Pré, Arterial, Portal e Tardia',
+    description: 'Cinética de impregnação do parênquima hepático, esplênico e renal. Diagnóstico diferencial de Hemangiomas, Hiperplasia Nodular Focal (HNF), Carcinoma Hepatocelular (CHC) e lavagem (washout).',
+    durationMinutes: 62,
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    videoSource: 'direct_mp4',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80',
+    isCompleted: false,
+    testScore: 94,
+    markers: [
+      { timeSeconds: 120, label: 'Fase Sem Contraste: Cálculo Renal e Esteatose' },
+      { timeSeconds: 720, label: 'Fase Arterial Precoce vs. Tardia (30-35s)' },
+      { timeSeconds: 1500, label: 'Fase Portal (65-75s) e Fase de Equilíbrio/Tardia (3-5 min)' }
+    ],
+    ctWindowType: 'mediastinum',
+    resources: [
+      {
+        id: 'res_tc_abd_01',
+        lessonId: 'les_07',
+        title: 'Protocolo de Injeção em TC Abdominal Multifásica',
+        description: 'Tempos de atraso (scan delay), volume de contraste (1.5 mL/kg) e taxa de fluxo de injeção na bomba (3.0 a 4.5 mL/s).',
+        type: 'protocol',
+        fileSize: '5.2 MB',
+        dateAdded: '25/Jan/2026',
+        authorName: 'Prof. Dr. Aris Thorne'
+      }
+    ],
+    quizQuestions: [
+      {
+        id: 'quiz_tc_abd_01',
+        lessonId: 'les_07',
+        title: 'Fases da Tomografia Hepática',
+        question: 'Em que janela temporal pós-injeção de contraste iodado ocorre tipicamente a Fase Portal em uma TC de abdômen?',
+        options: [
+          'Aproximadamente 65 a 75 segundos após o início da injeção.',
+          'Em menos de 10 segundos antes do contraste atingir a aorta.',
+          'Apenas 24 horas após o procedimento.',
+          'Aos 45 minutos em repouso absoluto.'
+        ],
+        correctAnswerIndex: 0,
+        explanation: 'Correto! A fase portal (venosa) ocorre por volta de 65-75 segundos, quando a veia porta perfunde de forma homogênea todo o parênquima hepático saudável, gerando o pico de realce para detecção de metástases hipovasculares.'
+      }
+    ]
   }
 ];
 
@@ -399,6 +670,30 @@ export const initialTasks: TaskPendency[] = [
     deadlineDate: '15/03/2026',
     daysRemaining: 18,
     format: 'Ficha de Estágio Assinada',
+    status: 'pending'
+  },
+  {
+    id: 'task_05',
+    courseId: 'course_contrastados_601',
+    courseTitle: 'Exames Contrastados & Farmacologia',
+    title: 'Protocolo de Emergência: Manejo de Choque Anafilactoide por Contraste',
+    description: 'Elaboração do fluxograma de atendimento para extravasamento e anafilaxia com algoritmo de dosagem de adrenalina e hidrocortisona.',
+    type: 'relatorio',
+    deadlineDate: '15/03/2026',
+    daysRemaining: 18,
+    format: 'Fluxograma Clínico em PDF',
+    status: 'pending'
+  },
+  {
+    id: 'task_06',
+    courseId: 'course_cirurgico_720',
+    courseTitle: 'Radiologia em Centro Cirúrgico & Arco em C',
+    title: 'Estudo de Caso: Angulação do C-Arm em Fixação de Colo de Fêmur',
+    description: 'Relatório descritivo com fotos de posicionamento ortopédico nos eixos AP e axial verdadeiro, minimizando exposição da equipe.',
+    type: 'estagio',
+    deadlineDate: '18/03/2026',
+    daysRemaining: 21,
+    format: 'Relatório de Centro Cirúrgico + Ficha de Estágio',
     status: 'pending'
   }
 ];
@@ -594,8 +889,8 @@ export const initialPaymentPlans: PaymentPlan[] = [
 ];
 
 export const defaultSupabaseConfig: SupabaseConfig = {
-  url: 'https://radbio-tomography-db.supabase.co',
-  anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.radbio-academic-token-key-2026',
+  url: 'https://cqijrrybqhukcuqksfjr.supabase.co',
+  anonKey: 'sb_publishable_UO_nT6jH8ml1lgUOU6MgTg_Ld15FrPH',
   isConnected: true,
-  lastSync: 'Sincronizado há 2 minutos'
+  lastSync: 'Conectado ao Supabase (BioRad Cursos)'
 };

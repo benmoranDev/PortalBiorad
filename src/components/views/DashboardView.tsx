@@ -56,13 +56,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <div className="flex flex-wrap items-center gap-2">
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-                  isDark
-                    ? 'bg-[#00a572]/15 border border-[#4edea3]/30 text-[#4edea3]'
-                    : 'bg-emerald-50 border border-emerald-300 text-emerald-700'
+                  currentUser.role === 'student'
+                    ? isDark ? 'bg-[#00a572]/15 border border-[#4edea3]/30 text-[#4edea3]' : 'bg-emerald-50 border border-emerald-300 text-emerald-700'
+                    : currentUser.role === 'professor'
+                    ? isDark ? 'bg-cyan-500/15 border border-cyan-400/30 text-cyan-300' : 'bg-cyan-50 border border-cyan-300 text-cyan-800'
+                    : isDark ? 'bg-amber-500/15 border border-amber-400/30 text-amber-300' : 'bg-amber-50 border border-amber-300 text-amber-800'
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                Matrícula Ativa • Período Letivo 2026.1
+                {currentUser.role === 'student' ? 'Matrícula Ativa • Período Letivo 2026.1' : currentUser.role === 'professor' ? 'Corpo Docente • Turma TC-402' : 'Gestão Acadêmica & Administração'}
               </span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-medium ${
@@ -71,7 +73,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     : 'bg-slate-100 border border-slate-200 text-slate-600'
                 }`}
               >
-                Matrícula: {currentUser.enrollmentId}
+                {currentUser.role === 'student' ? `Matrícula: ${currentUser.enrollmentId}` : currentUser.role === 'professor' ? `Cód. Docente: ${currentUser.enrollmentId}` : `Registro ADM: ${currentUser.enrollmentId}`}
               </span>
             </div>
 
@@ -90,48 +92,128 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 isDark ? 'text-[#bcc9cd]' : 'text-slate-600'
               }`}
             >
-              Especialização em Tomografia Computadorizada Avançada e Diagnóstico por Imagem. Você possui{' '}
-              <strong className={isDark ? 'text-[#4cd7f6]' : 'text-cyan-700'}>
-                {pendingTasks.length} trabalhos pendentes
-              </strong>{' '}
-              com prazos de entrega nesta quinzena.
+              {currentUser.role === 'student' && (
+                <>
+                  Área do Aluno em Tomografia Computadorizada Avançada e Diagnóstico por Imagem. Você possui{' '}
+                  <strong className={isDark ? 'text-[#4cd7f6]' : 'text-cyan-700'}>
+                    {pendingTasks.length} trabalhos pendentes
+                  </strong>{' '}
+                  com prazos de entrega nesta quinzena.
+                </>
+              )}
+              {currentUser.role === 'professor' && (
+                <>
+                  Ambiente Docente de Gestão de Aulas e Avaliação. Há turmas aguardando fechamento de médias ponderadas, revisão de casos de TC e homologação final de notas.
+                </>
+              )}
+              {currentUser.role === 'admin' && (
+                <>
+                  Painel de Controle Institucional. Gerencie matrículas, grade curricular, relatórios de auditoria e segurança dos dados hospitalares e acadêmicos.
+                </>
+              )}
             </p>
           </div>
 
-          {/* Quick CT CTA Actions */}
+          {/* Role-Specific Actions */}
           <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <button
-              type="button"
-              onClick={onOpenSimulator}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] text-xs font-bold shadow-lg shadow-[#06b6d4]/30 hover:shadow-[#06b6d4]/50 transition-all flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
-            >
-              <span className="material-symbols-outlined text-base">science</span>
-              <span>Abrir Simulador de TC</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigateTab('aulas')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
-                isDark
-                  ? 'bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/30'
-                  : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">play_circle</span>
-              <span>Continuar Aula Atual</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigateTab('pendencias')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
-                isDark
-                  ? 'bg-white/5 hover:bg-white/10 text-slate-200 border-white/10'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">pending_actions</span>
-              <span>Ver Trabalhos ({pendingTasks.length})</span>
-            </button>
+            {currentUser.role === 'student' && (
+              <>
+                <button
+                  type="button"
+                  onClick={onOpenSimulator}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] text-xs font-bold shadow-lg shadow-[#06b6d4]/30 hover:shadow-[#06b6d4]/50 transition-all flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+                >
+                  <span className="material-symbols-outlined text-base">science</span>
+                  <span>Abrir Simulador de TC</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('cursos_livres')}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                    isDark
+                      ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 shadow-sm'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">school</span>
+                  <span>Cursos Livres (40h)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('aulas')}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                    isDark
+                      ? 'bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/30'
+                      : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">play_circle</span>
+                  <span>Minhas Aulas</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('pendencias')}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                    isDark
+                      ? 'bg-white/5 hover:bg-white/10 text-slate-200 border-white/10'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">pending_actions</span>
+                  <span>Ver Trabalhos ({pendingTasks.length})</span>
+                </button>
+              </>
+            )}
+
+            {currentUser.role === 'professor' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('professor_notas')}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#059669] to-[#10b981] text-[#090d16] text-xs font-bold shadow-lg shadow-emerald-500/30 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-base">fact_check</span>
+                  <span>Lançamento & Homologação de Notas</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenSimulator}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                    isDark
+                      ? 'bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/30'
+                      : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">science</span>
+                  <span>Simulador TC (Modo Aula)</span>
+                </button>
+              </>
+            )}
+
+            {currentUser.role === 'admin' && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('admin')}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-[#090d16] text-xs font-bold shadow-lg shadow-amber-500/30 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                  <span>Gerenciar Usuários & Cursos</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onNavigateTab('configuracoes')}
+                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                    isDark
+                      ? 'bg-white/5 hover:bg-white/10 text-slate-200 border-white/10'
+                      : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-base">tune</span>
+                  <span>Configurações & Backup</span>
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>
@@ -329,10 +411,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               </div>
 
               {/* Category Filter */}
-              <div className="flex items-center gap-1.5 text-xs">
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                     selectedCategory === 'all'
                       ? 'bg-cyan-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -342,7 +424,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </button>
                 <button
                   onClick={() => setSelectedCategory('Tomografia')}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                     selectedCategory === 'Tomografia'
                       ? 'bg-cyan-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -351,8 +433,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                   Tomografia
                 </button>
                 <button
+                  onClick={() => setSelectedCategory('Contrastados')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    selectedCategory === 'Contrastados'
+                      ? 'bg-emerald-500 text-slate-950 font-semibold'
+                      : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  Contrastados
+                </button>
+                <button
+                  onClick={() => setSelectedCategory('Cirúrgico')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    selectedCategory === 'Cirúrgico'
+                      ? 'bg-amber-500 text-slate-950 font-semibold'
+                      : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+                >
+                  Centro Cirúrgico
+                </button>
+                <button
                   onClick={() => setSelectedCategory('Ressonância')}
-                  className={`px-2.5 py-1 rounded-lg transition-all ${
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                     selectedCategory === 'Ressonância'
                       ? 'bg-cyan-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'

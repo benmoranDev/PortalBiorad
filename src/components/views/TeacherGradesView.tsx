@@ -124,6 +124,8 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
             }`}
           >
             <option value="TC-402: Tomografia Computadorizada Avançada">TC-402: Tomografia Computadorizada Avançada</option>
+            <option value="RAD-601: Exames Contrastados & Farmacologia">RAD-601: Exames Contrastados & Farmacologia</option>
+            <option value="RAD-720: Centro Cirúrgico & Arco em C">RAD-720: Centro Cirúrgico & Arco em C</option>
             <option value="RAD-802: Ressonância Magnética e Neuro">RAD-802: Ressonância Magnética e Neuro</option>
             <option value="RAD-304: Radiologia Digital">RAD-304: Radiologia Digital</option>
           </select>

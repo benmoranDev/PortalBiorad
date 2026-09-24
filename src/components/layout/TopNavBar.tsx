@@ -14,6 +14,9 @@ interface TopNavBarProps {
   searchTerm: string;
   onSearchChange: (val: string) => void;
   onSelectNotification: (notif: EmailNotification) => void;
+  onLogout?: () => void;
+  onNavigateToTab?: (tab: string) => void;
+  isSupabaseConnected?: boolean;
 }
 
 export const TopNavBar: React.FC<TopNavBarProps> = ({
@@ -28,7 +31,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
   onOpenMobileMenu,
   searchTerm,
   onSearchChange,
-  onSelectNotification
+  onSelectNotification,
+  onLogout,
+  onNavigateToTab,
+  isSupabaseConnected = false
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -99,19 +105,78 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </span>
         </div>
 
-        {/* Right Side: GPA, Theme Toggle, Simulator CTA, Notifications, Lang, Role, Profile */}
+        {/* Right Side: Role Badge (Aluno / Professor / Admin), Theme Toggle, Simulator CTA, Notifications, Profile */}
         <div className="flex items-center gap-2 md:gap-3.5">
-          {/* GPA Badge */}
+          {/* Exclusivo Badge de Perfil do Usuário Logado */}
           <div
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-              isDark
-                ? 'bg-[#00a572]/15 border border-[#4edea3]/30 text-[#4edea3]'
-                : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+              currentUser.role === 'student'
+                ? isDark ? 'bg-cyan-500/15 border border-cyan-400/30 text-[#4cd7f6]' : 'bg-cyan-50 border border-cyan-300 text-cyan-800'
+                : currentUser.role === 'professor'
+                ? isDark ? 'bg-emerald-500/15 border border-emerald-400/30 text-emerald-400' : 'bg-emerald-50 border border-emerald-300 text-emerald-800'
+                : isDark ? 'bg-amber-500/15 border border-amber-400/30 text-amber-300' : 'bg-amber-50 border border-amber-300 text-amber-800'
             }`}
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>GPA: {currentUser.gpa.toFixed(2)} A+</span>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                currentUser.role === 'student'
+                  ? 'bg-[#4cd7f6] animate-pulse'
+                  : currentUser.role === 'professor'
+                  ? 'bg-emerald-400 animate-pulse'
+                  : 'bg-amber-400 animate-pulse'
+              }`}
+            />
+            <span className="font-bold text-[11px]">
+              {currentUser.role === 'student'
+                ? 'Aluno'
+                : currentUser.role === 'professor'
+                ? 'Professor'
+                : 'Admin'}
+            </span>
+            {currentUser.role === 'student' && currentUser.gpa && (
+              <span className="hidden md:inline font-mono opacity-80 text-[10px] lowercase">
+                • gpa {currentUser.gpa.toFixed(1)}
+              </span>
+            )}
           </div>
+
+          {/* Supabase Cloud Database Status Indicator (Exclusivo para o Administrador Geral) */}
+          {currentUser.role === 'admin' ? (
+            onNavigateToTab && (
+              <button
+                type="button"
+                onClick={() => onNavigateToTab('configuracoes')}
+                title={isSupabaseConnected ? 'Supabase Conectado - Clique para gerenciar banco de dados' : 'Supabase Desconectado - Clique para configurar'}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border ${
+                  isSupabaseConnected
+                    ? isDark
+                      ? 'bg-[#3ecf8e]/10 hover:bg-[#3ecf8e]/20 border-[#3ecf8e]/40 text-[#4edea3]'
+                      : 'bg-emerald-50 hover:bg-emerald-100 border-emerald-300 text-emerald-800'
+                    : isDark
+                      ? 'bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-300'
+                      : 'bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-base">database</span>
+                <span className="hidden sm:inline">
+                  {isSupabaseConnected ? 'Supabase Ativo (ADM)' : 'Banco Supabase (ADM)'}
+                </span>
+                <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConnected ? 'bg-[#4edea3] animate-pulse' : 'bg-amber-400'}`} />
+              </button>
+            )
+          ) : (
+            <div
+              title="Sistema Conectado ao Servidor em Nuvem"
+              className={`hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border opacity-75 ${
+                isSupabaseConnected
+                  ? isDark ? 'bg-emerald-950/30 border-emerald-500/30 text-emerald-400' : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                  : isDark ? 'bg-slate-800 border-slate-700 text-slate-400' : 'bg-slate-100 border-slate-200 text-slate-500'
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm">cloud_done</span>
+              <span className="hidden xl:inline">Portal Online</span>
+            </div>
+          )}
 
           {/* Quick Theme Toggle Button (Dark / Light) */}
           <button
@@ -182,42 +247,32 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </button>
           </div>
 
-          {/* Role Switcher Pill */}
+          {/* Role Indicator Badge (Display only the logged-in user's role) */}
           <div
-            className={`hidden md:flex items-center rounded-lg p-0.5 text-[11px] border ${
-              isDark ? 'bg-[#0a0e17]/70 border-[#3d494c]/50' : 'bg-slate-100 border-slate-200'
+            className={`hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border tracking-wide uppercase ${
+              currentUser.role === 'student'
+                ? isDark
+                  ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-400'
+                  : 'bg-cyan-50 border-cyan-300 text-cyan-800'
+                : currentUser.role === 'professor'
+                ? isDark
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                  : 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                : isDark
+                ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                : 'bg-amber-50 border-amber-300 text-amber-800'
             }`}
           >
-            <button
-              onClick={() => onRoleChange('student')}
-              className={`px-2 py-0.5 rounded transition-all ${
-                currentUser.role === 'student'
-                  ? isDark ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] font-semibold' : 'bg-cyan-500 text-slate-950 font-semibold shadow-sm'
-                  : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Aluno
-            </button>
-            <button
-              onClick={() => onRoleChange('professor')}
-              className={`px-2 py-0.5 rounded transition-all ${
-                currentUser.role === 'professor'
-                  ? isDark ? 'bg-[#4edea3]/20 text-[#4edea3] font-semibold' : 'bg-emerald-500 text-slate-950 font-semibold shadow-sm'
-                  : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Professor
-            </button>
-            <button
-              onClick={() => onRoleChange('admin')}
-              className={`px-2 py-0.5 rounded transition-all ${
-                currentUser.role === 'admin'
-                  ? isDark ? 'bg-amber-400/20 text-amber-300 font-semibold' : 'bg-amber-400 text-slate-950 font-semibold shadow-sm'
-                  : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Admin
-            </button>
+            <span className={`w-2 h-2 rounded-full ${
+              currentUser.role === 'student'
+                ? 'bg-cyan-400'
+                : currentUser.role === 'professor'
+                ? 'bg-emerald-400'
+                : 'bg-amber-400'
+            }`} />
+            <span>
+              {currentUser.role === 'student' ? 'Aluno' : currentUser.role === 'professor' ? 'Professor' : 'Admin'}
+            </span>
           </div>
 
           {/* Notifications Dropdown */}
@@ -287,7 +342,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               onClick={() => setShowProfileMenu(!showProfileMenu)}
               className="flex items-center gap-2 pl-1 cursor-pointer group"
             >
-              <div className="text-right hidden lg:block">
+              <div className="text-right hidden sm:block">
                 <p
                   className={`text-xs font-semibold leading-tight transition-colors ${
                     isDark ? 'text-[#dfe2ef] group-hover:text-[#4cd7f6]' : 'text-slate-800 group-hover:text-cyan-700'
@@ -295,8 +350,14 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 >
                   {currentUser.name}
                 </p>
-                <p className={`text-[10px] ${isDark ? 'text-[#bcc9cd]' : 'text-slate-500'}`}>
-                  {currentUser.role === 'student' ? 'Tecnólogo em Radiologia' : currentUser.role === 'professor' ? 'Docente Titular TC' : 'Administrador Geral'}
+                <p className={`text-[10px] font-bold uppercase tracking-wide ${
+                  currentUser.role === 'student'
+                    ? 'text-cyan-400'
+                    : currentUser.role === 'professor'
+                    ? 'text-emerald-400'
+                    : 'text-amber-400'
+                }`}>
+                  {currentUser.role === 'student' ? 'Aluno' : currentUser.role === 'professor' ? 'Professor' : 'Admin'}
                 </p>
               </div>
               <div className="relative">
@@ -316,43 +377,106 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                 }`}
               >
                 <div className="px-2 py-2 border-b border-slate-200/20 mb-2">
-                  <p className="font-bold">{currentUser.name}</p>
-                  <p className="text-gray-400 text-[11px] font-mono">{currentUser.enrollmentId}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-bold text-sm">{currentUser.name}</p>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-400">
+                      {currentUser.role === 'student' ? 'Aluno' : currentUser.role === 'professor' ? 'Professor' : 'Admin'}
+                    </span>
+                  </div>
+                  <p className="text-gray-400 text-[11px] font-mono mt-0.5">{currentUser.enrollmentId}</p>
                   <p className="text-[11px] text-[#4cd7f6] truncate">{currentUser.email}</p>
                 </div>
-                <div className="space-y-1">
-                  <div className="px-2 py-1 text-[11px] text-gray-400 font-semibold">Alternar Perfil:</div>
-                  <button
-                    onClick={() => {
-                      onRoleChange('student');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-500/10 flex items-center justify-between"
-                  >
-                    <span>Aluno (Lucas Mendonça)</span>
-                    {currentUser.role === 'student' && <span className="text-[#4cd7f6]">✓</span>}
-                  </button>
-                  <button
-                    onClick={() => {
-                      onRoleChange('professor');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-500/10 flex items-center justify-between"
-                  >
-                    <span>Professor (Dr. Aris Thorne)</span>
-                    {currentUser.role === 'professor' && <span className="text-[#4edea3]">✓</span>}
-                  </button>
-                  <button
-                    onClick={() => {
-                      onRoleChange('admin');
-                      setShowProfileMenu(false);
-                    }}
-                    className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-slate-500/10 flex items-center justify-between"
-                  >
-                    <span>Admin (Dra. Helena V.)</span>
-                    {currentUser.role === 'admin' && <span className="text-amber-400">✓</span>}
-                  </button>
+
+                <div className="space-y-1 py-1 text-xs">
+                  <div className="px-2 py-1 flex items-center justify-between text-slate-400">
+                    <span>Especialidade:</span>
+                    <span className="font-medium text-slate-200 text-right truncate max-w-[130px]">{currentUser.specialty || 'Radiologia'}</span>
+                  </div>
+                  <div className="px-2 py-1 flex items-center justify-between text-slate-400">
+                    <span>Perfil de Acesso:</span>
+                    <span className="font-semibold text-emerald-400 uppercase text-[11px]">
+                      {currentUser.role === 'student' ? 'Discente / Aluno' : currentUser.role === 'professor' ? 'Corpo Docente' : 'Administração'}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Alternar Perfil (Simulação & Testes de Acesso) */}
+                <div className="pt-2 mt-2 border-t border-slate-200/10">
+                  <p className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1.5 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-xs text-cyan-400">switch_account</span>
+                    Alternar Conta / Perfil:
+                  </p>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => {
+                        onRoleChange('admin');
+                        setShowProfileMenu(false);
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                        currentUser.role === 'admin'
+                          ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40'
+                          : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-amber-400">shield_person</span>
+                        <span>Ben Moran (Admin)</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-mono text-amber-400">Total</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        onRoleChange('professor');
+                        setShowProfileMenu(false);
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                        currentUser.role === 'professor'
+                          ? 'bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40'
+                          : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-emerald-400">school</span>
+                        <span>Prof. Marcus (Docente)</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-mono text-emerald-400">Notas</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        onRoleChange('student');
+                        setShowProfileMenu(false);
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg flex items-center justify-between text-xs transition-colors cursor-pointer ${
+                        currentUser.role === 'student'
+                          ? 'bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40'
+                          : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm text-cyan-400">person</span>
+                        <span>Lucas Mendonça (Aluno)</span>
+                      </div>
+                      <span className="text-[10px] uppercase font-mono text-cyan-400">Aulas</span>
+                    </button>
+                  </div>
+                </div>
+
+                {onLogout && (
+                  <div className="pt-2 mt-2 border-t border-slate-200/10">
+                    <button
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        onLogout();
+                      }}
+                      className="w-full text-left px-2 py-2 rounded-xl hover:bg-red-500/10 text-red-400 font-semibold flex items-center gap-2 cursor-pointer transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-base">logout</span>
+                      <span>Encerrar Sessão / Sair</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

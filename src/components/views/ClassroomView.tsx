@@ -11,6 +11,8 @@ interface ClassroomViewProps {
   onSelectLesson: (lesson: Lesson) => void;
   activeLesson: Lesson;
   currentUser?: User;
+  onNavigateTab?: (tab: string) => void;
+  onIssueCertificate?: (courseTitle?: string, hours?: number, targetCourseId?: string) => void;
   theme?: ThemeMode;
 }
 
@@ -20,6 +22,8 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
   onSelectLesson,
   activeLesson,
   currentUser,
+  onNavigateTab,
+  onIssueCertificate,
   theme = 'dark'
 }) => {
   const isDark = theme === 'dark';
@@ -38,6 +42,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
   const [activeTab, setActiveTab] = useState<'ementa' | 'downloads' | 'notes' | 'quiz'>('ementa');
   const [rightPanelTab, setRightPanelTab] = useState<'chat' | 'roadmap'>('chat');
   const [resourceFilter, setResourceFilter] = useState<string>('all');
+  const [lessonCategoryFilter, setLessonCategoryFilter] = useState<string>('all');
 
   // Modals
   const [isInstructorModalOpen, setIsInstructorModalOpen] = useState(false);
@@ -1309,7 +1314,34 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                {onNavigateTab && (
+                  <button
+                    onClick={() => {
+                      if (onIssueCertificate && Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100) {
+                        onIssueCertificate('Tomografia Computadorizada Clínica & Operação do Activion 16 (40h)', 40, 'course_tc_701');
+                      }
+                      onNavigateTab('certificados');
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
+                      Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100
+                        ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400 shadow-md'
+                        : isDark
+                        ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
+                        : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-sm">
+                      {Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100 ? 'workspace_premium' : 'lock'}
+                    </span>
+                    <span>
+                      {Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100
+                        ? 'Emitir Certificado (100%)'
+                        : `Certificado Bloqueado (${Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100)}%)`}
+                    </span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => setIsInstructorModalOpen(true)}
                   className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
@@ -1335,8 +1367,84 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
-              {lessons.map(item => (
+            {/* Filter by Specialty (Tomografia, Contrastados, Centro Cirúrgico, Todas) */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/10">
+              <span className={`text-xs font-semibold mr-1 flex items-center gap-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                <span className="material-symbols-outlined text-sm text-cyan-400">filter_list</span>
+                Especialidade:
+              </span>
+              <button
+                onClick={() => setLessonCategoryFilter('all')}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                  lessonCategoryFilter === 'all'
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md font-bold'
+                    : isDark
+                    ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
+                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                }`}
+              >
+                Todas as Aulas ({lessons.length})
+              </button>
+              <button
+                onClick={() => setLessonCategoryFilter('tc')}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  lessonCategoryFilter === 'tc'
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md font-bold'
+                    : isDark
+                    ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
+                    : 'bg-cyan-50 border-cyan-200 text-cyan-800 hover:bg-cyan-100'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">biotech</span>
+                <span>Tomografia Computadorizada</span>
+              </button>
+              <button
+                onClick={() => setLessonCategoryFilter('contrastados')}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  lessonCategoryFilter === 'contrastados'
+                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md font-bold'
+                    : isDark
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
+                    : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">vaccines</span>
+                <span>Exames Contrastados</span>
+              </button>
+              <button
+                onClick={() => setLessonCategoryFilter('cirurgico')}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  lessonCategoryFilter === 'cirurgico'
+                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-bold'
+                    : isDark
+                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
+                    : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">medical_services</span>
+                <span>Centro Cirúrgico</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-1">
+              {lessons
+                .filter(item => {
+                  if (lessonCategoryFilter === 'tc') {
+                    return item.courseId?.includes('tc') || item.title?.toLowerCase().includes('tomografia') || item.title?.toLowerCase().includes('hounsfield');
+                  }
+                  if (lessonCategoryFilter === 'contrastados') {
+                    return item.courseId?.includes('contrast') || item.title?.toLowerCase().includes('contraste') || item.description?.toLowerCase().includes('contraste');
+                  }
+                  if (lessonCategoryFilter === 'cirurgico') {
+                    return item.courseId?.includes('cirurg') || item.title?.toLowerCase().includes('cirúrg') || item.description?.toLowerCase().includes('cirúrg');
+                  }
+                  return true;
+                })
+                .map(item => {
+                  const isContrast = item.courseId?.includes('contrast') || item.title?.toLowerCase().includes('contraste');
+                  const isCirurg = item.courseId?.includes('cirurg') || item.title?.toLowerCase().includes('cirúrg');
+
+                  return (
                 <div
                   key={item.id}
                   onClick={() => onSelectLesson(item)}
@@ -1346,13 +1454,19 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                         ? 'bg-[#1c1f29] border-2 border-[#4cd7f6] shadow-[0_0_25px_rgba(6,182,212,0.2)]'
                         : 'bg-cyan-50/80 border-2 border-cyan-500 shadow-sm'
                       : isDark
-                        ? 'bg-[#141f38]/60 border-[#4edea3]/30 hover:border-[#4edea3]'
+                        ? 'bg-[#141f38]/60 border-white/10 hover:border-[#4cd7f6]/50'
                         : 'bg-white border-slate-200 hover:border-cyan-300 shadow-sm'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`text-[10px] font-mono font-bold ${item.id === activeLesson.id ? 'text-cyan-400' : 'text-emerald-500'}`}>
-                      CAPÍTULO 0{item.chapterNumber}
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                      isContrast
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : isCirurg
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                    }`}>
+                      {isContrast ? 'Contrastados' : isCirurg ? 'Centro Cirúrgico' : 'Tomografia'}
                     </span>
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
                       <span className={`material-symbols-outlined text-sm ${item.isCompleted ? 'text-emerald-500' : 'text-cyan-500'}`}>
@@ -1371,7 +1485,8 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                     {item.testScore && <span className="text-emerald-500 font-bold">Nota: {item.testScore}%</span>}
                   </div>
                 </div>
-              ))}
+                  );
+                })}
             </div>
           </div>
         </section>

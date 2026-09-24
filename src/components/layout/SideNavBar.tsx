@@ -10,6 +10,7 @@ interface SideNavBarProps {
   onOpenLabSupport: () => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  onLogout?: () => void;
 }
 
 export const SideNavBar: React.FC<SideNavBarProps> = ({
@@ -20,20 +21,33 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
   theme,
   onOpenLabSupport,
   isOpenMobile,
-  onCloseMobile
+  onCloseMobile,
+  onLogout
 }) => {
   const isDark = theme === 'dark';
 
   const navItems = [
+    // Aluno (Student): Aulas, Boletim de Notas, Trabalhos/Pendências, Simulador TC e Diplomas
     { id: 'dashboard', label: 'Dashboard', icon: 'space_dashboard', roles: ['student', 'professor', 'admin'] },
-    { id: 'aulas', label: 'Minhas Aulas', icon: 'biotech', roles: ['student', 'professor', 'admin'] },
-    { id: 'boletim', label: 'Boletim & Notas', icon: 'assignment_turned_in', roles: ['student', 'professor', 'admin'] },
-    { id: 'pendencias', label: 'Central de Pendências', icon: 'pending_actions', badge: pendingCount > 0 ? pendingCount : undefined, roles: ['student', 'professor', 'admin'] },
-    { id: 'professor_notas', label: 'Lançamento de Notas', icon: 'fact_check', roles: ['professor', 'admin'] },
-    { id: 'certificados', label: 'Diplomas & Certificados', icon: 'workspace_premium', roles: ['student', 'professor', 'admin'] },
+    { id: 'cursos_livres', label: 'Cursos Livres (40h)', icon: 'school', roles: ['student', 'professor', 'admin'] },
+    { id: 'aulas', label: 'Minhas Aulas & TC', icon: 'biotech', roles: ['student'] },
+    { id: 'boletim', label: 'Meu Boletim', icon: 'assignment_turned_in', roles: ['student'] },
+    { id: 'pendencias', label: 'Meus Trabalhos', icon: 'pending_actions', badge: pendingCount > 0 ? pendingCount : undefined, roles: ['student'] },
+    { id: 'certificados', label: 'Meus Certificados', icon: 'workspace_premium', roles: ['student'] },
+    { id: 'pagamentos', label: 'Matrícula Pix & Cartão', icon: 'credit_card', roles: ['student', 'professor', 'admin'] },
+
+    // Professor (Docente): Lançamento de Notas, Homologação, Visão das Aulas e Diário
+    { id: 'professor_notas', label: 'Lançamento de Notas', icon: 'fact_check', roles: ['professor'] },
+    { id: 'aulas', label: 'Conteúdo de Aulas', icon: 'biotech', roles: ['professor'] },
+    { id: 'pendencias', label: 'Correção de Trabalhos', icon: 'pending_actions', roles: ['professor'] },
+
+    // Admin (Administração Geral & TI - Acesso Exclusivo):
     { id: 'admin', label: 'Painel Administrativo', icon: 'admin_panel_settings', roles: ['admin'] },
-    { id: 'pagamentos', label: 'Planos & Matrícula', icon: 'credit_card', roles: ['student', 'professor', 'admin'] },
-    { id: 'configuracoes', label: 'Configurações & Supabase', icon: 'tune', roles: ['student', 'professor', 'admin'] }
+    { id: 'aulas', label: 'Gestão de Aulas & TC', icon: 'biotech', roles: ['admin'] },
+    { id: 'professor_notas', label: 'Auditoria de Notas', icon: 'fact_check', roles: ['admin'] },
+    { id: 'certificados', label: 'Gestão de Certificados', icon: 'workspace_premium', roles: ['admin'] },
+    // Configurações & Banco Supabase (EXCLUSIVO: Somente o Administrador tem acesso!)
+    { id: 'configuracoes', label: 'Banco Supabase & Ajustes', icon: 'database', roles: ['admin'] }
   ];
 
   const filteredItems = navItems.filter(item => item.roles.includes(userRole));
@@ -186,6 +200,21 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
               Tirar Dúvida com Tutor
             </button>
           </div>
+
+          {onLogout && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
+                isDark
+                  ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
+                  : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">logout</span>
+              <span>Sair do Portal</span>
+            </button>
+          )}
 
           <div
             className={`flex flex-col gap-0.5 text-xs ${

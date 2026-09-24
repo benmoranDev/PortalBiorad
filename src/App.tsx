@@ -23,12 +23,21 @@ import { PendenciasView } from './components/views/PendenciasView';
 import { CertificatesView } from './components/views/CertificatesView';
 import { AdminManagementView } from './components/views/AdminManagementView';
 import { PaymentCheckoutView } from './components/views/PaymentCheckoutView';
+import { CursosLivresView } from './components/views/CursosLivresView';
 import { SettingsView } from './components/views/SettingsView';
 import { SimulatorModal } from './components/views/SimulatorModal';
 import { SubmissionModal } from './components/modals/SubmissionModal';
 import { LabSupportModal } from './components/modals/LabSupportModal';
+import { SplashScreen } from './components/auth/SplashScreen';
+import { LoginScreen } from './components/auth/LoginScreen';
 
 export default function App() {
+  // Splash and Authentication States
+  const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [authSession, setAuthSession] = useState<{ isAuthenticated: boolean; user: User | null }>(() =>
+    storageService.getAuthSession()
+  );
+
   // Global States
   const [currentUser, setCurrentUser] = useState<User>(() => storageService.getCurrentUser());
   const [courses, setCourses] = useState<Course[]>(() => storageService.getCourses());
@@ -43,6 +52,7 @@ export default function App() {
 
   // UI Flow States
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
+  const [selectedCourseForEnrollment, setSelectedCourseForEnrollment] = useState<string | null>(null);
   const [activeLesson, setActiveLesson] = useState<Lesson>(lessons[3] || lessons[0]);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState<boolean>(false);
   const [isLabSupportOpen, setIsLabSupportOpen] = useState<boolean>(false);
@@ -63,6 +73,8 @@ export default function App() {
   // Sync with storage events
   useEffect(() => {
     const handleStorageChange = () => {
+      const currentSession = storageService.getAuthSession();
+      setAuthSession(currentSession);
       setCurrentUser(storageService.getCurrentUser());
       setCourses(storageService.getCourses());
       setLessons(storageService.getLessons());
@@ -78,6 +90,39 @@ export default function App() {
     window.addEventListener('radbio_state_changed', handleStorageChange);
     return () => window.removeEventListener('radbio_state_changed', handleStorageChange);
   }, []);
+
+  // Supabase Realtime Listener for cloud updates
+  useEffect(() => {
+    if (!supabaseConfig.url || !supabaseConfig.anonKey) return;
+
+    let unsubscribe: (() => void) | undefined;
+    import('./services/supabaseClient')
+      .then(({ supabaseService }) => {
+        unsubscribe = supabaseService.subscribeToRealtime((table, payload) => {
+          if (table === 'radbio_notifications' && payload.new?.data) {
+            storageService.addNotification(payload.new.data);
+          }
+        });
+      })
+      .catch(() => {});
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, [supabaseConfig.url, supabaseConfig.anonKey]);
+
+  const handleLoginSuccess = (user: User) => {
+    setAuthSession({ isAuthenticated: true, user });
+    setCurrentUser(user);
+    storageService.setAuthSession({ isAuthenticated: true, user });
+    showToast(`Bem-vindo ao Portal RadBio, ${user.name}!`);
+  };
+
+  const handleLogout = () => {
+    storageService.logout();
+    setAuthSession({ isAuthenticated: false, user: null });
+    showToast('Sessão encerrada com sucesso.');
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -98,23 +143,24 @@ export default function App() {
     if (newRole === 'professor') {
       updatedUser = {
         ...updatedUser,
-        name: 'Prof. Dr. Aris Thorne',
-        email: 'aris.thorne@radbio.edu.br',
+        name: 'Prof. Dr. Marcus Vinicius',
+        email: 'marcus.vinicius@radbio.edu.br',
         avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
-        enrollmentId: 'DOC-RAD-2026',
-        specialty: 'Médico Radiologista & Físico das Radiações (CBR)'
+        enrollmentId: 'DOC-TC-09',
+        specialty: 'Especialista em Tomografia Computadorizada CBR'
       };
-      if (currentTab === 'dashboard') setCurrentTab('professor_notas');
+      if (currentTab === 'configuracoes' || currentTab === 'admin') {
+        setCurrentTab('professor_notas');
+      }
     } else if (newRole === 'admin') {
       updatedUser = {
         ...updatedUser,
-        name: 'Dra. Helena Vasconcelos',
-        email: 'helena.v@radbio.edu.br',
-        avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
-        enrollmentId: 'ADM-RAD-001',
-        specialty: 'Diretoria Acadêmica e Regulação de Ensino'
+        name: 'Ben Moran',
+        email: 'benmoran29dev@gmail.com',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+        enrollmentId: 'ADM-BEN-2026',
+        specialty: 'Administrador Geral do Sistema & Diretor de Tecnologia RadBio'
       };
-      if (currentTab === 'dashboard') setCurrentTab('admin');
     } else {
       updatedUser = {
         ...updatedUser,
@@ -124,11 +170,28 @@ export default function App() {
         enrollmentId: '2025-RAD-8841',
         specialty: 'Tecnólogo em Radiologia & Tomografia Computadorizada'
       };
+      if (currentTab === 'configuracoes' || currentTab === 'admin' || currentTab === 'professor_notas') {
+        setCurrentTab('dashboard');
+      }
     }
     setCurrentUser(updatedUser);
     storageService.setCurrentUser(updatedUser);
-    showToast(`Perfil alterado para ${newRole === 'student' ? 'Aluno' : newRole === 'professor' ? 'Docente' : 'Administrador'}`);
+    showToast(`Perfil alterado para ${newRole === 'student' ? 'Aluno (Lucas)' : newRole === 'professor' ? 'Docente (Prof. Marcus)' : 'Administrador Geral (Ben Moran)'}`);
   };
+
+  // RBAC Tab Protection Guard: Restrict sensitive views based on role
+  useEffect(() => {
+    if (currentUser.role !== 'admin') {
+      if (currentTab === 'configuracoes' || currentTab === 'admin') {
+        setCurrentTab('dashboard');
+        showToast('Acesso Restrito: Apenas o Administrador Geral possui permissão para acessar esta área.');
+      }
+    }
+    if (currentUser.role === 'student' && currentTab === 'professor_notas') {
+      setCurrentTab('dashboard');
+      showToast('Acesso Restrito: Apenas professores e administradores podem auditar notas.');
+    }
+  }, [currentTab, currentUser.role]);
 
   const handleTaskSubmitted = (taskId: string, fileName: string) => {
     const updated = tasks.map(t =>
@@ -157,24 +220,48 @@ export default function App() {
     setCurrentTab('aulas');
   };
 
-  const handleIssueCertificate = () => {
+  const handleIssueCertificate = (courseTitle?: string, hours?: number, targetCourseId?: string) => {
+    // HARD ENFORCEMENT: Course lessons must be 100% completed
+    const currentLessons = storageService.getLessons();
+    const courseId = targetCourseId || 'course_tc_701';
+    const relevantLessons = currentLessons.filter(l => !targetCourseId || l.courseId === courseId);
+    const scopeLessons = relevantLessons.length > 0 ? relevantLessons : currentLessons;
+    const completedLessons = scopeLessons.filter(l => l.isCompleted);
+    const totalCount = scopeLessons.length;
+    const completedCount = completedLessons.length;
+    const completionPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+    if (completionPct < 100) {
+      showToast(`BLOQUEADO: É necessário concluir 100% das aulas e vídeos (${completedCount}/${totalCount} concluídas - ${completionPct}%). Assista a todas as aulas para liberar seu certificado.`);
+      setCurrentTab('aulas');
+      return;
+    }
+
+    const workload = hours || 40;
+    const title = courseTitle || 'Tomografia Computadorizada Clínica & Operação do Activion 16 (40h)';
     const newCert: Certificate = {
       id: `cert_${Date.now()}`,
-      code: `RADBIO-CERT-2026-${Math.floor(1000 + Math.random() * 9000)}-TC`,
+      code: `RADBIO-CERT-2026-${Math.floor(1000 + Math.random() * 9000)}-40H`,
       studentName: currentUser.name,
       studentDocument: `${currentUser.enrollmentId} • CPF Registrado`,
-      courseName: 'Aperfeiçoamento em Tomografia Computadorizada de Alta Resolução (HRCT)',
-      workloadHours: 120,
+      courseName: title,
+      courseId,
+      workloadHours: workload,
       completionDate: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }),
-      instructorName: 'Prof. Dr. Aris Thorne',
-      instructorRole: 'Supervisor de Tomografia CBR',
-      finalScore: 9.6,
-      sha256Hash: 'a7c98b21...4920fc99e01',
-      qrValidationUrl: 'https://radbio.edu.br/validar'
+      completionPercentage: 100,
+      completedLessonsCount: completedCount,
+      totalLessonsCount: totalCount,
+      instructorName: 'Prof. Dr. Marcus Vinicius',
+      instructorRole: 'Especialista em Tomografia CBR & Físico das Radiações',
+      finalScore: 9.8,
+      sha256Hash: 'a7c98b21e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b',
+      qrValidationUrl: 'https://radbio.edu.br/validar/RADBIO-CERT-2026-40H',
+      mecLdbCompliance: 'Lei Federal nº 9.394/96 (LDB) art. 42 e Decreto Federal nº 5.154/04',
+      authenticatedBy: 'Conselho Consultivo Acadêmico RadBio & Bacen Cert'
     };
     storageService.addCertificate(newCert);
     setCertificates(storageService.getCertificates());
-    showToast('Novo Certificado emitido e assinado digitalmente!');
+    showToast(`Parabéns! Requisito de 100% atendido. Certificado Oficial de ${workload} Horas emitido com sucesso!`);
   };
 
   const pendingCount = tasks.filter(t => t.status === 'pending').length;
@@ -185,6 +272,22 @@ export default function App() {
     : courses;
 
   const isDark = theme === 'dark';
+
+  // 1. Initial Medical SplashScreen Flow
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
+  // 2. Authentication Flow: If not authenticated, render LoginScreen
+  if (!authSession.isAuthenticated || !authSession.user) {
+    return (
+      <LoginScreen
+        onLoginSuccess={handleLoginSuccess}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+      />
+    );
+  }
 
   return (
     <div
@@ -219,6 +322,7 @@ export default function App() {
         onOpenLabSupport={() => setIsLabSupportOpen(true)}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
+        onLogout={handleLogout}
       />
 
       {/* Main Content Area */}
@@ -239,6 +343,9 @@ export default function App() {
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
+          onLogout={handleLogout}
+          onNavigateToTab={setCurrentTab}
+          isSupabaseConnected={supabaseConfig.isConnected}
           onSelectNotification={notif => {
             storageService.markNotificationAsRead(notif.id);
             if (notif.type === 'grade_published') setCurrentTab('boletim');
@@ -273,6 +380,8 @@ export default function App() {
               onSelectLesson={setActiveLesson}
               onOpenSimulator={() => setIsSimulatorOpen(true)}
               currentUser={currentUser}
+              onNavigateTab={setCurrentTab}
+              onIssueCertificate={handleIssueCertificate}
               theme={theme}
             />
           )}
@@ -306,48 +415,83 @@ export default function App() {
             />
           )}
 
+          {currentTab === 'cursos_livres' && (
+            <CursosLivresView
+              onSelectCourseForEnrollment={courseId => {
+                setSelectedCourseForEnrollment(courseId);
+                setCurrentTab('pagamentos');
+              }}
+              onOpenSimulator={() => setIsSimulatorOpen(true)}
+              onNavigateTab={setCurrentTab}
+              userRole={currentUser.role}
+              theme={theme}
+            />
+          )}
+
           {currentTab === 'certificados' && (
             <CertificatesView
               certificates={certificates}
+              lessons={lessons}
               onIssueCertificate={handleIssueCertificate}
               theme={theme}
             />
           )}
 
           {currentTab === 'pagamentos' && (
-            <PaymentCheckoutView onPaymentSuccess={handlePaymentSuccess} theme={theme} />
+            <PaymentCheckoutView
+              onPaymentSuccess={handlePaymentSuccess}
+              onNavigateTab={setCurrentTab}
+              selectedCourseId={selectedCourseForEnrollment}
+              theme={theme}
+            />
           )}
 
           {currentTab === 'admin' && (
-            <AdminManagementView
-              courses={courses}
-              notifications={notifications}
-              theme={theme}
-              onAddCourse={newCourse => {
-                const updated = [newCourse, ...courses];
-                setCourses(updated);
-                storageService.setCourses(updated);
-                showToast(`Disciplina ${newCourse.title} criada com sucesso!`);
-              }}
-            />
+            currentUser.role === 'admin' ? (
+              <AdminManagementView
+                courses={courses}
+                notifications={notifications}
+                theme={theme}
+                onAddCourse={newCourse => {
+                  const updated = [newCourse, ...courses];
+                  setCourses(updated);
+                  storageService.setCourses(updated);
+                  showToast(`Disciplina ${newCourse.title} criada com sucesso!`);
+                }}
+              />
+            ) : (
+              <div className="p-8 max-w-xl mx-auto my-12 text-center rounded-2xl border border-red-500/30 bg-red-500/10">
+                <span className="material-symbols-outlined text-4xl text-red-400 mb-2">lock</span>
+                <h3 className="text-lg font-bold text-red-400">Acesso Restrito ao Administrador Geral</h3>
+                <p className="text-xs text-slate-400 mt-2">Você está autenticado com um perfil que não possui privilégios de gestão institucional.</p>
+              </div>
+            )
           )}
 
           {currentTab === 'configuracoes' && (
-            <SettingsView
-              supabaseConfig={supabaseConfig}
-              onUpdateSupabase={setSupabaseConfig}
-              theme={theme}
-              onToggleTheme={t => {
-                setTheme(t);
-                storageService.setTheme(t);
-              }}
-              language={language}
-              onSelectLanguage={l => {
-                setLanguage(l);
-                storageService.setLanguage(l);
-              }}
-              onShowSuccessToast={showToast}
-            />
+            currentUser.role === 'admin' ? (
+              <SettingsView
+                supabaseConfig={supabaseConfig}
+                onUpdateSupabase={setSupabaseConfig}
+                theme={theme}
+                onToggleTheme={t => {
+                  setTheme(t);
+                  storageService.setTheme(t);
+                }}
+                language={language}
+                onSelectLanguage={l => {
+                  setLanguage(l);
+                  storageService.setLanguage(l);
+                }}
+                onShowSuccessToast={showToast}
+              />
+            ) : (
+              <div className="p-8 max-w-xl mx-auto my-12 text-center rounded-2xl border border-red-500/30 bg-red-500/10">
+                <span className="material-symbols-outlined text-4xl text-red-400 mb-2">database_locked</span>
+                <h3 className="text-lg font-bold text-red-400">Acesso Restrito: Banco de Dados Supabase</h3>
+                <p className="text-xs text-slate-400 mt-2">Apenas o Administrador Geral (Ben Moran) possui acesso a credenciais, sincronização e scripts de banco de dados.</p>
+              </div>
+            )
           )}
         </main>
       </div>

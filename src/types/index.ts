@@ -17,6 +17,14 @@ export interface User {
   totalRequiredHours: number;
   attendanceRate: number;
   status: 'regular' | 'warning' | 'honor';
+  password?: string; // Stored securely in client storage for portal login
+}
+
+export interface AuthSession {
+  isAuthenticated: boolean;
+  user: User | null;
+  token?: string;
+  loginTimestamp?: number;
 }
 
 export interface Course {
@@ -28,7 +36,7 @@ export interface Course {
   instructor: string;
   instructorTitle: string;
   instructorAvatar?: string;
-  category: 'Tomografia Computadorizada' | 'Ressonância Magnética' | 'Radiologia Geral' | 'Radioproteção' | 'Medicina Nuclear';
+  category: 'Tomografia Computadorizada' | 'Exames Contrastados' | 'Centro Cirúrgico' | 'Ressonância Magnética' | 'Radiologia Geral' | 'Radioproteção' | 'Medicina Nuclear';
   progress: number;
   currentModule: number;
   totalModules: number;
@@ -56,6 +64,7 @@ export interface LessonResource {
 export interface LessonQuizQuestion {
   id: string;
   lessonId: string;
+  title?: string;
   question: string;
   options: string[];
   correctAnswerIndex: number;
@@ -137,13 +146,19 @@ export interface Certificate {
   studentName: string;
   studentDocument: string;
   courseName: string;
+  courseId?: string;
   workloadHours: number;
   completionDate: string;
+  completionPercentage?: number; // Must be 100%
+  completedLessonsCount?: number;
+  totalLessonsCount?: number;
   instructorName: string;
   instructorRole: string;
   finalScore: number;
   sha256Hash: string;
   qrValidationUrl: string;
+  mecLdbCompliance?: string;
+  authenticatedBy?: string;
 }
 
 export interface EmailNotification {
@@ -165,6 +180,68 @@ export interface PaymentPlan {
   installments: number;
   features: string[];
   isPopular?: boolean;
+}
+
+export interface CursoLivreModule {
+  id: string;
+  moduleNumber: number;
+  title: string;
+  workloadHours: number; // e.g. 10h per module
+  description: string;
+  topics: string[];
+  hasSimulatorPractice?: boolean;
+  simulatorProtocolName?: string;
+  hasDicomViewer?: boolean;
+}
+
+export interface CursoLivre {
+  id: string;
+  code: string;
+  title: string;
+  subtitle: string;
+  category: 'Tomografia Computadorizada' | 'Urgência & Trauma' | 'Angiotomografia' | 'Radioproteção' | 'Reconstrução 3D & DICOM' | 'Exames Contrastados';
+  workloadHours: number; // 40h standard
+  price: number;
+  originalPrice: number;
+  installments: number;
+  rating: number;
+  reviewCount: number;
+  enrolledStudentsCount: number;
+  instructor: string;
+  instructorTitle: string;
+  instructorAvatar: string;
+  coverImage: string;
+  description: string;
+  targetAudience: string;
+  objectives: string[];
+  legalCompliance: string; // MEC / Lei 9.394/96
+  modules: CursoLivreModule[];
+  isEnrolled?: boolean;
+  progressPercent?: number;
+  hasActivionSimulator: boolean;
+  hasRealDicomCases: boolean;
+  featured?: boolean;
+}
+
+export interface PaymentTransaction {
+  id: string;
+  transactionCode: string;
+  courseId: string;
+  courseTitle: string;
+  studentName: string;
+  studentEmail: string;
+  studentCpf?: string;
+  amount: number;
+  paymentMethod: 'pix' | 'credit';
+  installments?: number;
+  cardBrand?: string;
+  cardLast4?: string;
+  pixQrCodeString?: string;
+  pixEndToEndId?: string;
+  status: 'pending' | 'approved' | 'completed';
+  createdAt: string;
+  paidAt?: string;
+  certificateWorkloadHours: number; // 40h
 }
 
 export interface SupabaseConfig {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Course, ThemeMode, EmailNotification } from '../../types';
+import { storageService } from '../../services/storage';
 
 interface AdminManagementViewProps {
   courses: Course[];
@@ -16,10 +17,71 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'courses' | 'logs'>('courses');
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
+  const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newCode, setNewCode] = useState('');
   const [newInstructor, setNewInstructor] = useState('');
   const [newCategory, setNewCategory] = useState<Course['category']>('Tomografia Computadorizada');
+
+  // Dynamic user directory list
+  const [usersList, setUsersList] = useState([
+    {
+      id: 'usr_admin_ben',
+      name: 'Ben Moran',
+      email: 'benmoran29dev@gmail.com',
+      role: 'admin',
+      enrollment: 'ADM-BEN-2026',
+      details: 'Administrador Geral & Diretor de Tecnologia RadBio',
+      badge: 'Super Admin • Gestor Geral',
+      badgeColor: 'amber'
+    },
+    {
+      id: 'u1',
+      name: 'Lucas Mendonça',
+      email: 'lucas.mendonca@radbio.edu.br',
+      role: 'student',
+      enrollment: '2025-RAD-8841',
+      details: 'Tecnólogo em Radiologia • 5º Período',
+      badge: 'Ativo • CR 9.1',
+      badgeColor: 'emerald'
+    },
+    {
+      id: 'u2',
+      name: 'Prof. Dr. Marcus Vinicius',
+      email: 'marcus.vinicius@radbio.edu.br',
+      role: 'professor',
+      enrollment: 'DOC-TC-09',
+      details: 'Especialista em TC CBR • Titular de Imagem',
+      badge: 'Corpo Docente',
+      badgeColor: 'cyan'
+    },
+    {
+      id: 'u3',
+      name: 'Dra. Helena Vasconcelos',
+      email: 'helena.vasconcelos@radbio.edu.br',
+      role: 'admin',
+      enrollment: 'ADM-01',
+      details: 'Coordenação Acadêmica Geral',
+      badge: 'Coordenação Geral',
+      badgeColor: 'amber'
+    },
+    {
+      id: 'u4',
+      name: 'Camila Albuquerque',
+      email: 'camila.albuquerque@radbio.edu.br',
+      role: 'student',
+      enrollment: '2025-RAD-8912',
+      details: 'Biomédica Imagenologista • Pós-Graduanda',
+      badge: 'Ativo • CR 9.4',
+      badgeColor: 'emerald'
+    }
+  ]);
+
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserRole, setNewUserRole] = useState<'student' | 'professor' | 'admin'>('student');
+  const [newUserSpecialty, setNewUserSpecialty] = useState('');
+
   const isDark = theme === 'dark';
 
   const handleCreateCourse = (e: React.FormEvent) => {
@@ -199,58 +261,65 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
         <div className={`p-6 rounded-2xl border space-y-4 ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
-          <h3 className={`text-sm font-bold font-['Plus_Jakarta_Sans'] ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Diretório de Usuários Ativos
-          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-sm font-bold font-['Plus_Jakarta_Sans'] ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                Diretório de Usuários Ativos ({usersList.length})
+              </h3>
+              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                Gerenciamento de alunos, preceptores e coordenadores da plataforma.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAddUserModal(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">person_add</span>
+              <span>Cadastrar Aluno / Usuário</span>
+            </button>
+          </div>
+
           <div className="space-y-3 text-xs">
-            <div className={`p-3 rounded-xl border flex items-center justify-between ${
-              isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-            }`}>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-600 flex items-center justify-center font-bold">LM</div>
-                <div>
-                  <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Lucas Mendonça (Aluno)</div>
-                  <div className={`font-mono ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    2025-RAD-8841 • Tecnólogo em Radiologia
+            {usersList.map(u => (
+              <div
+                key={u.id}
+                className={`p-3 rounded-xl border flex items-center justify-between ${
+                  isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${
+                    u.role === 'student' ? 'bg-cyan-500/20 text-cyan-400' :
+                    u.role === 'professor' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-400/20 text-amber-400'
+                  }`}>
+                    {u.name.split(' ').slice(0, 2).map(n => n[0]).join('')}
+                  </div>
+                  <div>
+                    <div className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      <span>{u.name}</span>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                        u.role === 'student' ? 'bg-cyan-500/10 text-cyan-400' :
+                        u.role === 'professor' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                      }`}>
+                        {u.role === 'student' ? 'Aluno' : u.role === 'professor' ? 'Docente' : 'Admin'}
+                      </span>
+                    </div>
+                    <div className={`font-mono text-[11px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                      Matrícula: {u.enrollment} • {u.details}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-600 font-semibold">Ativo • CR 9.1</span>
-            </div>
-
-            <div className={`p-3 rounded-xl border flex items-center justify-between ${
-              isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-            }`}>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-600 flex items-center justify-center font-bold">MV</div>
-                <div>
-                  <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Prof. Dr. Marcus Vinicius (Professor Titular)
-                  </div>
-                  <div className={`font-mono ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    DOC-TC-09 • Especialista em TC CBR
-                  </div>
+                <div className="text-right">
+                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                    u.badgeColor === 'emerald' ? 'bg-emerald-500/15 text-emerald-400' :
+                    u.badgeColor === 'cyan' ? 'bg-cyan-500/15 text-cyan-400' : 'bg-amber-400/15 text-amber-400'
+                  }`}>
+                    {u.badge}
+                  </span>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-600 font-semibold">Corpo Docente</span>
-            </div>
-
-            <div className={`p-3 rounded-xl border flex items-center justify-between ${
-              isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-            }`}>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-500 flex items-center justify-center font-bold">HV</div>
-                <div>
-                  <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    Dra. Helena Vasconcelos (Administradora)
-                  </div>
-                  <div className={`font-mono ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    ADM-01 • Coordenação Acadêmica
-                  </div>
-                </div>
-              </div>
-              <span className="px-2.5 py-1 rounded-full bg-amber-400/15 text-amber-500 font-semibold">Coordenação Geral</span>
-            </div>
+            ))}
           </div>
         </div>
       )}
@@ -342,6 +411,8 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                     }`}
                   >
                     <option value="Tomografia Computadorizada">Tomografia Computadorizada</option>
+                    <option value="Exames Contrastados">Exames Contrastados</option>
+                    <option value="Centro Cirúrgico">Centro Cirúrgico</option>
                     <option value="Ressonância Magnética">Ressonância Magnética</option>
                     <option value="Radiologia Geral">Radiologia Geral</option>
                     <option value="Radioproteção">Radioproteção</option>
@@ -374,6 +445,145 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                   className="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold shadow cursor-pointer hover:opacity-95"
                 >
                   Cadastrar Disciplina
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Add User / Student */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className={`max-w-md w-full p-6 rounded-3xl border shadow-2xl space-y-4 ${
+            isDark ? 'bg-[#1c1f29] border-[#4cd7f6]/40 text-white' : 'bg-white border-slate-200 text-slate-800'
+          }`}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold font-['Plus_Jakarta_Sans']">Cadastrar Novo Usuário</h3>
+              <button
+                type="button"
+                onClick={() => setShowAddUserModal(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                if (!newUserName || !newUserEmail) return;
+                const enroll = newUserRole === 'student' ? `2026-RAD-${Math.floor(1000 + Math.random() * 9000)}` : newUserRole === 'professor' ? `DOC-TC-${Math.floor(10 + Math.random() * 90)}` : `ADM-${Math.floor(10 + Math.random() * 90)}`;
+                const newU = {
+                  id: `u_${Date.now()}`,
+                  name: newUserName,
+                  email: newUserEmail,
+                  role: newUserRole,
+                  enrollment: enroll,
+                  details: newUserSpecialty || (newUserRole === 'student' ? 'Graduação em Radiologia / Imagenologia' : 'Especialista em Tomografia Computadorizada'),
+                  badge: newUserRole === 'student' ? 'Matriculado • Ativo' : newUserRole === 'professor' ? 'Docente Ativo' : 'Administrador',
+                  badgeColor: newUserRole === 'student' ? 'emerald' : newUserRole === 'professor' ? 'cyan' : 'amber'
+                };
+                
+                // Persist into user registry for login
+                storageService.registerUser({
+                  id: newU.id,
+                  name: newU.name,
+                  email: newU.email,
+                  role: newU.role as any,
+                  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+                  enrollmentId: enroll,
+                  specialty: newU.details,
+                  gpa: 4.0,
+                  completedHours: 0,
+                  totalRequiredHours: 180,
+                  attendanceRate: 100,
+                  status: 'regular',
+                  password: '123'
+                });
+
+                setUsersList(prev => [newU, ...prev]);
+                setNewUserName('');
+                setNewUserEmail('');
+                setNewUserSpecialty('');
+                setShowAddUserModal(false);
+              }}
+              className="space-y-3 text-xs"
+            >
+              <div>
+                <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  value={newUserName}
+                  onChange={e => setNewUserName(e.target.value)}
+                  placeholder="Ex: Beatriz Lima Ramos"
+                  required
+                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
+                  E-mail Institucional
+                </label>
+                <input
+                  type="email"
+                  value={newUserEmail}
+                  onChange={e => setNewUserEmail(e.target.value)}
+                  placeholder="beatriz.ramos@radbio.edu.br"
+                  required
+                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                    isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                  }`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>Perfil de Acesso</label>
+                  <select
+                    value={newUserRole}
+                    onChange={e => setNewUserRole(e.target.value as any)}
+                    className={`w-full p-2.5 rounded-xl border outline-none ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
+                  >
+                    <option value="student">Aluno / Discente</option>
+                    <option value="professor">Professor / Preceptor</option>
+                    <option value="admin">Administrador / Coordenação</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>Área / Especialidade</label>
+                  <input
+                    type="text"
+                    value={newUserSpecialty}
+                    onChange={e => setNewUserSpecialty(e.target.value)}
+                    placeholder="Ex: TC Multislice"
+                    className={`w-full p-2.5 rounded-xl border outline-none ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddUserModal(false)}
+                  className={`px-4 py-2 rounded-xl cursor-pointer ${isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold shadow cursor-pointer hover:opacity-95"
+                >
+                  Cadastrar Usuário
                 </button>
               </div>
             </form>
