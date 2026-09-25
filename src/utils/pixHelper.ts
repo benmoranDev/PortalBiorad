@@ -1,4 +1,5 @@
 // Helper for Pix BRCode (EMV standard) and Dynamic / Custom Pix Keys
+import QRCode from 'qrcode';
 
 export interface PixConfig {
   keyType: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
@@ -10,11 +11,43 @@ export interface PixConfig {
 
 export const DEFAULT_PIX_CONFIG: PixConfig = {
   keyType: 'email',
-  keyValue: 'benmoran29dev@gmail.com', // Chave Pix do Usuário
+  keyValue: 'benmoran29dev@gmail.com', // Chave Pix Principal do Administrador
   merchantName: 'RADBIO EDUCACAO',
   merchantCity: 'SAO PAULO',
   defaultDescription: 'Curso Livre 40h RadBio'
 };
+
+/**
+ * Remove acentos e caracteres especiais para conformidade estrita com o padrão BACEN BRCode EMV
+ */
+export function removeAccents(str: string): string {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 ]/g, ' ')
+    .trim();
+}
+
+/**
+ * Normaliza a chave Pix de acordo com seu tipo
+ */
+export function normalizePixKey(key: string, type: PixConfig['keyType']): string {
+  const k = (key || '').trim();
+  if (type === 'cpf' || type === 'cnpj') {
+    return k.replace(/\D/g, '');
+  }
+  if (type === 'phone') {
+    const digits = k.replace(/\D/g, '');
+    if (digits.startsWith('55') && digits.length >= 12) {
+      return `+${digits}`;
+    }
+    return `+55${digits}`;
+  }
+  if (type === 'email') {
+    return k.toLowerCase();
+  }
+  return k;
+}
 
 // CRC16-CCITT calculation for EMV QR Code standards
 function crc16(data: string): string {
@@ -40,17 +73,21 @@ function formatEmvField(id: string, value: string): string {
   return `${id}${len}${value}`;
 }
 
+/**
+ * Gera o código PIX Copia e Cola Oficial (BR Code EMV)
+ */
 export function generatePixBrCode(
   amount: number,
   pixKey: string = DEFAULT_PIX_CONFIG.keyValue,
   merchantName: string = DEFAULT_PIX_CONFIG.merchantName,
   merchantCity: string = DEFAULT_PIX_CONFIG.merchantCity,
-  txId: string = 'RAD40H'
+  txId: string = 'RAD40H',
+  keyType: PixConfig['keyType'] = 'email'
 ): string {
-  const cleanKey = pixKey.trim();
+  const cleanKey = normalizePixKey(pixKey, keyType);
   const cleanTxId = (txId.replace(/[^A-Za-z0-9]/g, '') || 'RAD40H').slice(0, 25);
-  const cleanCity = (merchantCity.trim() || 'SAO PAULO').slice(0, 15).toUpperCase();
-  const cleanName = (merchantName.trim() || 'RADBIO EDUCACAO').slice(0, 25).toUpperCase();
+  const cleanCity = removeAccents(merchantCity || 'SAO PAULO').slice(0, 15).toUpperCase() || 'SAO PAULO';
+  const cleanName = removeAccents(merchantName || 'RADBIO EDUCACAO').slice(0, 25).toUpperCase() || 'RADBIO EDUCACAO';
 
   // 26: Merchant Account Information - GUI + Key
   const gui = formatEmvField('00', 'br.gov.bcb.pix');
@@ -79,4 +116,24 @@ export function generatePixBrCode(
   const checksum = crc16(payload);
 
   return `${payload}${checksum}`;
+}
+
+/**
+ * Gera uma imagem Real em Data URL (PNG) a partir do BR Code para escanear com qualquer aplicativo de banco
+ */
+export async function generatePixQrCodeDataUrl(pixPayload: string): Promise<string> {
+  try {
+    return await QRCode.toDataURL(pixPayload, {
+      width: 360,
+      margin: 2,
+      errorCorrectionLevel: 'M',
+      color: {
+        dark: '#030712',
+        light: '#ffffff'
+      }
+    });
+  } catch (err) {
+    console.error('Erro ao renderizar QRCode PIX:', err);
+    return '';
+  }
 }

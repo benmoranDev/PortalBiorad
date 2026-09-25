@@ -896,35 +896,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex items-center gap-2.5">
             <span className="material-symbols-outlined text-[#4edea3] text-xl">translate</span>
             <h3 className="text-base font-bold text-white font-['Plus_Jakarta_Sans']">
-              Idioma da Plataforma
+              Idioma do Sistema Acadêmico
             </h3>
           </div>
           <p className="text-xs text-[#bcc9cd]">
-            Adaptação de termos técnicos de tomografia computadorizada e radiologia para alcance global.
+            Plataforma 100% em língua portuguesa, estruturada conforme as normas do CBR, CRTR/CONTER e MEC.
           </p>
 
-          <div className="space-y-2 pt-2">
-            {[
-              { id: 'pt' as Language, name: 'Português (Brasil)', label: 'Padrão CBR / CRTR' },
-              { id: 'en' as Language, name: 'English (US)', label: 'RSNA / ACR Standard' },
-              { id: 'es' as Language, name: 'Español', label: 'Estándar SERAM / CIR' }
-            ].map(l => (
-              <button
-                key={l.id}
-                onClick={() => onSelectLanguage(l.id)}
-                className={`w-full p-3 rounded-xl border text-left flex items-center justify-between text-xs transition-all ${
-                  language === l.id
-                    ? 'bg-[#1c1f29] border-[#4cd7f6] text-white font-bold'
-                    : 'bg-[#0a0e17]/50 border-white/10 text-gray-300 hover:bg-white/5'
-                }`}
-              >
-                <div>
-                  <div className="font-semibold">{l.name}</div>
-                  <div className="text-[10px] text-gray-400">{l.label}</div>
+          <div className="pt-2">
+            <div className="p-4 rounded-2xl bg-[#1c1f29] border border-[#4edea3]/40 text-white flex items-center justify-between shadow-lg shadow-emerald-500/10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm">
+                  PT
                 </div>
-                {language === l.id && <span className="text-[#4cd7f6] font-bold">✓ Selecionado</span>}
-              </button>
-            ))}
+                <div>
+                  <div className="font-bold text-sm">Português (Brasil)</div>
+                  <div className="text-[10px] text-gray-400 font-mono">Padrão Oficial LDB / CBR / CRTR / ANVISA</div>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                ✓ Padrão Único
+              </span>
+            </div>
           </div>
         </div>
       </section>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, ThemeMode } from '../../types';
 import { storageService } from '../../services/storage';
 import { supabaseService } from '../../services/supabaseClient';
+import { formatCpf, isValidCpf } from '../../utils/cpfValidator';
 
 interface LoginScreenProps {
   onLoginSuccess: (user: User) => void;
@@ -85,6 +86,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
       return;
     }
 
+    if (!studentCpf.trim()) {
+      setErrorMsg('O CPF é obrigatório para a emissão e autenticação do seu Certificado Oficial.');
+      return;
+    }
+
+    if (!isValidCpf(studentCpf)) {
+      setErrorMsg('O CPF informado é inválido. Digite os 11 dígitos corretos para registro no certificado.');
+      return;
+    }
+
     if (!studentPassword || studentPassword.length < 6) {
       setErrorMsg('A senha deve conter no mínimo 6 caracteres para autenticação no Supabase Auth.');
       return;
@@ -113,7 +124,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
         specialty: studentCourse,
         courseName: studentCourse,
         shift: studentShift,
-        cpf: studentCpf.trim(),
+        cpf: formatCpf(studentCpf.trim()),
         phone: studentPhone.trim(),
         gpa: 4.0,
         completedHours: 0,
@@ -431,20 +442,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className={`block mb-1 font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                    CPF (Opcional)
+                  <label className={`flex items-center justify-between mb-1 font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                    <span>CPF (Obrigatório) *</span>
+                    <span className="text-[10px] text-cyan-400 font-normal">Para o Certificado</span>
                   </label>
                   <input
                     type="text"
+                    required
                     value={studentCpf}
-                    onChange={e => setStudentCpf(e.target.value)}
+                    onChange={e => setStudentCpf(formatCpf(e.target.value))}
                     placeholder="000.000.000-00"
+                    maxLength={14}
                     className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
                       isDark
                         ? 'bg-[#0a0e17]/80 border-white/10 text-white focus:border-[#4cd7f6]'
                         : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white focus:border-cyan-600'
                     }`}
                   />
+                  <p className="text-[10px] text-slate-400 mt-1">
+                    Garante a autenticidade e validade nacional no certificado.
+                  </p>
                 </div>
 
                 <div>

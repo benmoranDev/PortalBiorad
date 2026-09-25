@@ -255,7 +255,9 @@ export default function App() {
       id: `cert_${Date.now()}`,
       code: `RADBIO-CERT-2026-${Math.floor(1000 + Math.random() * 9000)}-40H`,
       studentName: currentUser.name,
-      studentDocument: `${currentUser.enrollmentId} • CPF Registrado`,
+      studentDocument: currentUser.cpf
+        ? `CPF: ${currentUser.cpf} • Matrícula: ${currentUser.enrollmentId}`
+        : `Matrícula: ${currentUser.enrollmentId}`,
       courseName: title,
       courseId,
       workloadHours: workload,
@@ -287,7 +289,13 @@ export default function App() {
 
   // 1. Initial Medical SplashScreen Flow
   if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+    return (
+      <SplashScreen
+        onFinish={() => setShowSplash(false)}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
+      />
+    );
   }
 
   // 2. Authentication Flow: If not authenticated, render LoginScreen
@@ -343,11 +351,6 @@ export default function App() {
         <TopNavBar
           currentUser={currentUser}
           onRoleChange={handleRoleChange}
-          language={language}
-          onLanguageChange={lang => {
-            setLanguage(lang);
-            storageService.setLanguage(lang);
-          }}
           theme={theme}
           onToggleTheme={handleToggleTheme}
           onOpenSimulator={() => setIsSimulatorOpen(true)}

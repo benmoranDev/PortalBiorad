@@ -2,8 +2,106 @@ import { CursoLivre } from '../types';
 
 export const initialCursosLivres: CursoLivre[] = [
   {
+    id: 'cl_radioprotecao_40h',
+    code: 'CL-RAD-4001',
+    title: 'Radioproteção, Dosimetria & Normas Sanitárias RDC 330',
+    subtitle: 'Princípio ALARA, Cálculo de CTDIvol, DLP, Dose Efetiva, Blindagens e PGQ',
+    category: 'Radioproteção',
+    workloadHours: 40,
+    price: 139.00,
+    originalPrice: 279.00,
+    installments: 12,
+    rating: 4.97,
+    reviewCount: 284,
+    enrolledStudentsCount: 940,
+    instructor: 'Prof. Cláudio Silveira',
+    instructorTitle: 'Supervisor de Radioproteção Qualificado CNEN & Físico Médico',
+    instructorAvatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=250&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80',
+    description: 'Curso livre de 40 horas indispensável para profissionais que operam equipamentos emissores de radiação ionizante. Fornece conhecimento aprofundado da Resolução RDC 330/2019 da ANVISA, normas CNEN-NN-3.01, grandezas dosimétricas (CTDIvol, DLP, mSv), cálculo de espessura de barita e chumbo para blindagens, otimização de dose pelo princípio ALARA e implantação do Programa de Garantia da Qualidade (PGQ).',
+    targetAudience: 'Técnicos, tecnólogos, biomédicos, médicos radiologistas, físicos médicos, supervisores de radioproteção e gestores de serviços de diagnóstico por imagem.',
+    objectives: [
+      'Dominar as diretrizes da RDC 330/2019 da ANVISA e Instruções Normativas correlatas (IN 90 a IN 97)',
+      'Calcular e auditar as grandezas dosimétricas em tomografia: CTDIw, CTDIvol (mGy), DLP (mGy.cm) e Dose Efetiva E (mSv)',
+      'Aplicar o princípio ALARA na prática diária com modulação de mA (SureExposure) e algoritmos AIDR 3D',
+      'Elaborar o Memorial Descritivo de Proteção Radiológica e plano de blindagem de salas de raios-X e TC',
+      'Executar testes periódicos de controle de qualidade: exatidão do número de CT (água = 0 HU), ruído, uniformidade e espessura de corte'
+    ],
+    legalCompliance: 'Curso Livre de Aperfeiçoamento Profissional nos termos da Lei Federal nº 9.394/1996 (LDB) Art. 42 e Decreto Presidencial nº 5.154/2004. Certificado oficial de 40 horas válido em todo o território nacional para horas complementares (ACO), prova de títulos e evolução funcional.',
+    hasActivionSimulator: true,
+    hasRealDicomCases: false,
+    featured: true,
+    isEnrolled: false,
+    modules: [
+      {
+        id: 'mod_rad_01',
+        moduleNumber: 1,
+        title: 'Módulo 1: Física das Radiações & Efeitos Biológicos Estocásticos e Determinísticos (10h)',
+        workloadHours: 10,
+        description: 'Interação da radiação com o tecido biológico, radiólise da água, quebras de DNA celular, dose absorvida (Gray) e dose equivalente (Sievert).',
+        topics: [
+          'Espectro eletromagnético e produção de radiação ionizante (Bremsstrahlung e Característica)',
+          'Efeitos biológicos: mutações estocásticas vs danos teciduais determinísticos (eritema, catarata)',
+          'Radiossensibilidade tecidual conforme a Lei de Bergonie-Tribondeau e fatores de ponderação wT',
+          'Níveis de Referência para Diagnóstico (NRDs) nacionais e internacionais',
+          'Simulação no console: Avaliação da influência do kVp e mAs na dose e ruído da imagem'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Parametrização Física & Auditoria de Ruído'
+      },
+      {
+        id: 'mod_rad_02',
+        moduleNumber: 2,
+        title: 'Módulo 2: Grandezas Dosimétricas em TC: CTDIvol, DLP e Estimativa de Dose Efetiva (10h)',
+        workloadHours: 10,
+        description: 'Medição prática de CTDI com fantom de PMMA de 16cm e 32cm, câmara de ionização tipo lápis e fatores k de conversão.',
+        topics: [
+          'Conceituação matemática de CTDI100, CTDIw e CTDIvol ponderado pelo Pitch',
+          'Produto Dose-Comprimento (DLP = CTDIvol x comprimento da varredura em cm)',
+          'Fatores de conversão k (ICRP 103) para cálculo de dose efetiva em crânio, tórax, abdome e pelve',
+          'Campanhas mundiais Image Gently (Pediatria) e Image Wisely (Adultos)',
+          'Prática: Análise e auditoria de relatórios dosimétricos gerados pelo console'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Cálculo de Dose Efetiva em PMMA Virtual'
+      },
+      {
+        id: 'mod_rad_03',
+        moduleNumber: 3,
+        title: 'Módulo 3: Tecnologias de Redução de Dose: Reconstrução Iterativa AIDR 3D & Modulação mA (10h)',
+        workloadHours: 10,
+        description: 'Funcionamento dos algoritmos iterativos estatísticos para redução de até 75% da dose com preservação diagnóstica do contraste.',
+        topics: [
+          'Limitações da retroprojeção filtrada (FBP) em regimes de baixa dosagem',
+          'Reconstrução iterativa estatística (AIDR 3D Canon) e modelos baseados em IA',
+          'Modulação tridimensional da corrente do tubo de raios-X (SureExposure 3D)',
+          'Uso de protetores radiológicos de bismuto em órgãos críticos (olhos, tireoide, mamas)',
+          'Simulação de varredura comparativa com e sem ativação do módulo AIDR 3D'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Simulação AIDR 3D com Corte de Dose'
+      },
+      {
+        id: 'mod_rad_04',
+        moduleNumber: 4,
+        title: 'Módulo 4: Legislação Sanitária RDC 330/2019 ANVISA & Programa de Qualidade (10h)',
+        workloadHours: 10,
+        description: 'Requisitos legais para funcionamento de serviços de radiologia, testes de controle de qualidade periódicos e avaliação final de 40h.',
+        topics: [
+          'Estrutura regulatória da RDC 330/2019 e Instruções Normativas correlatas',
+          'Dosimetria individual dos trabalhadores (TLD/OSL) e níveis de investigação ocupacional',
+          'Testes diários e mensais de exatidão de Hounsfield Units, ruído e homogeneidade',
+          'Checklist para fiscalização sanitária municipal, estadual e ANVISA',
+          'Prova teórica final e emissão do Certificado Oficial de 40 horas com fé pública'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Auditoria Sanitária & Teste de CQ no Fantom'
+      }
+    ]
+  },
+  {
     id: 'cl_tc_activion_40h',
-    code: 'CL-TC-4001',
+    code: 'CL-TC-4002',
     title: 'Tomografia Computadorizada Clínica & Operação do Activion 16',
     subtitle: 'Formação Completa em Aquisições Helicoidais, Janelamento HU e Casos Clínicos',
     category: 'Tomografia Computadorizada',
@@ -11,7 +109,7 @@ export const initialCursosLivres: CursoLivre[] = [
     price: 149.00,
     originalPrice: 299.00,
     installments: 12,
-    rating: 4.95,
+    rating: 4.96,
     reviewCount: 342,
     enrolledStudentsCount: 1280,
     instructor: 'Prof. Dr. Marcus Vinicius',
@@ -31,13 +129,13 @@ export const initialCursosLivres: CursoLivre[] = [
     hasActivionSimulator: true,
     hasRealDicomCases: true,
     featured: true,
-    isEnrolled: true, // Initially active for demonstration
-    progressPercent: 45,
+    isEnrolled: true,
+    progressPercent: 70,
     modules: [
       {
         id: 'mod_tc_01',
         moduleNumber: 1,
-        title: 'Módulo 1: Física da Tomografia Multislice & Hardware Canon Activion',
+        title: 'Módulo 1: Física da Tomografia Multislice & Hardware Canon Activion (10h)',
         workloadHours: 10,
         description: 'Tubo de raios-X Megacool de 4.0 MHU, gerador de alta frequência, colimação pré e pós-paciente, detectores de estado sólido cerâmicos e geometria de rotação de 0.5s.',
         topics: [
@@ -54,7 +152,7 @@ export const initialCursosLivres: CursoLivre[] = [
       {
         id: 'mod_tc_02',
         moduleNumber: 2,
-        title: 'Módulo 2: Protocolo de Crânio & Urgência Neurológica no Console Virtual',
+        title: 'Módulo 2: Protocolo de Crânio & Urgência Neurológica no Console Virtual (10h)',
         workloadHours: 10,
         description: 'Posicionamento da linha órbito-meatal (OM), scout digital 250mm, janelas de crânio (+35/+80 HU), osso (+400/+2500 HU) e hematoma subdural hiperdenso (+78 HU).',
         topics: [
@@ -71,7 +169,7 @@ export const initialCursosLivres: CursoLivre[] = [
       {
         id: 'mod_tc_03',
         moduleNumber: 3,
-        title: 'Módulo 3: TC de Tórax de Alta Resolução (HRCT) & Abdome Total',
+        title: 'Módulo 3: TC de Tórax de Alta Resolução (HRCT) & Abdome Total (10h)',
         workloadHours: 10,
         description: 'Avaliação de parênquima pulmonar com espessura fina (1.0 mm), padrão de vidro fosco, consolidações e janelamento de partes moles com contraste iodado.',
         topics: [
@@ -88,7 +186,7 @@ export const initialCursosLivres: CursoLivre[] = [
       {
         id: 'mod_tc_04',
         moduleNumber: 4,
-        title: 'Módulo 4: Pós-processamento MPR, 3D VR & Avaliação Final de 40 Horas',
+        title: 'Módulo 4: Pós-processamento MPR, 3D VR & Avaliação Final de 40 Horas (10h)',
         workloadHours: 10,
         description: 'Reconstruções nos planos coronal e sagital, projeção de intensidade máxima (MIP) para vasculatura e prova prática no simulador Canon Activion 16.',
         topics: [
@@ -105,394 +203,296 @@ export const initialCursosLivres: CursoLivre[] = [
     ]
   },
   {
-    id: 'cl_tc_neuro_trauma_40h',
-    code: 'CL-TC-4002',
-    title: 'Tomografia em Urgência Neurológica & Politrauma',
-    subtitle: 'Protocolo AVC Hiperagudo, Escala ASPECTS, TCE e Fraturas Faciais',
-    category: 'Urgência & Trauma',
+    id: 'cl_reconstrucao_3d_40h',
+    code: 'CL-REC-4003',
+    title: 'Reconstruções 3D Avançadas, MPR, MIP e Estações DICOM Médicas',
+    subtitle: 'Manipulação de Matrizes Volumétricas, Interpolação de Voxels, MinIP e Volume Rendering',
+    category: 'Reconstruções 3D Avançadas',
     workloadHours: 40,
-    price: 189.00,
-    originalPrice: 349.00,
+    price: 169.00,
+    originalPrice: 320.00,
     installments: 12,
     rating: 4.98,
-    reviewCount: 218,
-    enrolledStudentsCount: 840,
-    instructor: 'Prof. Dr. Aris Thorne',
-    instructorTitle: 'Médico Radiologista & Especialista CBR Titular',
-    instructorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
-    coverImage: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80',
-    description: 'Capacitação prática intensiva de 40 horas focada na atuação em salas vermelhas e prontos-socorros de trauma. Aborda aquisições ultrarrápidas de crânio sem contraste em suspeitas de AVC, janelamento fino para sangue hiperagudo, politrauma toracoabdominal de corpo inteiro (Pan-scan) e algoritmos de baixa dosimetria para pacientes críticos.',
-    targetAudience: 'Profissionais e acadêmicos que atuam ou pretendem atuar em plantões hospitalares de emergência, SAMU e centros de trauma nível 1.',
+    reviewCount: 198,
+    enrolledStudentsCount: 560,
+    instructor: 'Dra. Helena Vasconcelos',
+    instructorTitle: 'Doutora em Radiologia Computacional & Imagem Médica',
+    instructorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80',
+    description: 'Curso livre de 40 horas focado no pós-processamento digital de imagens tomográficas e de ressonância. Aborda a arquitetura do padrão DICOM 3.0, reconstruções multiplanadas ortogonais e curvas (Curved MPR) para coluna vertebral e arcada dentária, projeções de intensidade máxima (MIP) para vasos e mínima (MinIP) para vias aéreas, e renderização volumétrica tridimensional (3D VR) com sombreamento realista para planejamento cirúrgico.',
+    targetAudience: 'Estudantes e graduados em Radiologia, Biomedicina, Medicina e Engenharia Biomédica que desejam dominar estações de trabalho PACS e softwares como RadiAnt, Horos, Weasis e OsiriX.',
     objectives: [
-      'Executar o protocolo porta-tomografia em tempo inferior a 15 minutos em suspeita de AVC',
-      'Classificar lesões isquêmicas agudas utilizando a pontuação tomográfica ASPECTS (0 a 10)',
-      'Diferenciar hematoma epidural lenticular de hematoma subdural em crescente com sonda de HU',
-      'Configurar o protocolo Pan-Scan (Crânio, Coluna Cervical, Tórax, Abdome e Pelve) em politrauma',
-      'Realizar reconstruções 3D VR de esqueletos faciais para planejamento cirúrgico bucomaxilofacial'
+      'Interpretar cabeçalhos DICOM (metadados de espessura, pixel spacing, rescale intercept e slope)',
+      'Executar reconstruções MPR simultâneas em eixos axiais, coronais, sagitais e oblíquos',
+      'Gerar mapas MIP vasculares de alta definição para estenoses e aneurismas',
+      'Aplicar MinIP para diagnóstico precoce de enfisema pulmonar e bronquiolite',
+      'Configurar paletas de cores (LUTs), opacidade e corte virtual no 3D Volume Rendering'
     ],
-    legalCompliance: 'Curso Livre de Capacitação Profissional regulamentado pela Lei nº 9.394/1996 e Decreto nº 5.154/2004. Carga horária de 40 horas certificadas para horas de estágio, extensão universitária e concursos.',
+    legalCompliance: 'Curso Livre de Capacitação Profissional regulamentado pela Lei nº 9.394/1996 Art. 42 e Decreto nº 5.154/2004. Certificado de 40 horas válido para créditos acadêmicos e comprovação de especialização.',
     hasActivionSimulator: true,
     hasRealDicomCases: true,
     featured: true,
     isEnrolled: false,
     modules: [
       {
-        id: 'mod_neuro_01',
+        id: 'mod_rec_01',
         moduleNumber: 1,
-        title: 'Módulo 1: Protocolo de AVC Hiperagudo & Janela de Densidade Fina',
+        title: 'Módulo 1: Estrutura do Padrão DICOM 3.0 & Resolução Espacial (10h)',
         workloadHours: 10,
-        description: 'Algoritmo de aquisição em menos de 10 segundos, perda da diferenciação cortiço-subcortical, sinal da artéria cerebral média hiperdensa e cálculo ASPECTS.',
+        description: 'Matrizes de imagem médica, profundidade de 16 bits (4.096 níveis de cinza), tags DICOM essenciais e conversão de escala matemática.',
         topics: [
-          'Tempo porta-agulha e o papel crítico do operador de TC',
-          'Janelamento dedicado para AVC (WW 40 / WL 40 HU)',
-          'Apagamento dos sulcos corticais e hipoatenuação lenticular',
-          'Diferenciação com sangramento hemorrágico e desvio de linha média',
-          'Simulação de caso no Activion 16: Análise de AVC isquêmico em tempo real'
+          'Histórico e comitê internacional DICOM / NEMA',
+          'Voxel isotrópico vs anisotrópico e impacto na fidelidade do pós-processamento',
+          'Fórmula de Hounsfield: HU = (PixelValue x RescaleSlope) + RescaleIntercept',
+          'Anonimização de exames para conformidade com a LGPD em saúde',
+          'Prática: Análise de metadados em arquivos .dcm no visualizador DICOM web'
         ],
         hasSimulatorPractice: true,
-        simulatorProtocolName: 'AVC Isquêmico Protocolo Rápido 16 Canais'
+        simulatorProtocolName: 'Inspeção de Tags DICOM & Anonimização'
       },
       {
-        id: 'mod_neuro_02',
+        id: 'mod_rec_02',
         moduleNumber: 2,
-        title: 'Módulo 2: Traumatismo Cranioencefálico (TCE) & Fraturas Ósseas',
+        title: 'Módulo 2: Reconstrução Multiplanar (MPR) Ortogonal & Curvilínea (10h)',
         workloadHours: 10,
-        description: 'Hematomas epidurais, subdurais, hemorragia subaracnóidea traumática, contusões cerebrais e fraturas do rochedo e base do crânio.',
+        description: 'Navegação tridimensional sincrônica, espessura de corte variável (Slab) e traçado de linhas curvas ao longo de estruturas anatômicas complexas.',
         topics: [
-          'Fisiopatologia dos hematomas intracranianos e seus valores de atenuação HU',
-          'Janela óssea expandida (WW 3000 / WL 500 HU) para ossos temporais',
-          'Hérnias cerebrais uncal e subfalcina na tomografia',
-          'Fraturas do maciço facial: Le Fort I, II, III e complexo zigomático-maxilar',
-          'Análise de 24 cortes axiais de TCE grave com sonda de atenuação tecidual'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'TC de Crânio em Politrauma & Fraturas Faciais'
-      },
-      {
-        id: 'mod_neuro_03',
-        moduleNumber: 3,
-        title: 'Módulo 3: Pan-Scan em Politrauma Toracoabdominal',
-        workloadHours: 10,
-        description: 'Aquisição volumétrica contínua da base do crânio à sínfise púbica. Detecção de pneumotórax hipertensivo, lesão de aorta e lacerações de órgãos sólidos.',
-        topics: [
-          'Filosofia Pan-Scan: quando e como indicar no politraumatizado',
-          'Injeção automatizada de contraste iodado em duplo bólus',
-          'Graduação de trauma esplênico e hepático (escala AAST)',
-          'Fraturas pélvicas instáveis e hematomas retroperitoneais',
-          'Simulação de varredura com protocolo de alta velocidade no Activion 16'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Pan-Scan Politrauma Corporal Completo'
-      },
-      {
-        id: 'mod_neuro_04',
-        moduleNumber: 4,
-        title: 'Módulo 4: Reconstruções 3D VR em Trauma & Simulado de Certificação',
-        workloadHours: 10,
-        description: 'Segmentação rápida de fragmentos ósseos no visualizador DICOM e avaliação prática de habilidades operacionais em 40 horas.',
-        topics: [
-          'Presets de 3D Volume Rendering para ortopedia e neurocirurgia',
-          'MIP de alta definição para artérias carótidas e vertebrais no trauma cervical',
-          'Relatório técnico de achados urgentes e comunicação com equipe cirúrgica',
-          'Prova prática cronometrada no simulador Canon Activion 16',
-          'Emissão e validação do certificado oficial de 40h com selo de urgência'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Segmentação 3D Cirúrgica de Fraturas Múltiplas'
-      }
-    ]
-  },
-  {
-    id: 'cl_angio_tc_40h',
-    code: 'CL-TC-4003',
-    title: 'Angiotomografia & Meios de Contraste Iodado com Bolus Tracking',
-    subtitle: 'Sincronização com Injetora, Test Bolus, TEP e Angio de Aorta',
-    category: 'Angiotomografia',
-    workloadHours: 40,
-    price: 197.00,
-    originalPrice: 380.00,
-    installments: 12,
-    rating: 4.97,
-    reviewCount: 189,
-    enrolledStudentsCount: 620,
-    instructor: 'Dra. Sofia Albarracín',
-    instructorTitle: 'Doutora em Engenharia Biomédica e Especialista em Imagem Vascular',
-    instructorAvatar: 'https://images.unsplash.com/photo-1594824813581-2292f7b88937?auto=format&fit=crop&w=250&q=80',
-    coverImage: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=800&q=80',
-    description: 'Curso livre de 40 horas centrado nas técnicas de injeção dinâmica de contraste iodado não iônico, manuseio de injetoras de bomba dupla, posicionamento de ROI para monitoramento automático de atenuação (SureStart / Bolus Tracking) e diagnósticos de tromboembolismo pulmonar (TEP) e dissecção de aorta.',
-    targetAudience: 'Tecnólogos, biomédicos e médicos que desejam se especializar em hemodinâmica diagnóstica, angiotomografia cardiovascular e neurovascular.',
-    objectives: [
-      'Configurar injetora de contraste de cabeça dupla com fluxo de 4.0 a 5.5 mL/s e flush de soro fisiológico',
-      'Dominar o posicionamento de ROI de disparo (Bolus Tracking) no tronco da artéria pulmonar e aorta ascendente',
-      'Otimizar o tempo de atraso (Scan Delay) para evitar contaminação venosa precoce',
-      'Realizar reconstruções MIP e angiográficas 3D no visualizador DICOM médico',
-      'Aplicar medidas preventivas contra Nefropatia Induzida por Contraste (NIC) e extravasamento'
-    ],
-    legalCompliance: 'Curso Livre de Formação Continuada (Lei nº 9.394/96 Art. 42 e Decreto Federal nº 5.154/04). 40 horas computadas para certificação profissional e prova de títulos.',
-    hasActivionSimulator: true,
-    hasRealDicomCases: true,
-    featured: false,
-    isEnrolled: false,
-    modules: [
-      {
-        id: 'mod_angio_01',
-        moduleNumber: 1,
-        title: 'Módulo 1: Farmacologia dos Contrastes Iodados & Injetoras Automáticas',
-        workloadHours: 10,
-        description: 'Osmolaridade, viscosidade, aquecimento do contraste a 37°C, acessos venosos periféricos (gelco 18G/20G) e teste de permeabilidade com salina.',
-        topics: [
-          'Tipos de contrastes iodados: monoméricos não iônicos vs iso-osmolares',
-          'Cálculo de volume baseado no peso corporal e duração da varredura helicoidal',
-          'Manejo de reações alérgicas agudas leves, moderadas e graves (Kit de Parada)',
-          'Efeito bólus: importância do flush de salina para lavar a veia subclávia e cava superior',
-          'Simulação no console: Ajuste do fluxo e atraso da injeção'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Parametrização de Injetora & Cálculo de Fluxo Vascular'
-      },
-      {
-        id: 'mod_angio_02',
-        moduleNumber: 2,
-        title: 'Módulo 2: Sincronização por Bolus Tracking & Angio-TC de Tórax (TEP)',
-        workloadHours: 10,
-        description: 'Monitoramento dinâmico em tempo real da chegada do bólus contrastado com disparo automático quando o tronco da artéria pulmonar atinge 150 HU.',
-        topics: [
-          'Diferença entre Test Bolus (curva tempo-densidade) e Bolus Tracking automático',
-          'Angio-TC de tórax para exclusão de TEP: janela diagnóstica vascular',
-          'Artefato de fluxo e técnica de apneia respiratória inspiratória suave',
-          'Valores normais de atenuação do bólus vascular (250 a 350 HU)',
-          'Estudo de caso no simulador: Varredura de TEP com falha de enchimento endoluminal'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Angio-TC de Tórax com Bolus Tracking (16 Cortes)'
-      },
-      {
-        id: 'mod_angio_03',
-        moduleNumber: 3,
-        title: 'Módulo 3: Angiotomografia de Aorta Torácica & Abdominal',
-        workloadHours: 10,
-        description: 'Diagnóstico de Síndrome Aórtica Aguda, dissecção Stanford A e B, aneurisma roto e planejamento de endopróteses vasculares.',
-        topics: [
-          'Protocolo de aorta completa (da crossa até artérias femorais comuns)',
-          'Fase sem contraste prévia para detecção de hematoma intramural hiperdenso',
-          'Gatilho de disparo na aorta descendente',
-          'Medições de diâmetro vascular, colo de aneurisma e tortuosidade arterial',
-          'Prática com DICOM real: Medição de lúmen verdadeiro vs falso lúmen'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Angio-TC de Aorta Completa com Reconstrução MPR Curva'
-      },
-      {
-        id: 'mod_angio_04',
-        moduleNumber: 4,
-        title: 'Módulo 4: Reconstruções Vasculares MIP, 3D VR & Prova de Conclusão',
-        workloadHours: 10,
-        description: 'Criação de angiografias rotacionais 3D, remoção de estruturas ósseas (Bone Removal) e exame final para titulação dos 40h de curso.',
-        topics: [
-          'Técnicas de MIP fino (Thin MIP) vs MIP espesso (Thick MIP)',
-          'Subtração óssea digital manual e automática',
-          'Exportação de filmes e vídeos 3D para cirurgiões vasculares e hemodinâmica',
-          'Auditoria de dose em protocolos de angiotomografia',
-          'Prova teórica e prática com certificação oficial de 40 horas'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Estação Angiográfica 3D & Certificação Final'
-      }
-    ]
-  },
-  {
-    id: 'cl_radioprotecao_40h',
-    code: 'CL-TC-4004',
-    title: 'Radioproteção, Dosimetria & Normas Sanitárias RDC 330 em TC',
-    subtitle: 'Princípio ALARA, CTDIvol, DLP, AIDR 3D e Controle de Qualidade',
-    category: 'Radioproteção',
-    workloadHours: 40,
-    price: 129.00,
-    originalPrice: 249.00,
-    installments: 12,
-    rating: 4.92,
-    reviewCount: 154,
-    enrolledStudentsCount: 510,
-    instructor: 'Prof. Cláudio Silveira',
-    instructorTitle: 'Físico Médico Especialista em Radiodiagnóstico e Normas CNEN',
-    instructorAvatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=250&q=80',
-    coverImage: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=800&q=80',
-    description: 'Curso livre de 40 horas indispensável para quem opera equipamentos emissores de radiação ionizante. Fornece conhecimento aprofundado das exigências da RDC 330/2019 da ANVISA, normas CNEN-NN-3.01, cálculo de dose absorvida e efetiva em exames pediátricos e adultos, e modulação de miliamperagem para redução de dose sem perda diagnóstica.',
-    targetAudience: 'Operadores de tomografia, supervisores de radioproteção, biomédicos, tecnólogos, engenheiros clínicos e gestores de clínicas e hospitais.',
-    objectives: [
-      'Calcular e interpretar os índices dosimétricos exibidos no console: CTDIw, CTDIvol (mGy) e DLP (mGy.cm)',
-      'Estimar a Dose Efetiva (mSv) utilizando os fatores de conversão k por região anatômica',
-      'Configurar os algoritmos de reconstrução iterativa adaptativa (AIDR 3D Canon) para corte de até 75% da dose',
-      'Aplicar o Programa de Garantia da Qualidade (PGQ) com testes periódicos de exatidão de números de CT e ruído',
-      'Implementar o Programa de Proteção Radiológica conforme a Resolução RDC 330 da ANVISA'
-    ],
-    legalCompliance: 'Curso Livre de Aperfeiçoamento Profissional nos termos da Lei nº 9.394/96 e Decreto nº 5.154/04. Certificado de 40 horas válido nacionalmente para concursos, evolução funcional e auditorias hospitalares.',
-    hasActivionSimulator: true,
-    hasRealDicomCases: false,
-    featured: false,
-    isEnrolled: false,
-    modules: [
-      {
-        id: 'mod_rad_01',
-        moduleNumber: 1,
-        title: 'Módulo 1: Grandezas Radiológicas & Efeitos Biológicos da Radiação em TC',
-        workloadHours: 10,
-        description: 'Dose absorvida (Gy), dose equivalente (Sv), efeitos estocásticos vs determinísticos e radiossensibilidade tecidual (tireoide, gônadas e cristalino).',
-        topics: [
-          'Mecanismos de interação da radiação com a matéria biológica',
-          'Risco estocástico de carcinogênese induzida por radiação',
-          'Histórico e evolução das doses em tomografia computadorizada multislice',
-          'Justificativa clínica e níveis de referência para diagnóstico (NRDs)',
-          'Simulação: Análise de relatórios dosimétricos gerados pelo Activion 16'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Auditoria de Índices Dosimétricos no Console'
-      },
-      {
-        id: 'mod_rad_02',
-        moduleNumber: 2,
-        title: 'Módulo 2: Grandezas Específicas de TC: CTDI, DLP & Dose Efetiva',
-        workloadHours: 10,
-        description: 'Cálculo de CTDI com fantom de polimetilmetacrilato (PMMA) de 16cm e 32cm com câmara de ionização tipo lápis de 100mm.',
-        topics: [
-          'Conceito e medição física de CTDI100, CTDIw e CTDIvol',
-          'Produto Dose-Comprimento (DLP) e sua relação com a extensão escaneada',
-          'Fatores k de conversão ICRP para cálculo de dose efetiva em adultos e crianças',
-          'Protocolos pediátricos dedicados e o movimento mundial Image Gently',
-          'Exercícios práticos de cálculo de dose por paciente'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Calibração e Teste de PMMA Virtual'
-      },
-      {
-        id: 'mod_rad_03',
-        moduleNumber: 3,
-        title: 'Módulo 3: Tecnologias de Otimização de Dose: AIDR 3D & Modulação mA',
-        workloadHours: 10,
-        description: 'Funcionamento de sistemas de modulação automática de corrente do tubo (SureExposure / Smart mA) nas três dimensões (x, y, z).',
-        topics: [
-          'Reconstrução filtrada clássica vs reconstrução iterativa estatística (AIDR 3D)',
-          'Como reduzir o ruído quântico em exames com baixa dose de radiação',
-          'Ajuste do Noise Index e desvio-padrão aceitável para cada protocolo',
-          'Impacto da escolha do Pitch na dose e tempo de varredura',
-          'Prática no console: Comparação de protocolo convencional vs protocolo AIDR 3D'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Simulação AIDR 3D Canon com Redução de Ruído Quântico'
-      },
-      {
-        id: 'mod_rad_04',
-        moduleNumber: 4,
-        title: 'Módulo 4: Legislação RDC 330/2019 ANVISA & Gestão de Qualidade',
-        workloadHours: 10,
-        description: 'Documentação obrigatória, memorial descritivo de proteção radiológica, blindagens de barita e auditoria para certificação de 40 horas.',
-        topics: [
-          'Diretrizes da Instrução Normativa IN nº 93 da ANVISA',
-          'Testes diários, semanais, mensais e anuais de controle de qualidade (CQ)',
-          'Fantons de teste: uniformidade, espessura de corte e resolução de alto contraste',
-          'Uso e guarda correta de dosímetros individuais termoluminescentes (TLD)',
-          'Prova teórica final e emissão do certificado com registro oficial de 40 horas'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Simulação de Auditoria Sanitária & Teste de CQ'
-      }
-    ]
-  },
-  {
-    id: 'cl_reconstrucao_dicom_40h',
-    code: 'CL-TC-4005',
-    title: 'Reconstruções 3D Avançadas, MPR, MIP e Estações DICOM Médicas',
-    subtitle: 'Manipulação de Matrizes Volumétricas, Segmentação e Exportação 3D',
-    category: 'Reconstrução 3D & DICOM',
-    workloadHours: 40,
-    price: 169.00,
-    originalPrice: 320.00,
-    installments: 12,
-    rating: 4.96,
-    reviewCount: 167,
-    enrolledStudentsCount: 480,
-    instructor: 'Dra. Helena Vasconcelos',
-    instructorTitle: 'Doutora em Radiologia Computacional & Diretora Acadêmica',
-    instructorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=250&q=80',
-    coverImage: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=800&q=80',
-    description: 'Curso livre de 40 horas direcionado ao pós-processamento digital de ponta em imagens médicas. O estudante aprenderá a estrutura do padrão DICOM 3.0, manipulação de arquivos .dcm de 16 bits brutos, interpolação espacial de voxels, reconstruções MPR curvas para colunas e arcadas dentárias, e projeção tridimensional colorida com volume rendering para pré-operatório.',
-    targetAudience: 'Estudantes e graduados em Radiologia, Biomedicina, Medicina e Engenharia Biomédica que desejam dominar estações de trabalho e softwares como RadiAnt, Horos, Weasis e OsiriX.',
-    objectives: [
-      'Compreender os metadados do cabeçalho DICOM (Tags 0028,0010 Rows, 0028,1052 Rescale Intercept/Slope)',
-      'Executar reconstruções MPR de alta fidelidade em planos coronal, sagital e oblíquo curvilíneo',
-      'Gerar projeções de intensidade máxima (MIP) e mínima (MinIP) para vias aéreas e enfisema pulmonar',
-      'Aplicar máscaras de segmentação tecidual e exclusão de leito de mesa e artefatos de metal',
-      'Exportar exames compatíveis com impressoras 3D cirúrgicas e visualizadores PACS web'
-    ],
-    legalCompliance: 'Curso Livre de Formação Profissional regido pela Lei nº 9.394/96 Art. 42 e Decreto nº 5.154/04. Certificado de 40 horas válido para créditos acadêmicos e titulação.',
-    hasActivionSimulator: true,
-    hasRealDicomCases: true,
-    featured: false,
-    isEnrolled: false,
-    modules: [
-      {
-        id: 'mod_dicom_01',
-        moduleNumber: 1,
-        title: 'Módulo 1: Padrão DICOM 3.0 & Arquitetura de Imagens Médicas',
-        workloadHours: 10,
-        description: 'Estrutura de dados DICOM, Service-Object Pairs (SOP), transferência de imagens por PACS/DICOM Query-Retrieve e cálculos matemáticos de HU.',
-        topics: [
-          'História e normas internacionais do comitê DICOM (NEMA/ACR)',
-          'Matriz de pixels, profundidade de bits (12 a 16 bits) e níveis de cinza (4096 tons)',
-          'Rescale Slope e Intercept: conversão matemática de valor bruto de pixel para escala Hounsfield',
-          'Segurança e anonimização de dados de pacientes (LGPD em saúde)',
-          'Prática: Análise do cabeçalho DICOM de arquivos de teste no navegador'
-        ],
-        hasSimulatorPractice: true,
-        simulatorProtocolName: 'Inspeção de Tags DICOM & Anonimização Digital'
-      },
-      {
-        id: 'mod_dicom_02',
-        moduleNumber: 2,
-        title: 'Módulo 2: Reconstrução Multiplanar (MPR) Ortogonal & Curvilínea',
-        workloadHours: 10,
-        description: 'Navegação volumétrica tridimensional sincrônica entre planos axial, sagital e coronal com espessura variável (Slab Thickness).',
-        topics: [
-          'Interpolação trilinear e preservação de resolução espacial em voxels isotrópicos',
-          'MPR curvo para estudo de canal vertebral e raízes nervosas',
-          'Reconstrução para implantes odontológicos (Dental CT / Panorâmica tomográfica)',
-          'Eliminação de artefatos de endurecimento de feixe (Beam Hardening)',
-          'Simulação de MPR em cortes de 24 fatias com medição milimétrica'
+          'MPR ortogonal (Axial, Sagital e Coronal) com sincronização em cruz anatômica',
+          'Curved Planar Reformation (CPR) para coluna lombar e medula espinhal',
+          'Reconstrução para implantodontia (Dental CT / Panorâmica e cortes paraxiais)',
+          'Correção de artefatos de endurecimento de feixe metálico (Metal Artifact Reduction - MAR)',
+          'Simulação de MPR em cortes tomográficos com medição milimétrica de lesões'
         ],
         hasSimulatorPractice: true,
         simulatorProtocolName: 'Estação de Trabalho MPR Curvilínea'
       },
       {
-        id: 'mod_dicom_03',
+        id: 'mod_rec_03',
         moduleNumber: 3,
-        title: 'Módulo 3: Projeções MIP, MinIP & Média de Atenuação (Average IP)',
+        title: 'Módulo 3: Projeções MIP, MinIP & Ray Summing (10h)',
         workloadHours: 10,
-        description: 'Técnicas de raio projetor para realçar estruturas de alto contraste (vasos e contraste iodado) ou baixo contraste (vias aéreas e cistos).',
+        description: 'Algoritmos de projeção de intensidade máxima e mínima para contraste vascular e avaliação de aprisionamento aéreo pulmonar.',
         topics: [
-          'MIP para rastreamento de nódulos pulmonares menores que 5mm',
-          'MinIP para diagnóstico de bronquiolite obliterante e enfisema centrolobular',
-          'Ajuste fino de espessura de corte no modo MIP para evitar sobreposição óssea',
-          'Combinação com janelas Hounsfield customizadas',
-          'Prática com casos clínicos reais pulmonares e vasculares'
+          'MIP fino vs MIP espesso para trajeto das artérias cerebrais e carótidas',
+          'MinIP para parênquima pulmonar: identificação de padrão em mosaico e bronquiectasias',
+          'Average Intensity Projection (AIP) para cálculo de dose em radioterapia',
+          'Integração de janelamento com filtros de atenuação',
+          'Estudo de casos reais com angiotomografias de crânio e tórax'
         ],
         hasSimulatorPractice: true,
-        simulatorProtocolName: 'MIP Vascular & MinIP das Vias Aéreas'
+        simulatorProtocolName: 'MIP Vascular & MinIP de Vias Aéreas'
       },
       {
-        id: 'mod_dicom_04',
+        id: 'mod_rec_04',
         moduleNumber: 4,
-        title: 'Módulo 4: 3D Volume Rendering, Segmentação & Projeto Final de 40h',
+        title: 'Módulo 4: 3D Volume Rendering, Segmentação Cirúrgica & Certificação (10h)',
         workloadHours: 10,
-        description: 'Mapas de transferência de cor (Color Look-Up Tables), sombreamento fotorealista (Shading) e submissão do trabalho para certificação de 40 horas.',
+        description: 'Criação de modelos anatômicos 3D realistas, segmentação óssea e vascular, bisturi virtual e avaliação final para certificação de 40h.',
         topics: [
-          'Volume Rendering vs Surface Shading (SSD)',
-          'Criação de paletas de cor para músculo, contraste vascular e osso denso',
-          'Ferramenta de bisturi virtual (Cut Tool) para limpeza de campo anatômico',
-          'Geração de arquivos STL para impressão 3D médica pré-cirúrgica',
-          'Avaliação final de 40h e emissão do certificado com registro'
+          'Volume Rendering (VR) vs Surface Shaded Display (SSD)',
+          'Criação de Color Look-Up Tables (LUTs) customizadas para ossos, músculos e vasos contrastados',
+          'Uso do bisturi virtual (Scalpel / Cut Tool) para isolamento de fraturas',
+          'Exportação de malhas 3D (.STL / .OBJ) para prototipagem e impressão 3D médica',
+          'Avaliação teórica e prática com emissão do Certificado Oficial de 40 Horas'
         ],
         hasSimulatorPractice: true,
-        simulatorProtocolName: 'Renderização Volumétrica 3D & Exportação Cirúrgica'
+        simulatorProtocolName: 'Renderização 3D VR & Exportação Cirúrgica'
+      }
+    ]
+  },
+  {
+    id: 'cl_exames_contrastados_40h',
+    code: 'CL-CONT-4004',
+    title: 'Exames Contrastados, Farmacologia dos Meios de Contraste & Injetoras',
+    subtitle: 'Contraste Iodado, Bário e Gadolínio, Bolus Tracking, Nefrotoxicidade e Reações Adversas',
+    category: 'Exames Contrastados',
+    workloadHours: 40,
+    price: 159.00,
+    originalPrice: 310.00,
+    installments: 12,
+    rating: 4.97,
+    reviewCount: 220,
+    enrolledStudentsCount: 710,
+    instructor: 'Dra. Sofia Albarracín',
+    instructorTitle: 'Doutora em Imagenologia Médica & Especialista em Meios de Contraste',
+    instructorAvatar: 'https://images.unsplash.com/photo-1594824813581-2292f7b88937?auto=format&fit=crop&w=250&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=800&q=80',
+    description: 'Curso livre de 40 horas dedicado à aplicação segura e eficaz dos meios de contraste em diagnóstico por imagem (Tomografia Computadorizada, Ressonância Magnética e Radiologia Geral). Aborda a físico-química dos agentes iodados iônicos e não iônicos, sulfato de bário e quelatos de gadolínio, uso de injetoras automáticas de bomba dupla, monitoramento de bólus em tempo real (Bolus Tracking), prevenção de lesão renal aguda e manejo de reações anafilactoides com kit de emergência.',
+    targetAudience: 'Tecnólogos em radiologia, biomédicos imagenologistas, enfermeiros de hemodinâmica/radiologia e médicos radiologistas.',
+    objectives: [
+      'Classificar os meios de contraste por osmolaridade, viscosidade, carga iônica e via de administração',
+      'Configurar a bomba injetora de contraste de cabeça dupla (vazão de 3.0 a 6.0 mL/s e flush de salina)',
+      'Programar o monitoramento automático de atenuação (SureStart / Bolus Tracking) com ROI vascular',
+      'Calcular o clearance de creatinina (Taxa de Filtração Glomerular Estimada - TFGe) para prevenção de NIC',
+      'Manejar intercorrências: extravasamento subcutâneo, urticária, broncoespasmo e choque anafilático'
+    ],
+    legalCompliance: 'Curso Livre de Formação Continuada (Lei Federal nº 9.394/1996 Art. 42 e Decreto nº 5.154/2004). Certificado de 40 horas com reconhecimento acadêmico e validade nacional.',
+    hasActivionSimulator: true,
+    hasRealDicomCases: true,
+    featured: true,
+    isEnrolled: false,
+    modules: [
+      {
+        id: 'mod_cont_01',
+        moduleNumber: 1,
+        title: 'Módulo 1: Físico-Química & Farmacologia dos Contrastes Iodados e Bário (10h)',
+        workloadHours: 10,
+        description: 'Estrutura molecular do anel benzênico tri-iodado, agentes monoméricos não iônicos (Iopamiron, Omnipaque, Ultravist), agentes iso-osmolares (Visipaque) e suspensão de bário.',
+        topics: [
+          'História e evolução dos contrastes radiológicos',
+          'Relação entre osmolaridade, viscosidade e temperatura (aquecimento a 37°C)',
+          'Sulfato de bário: indicações e contraindicações estritas (suspeita de perfuração gastrointestinal)',
+          'Contrastes orais neutros (Manitol a 2,5% e água) em enterotomografia',
+          'Prática no simulador: Parametrização de volume de contraste por peso corporal'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Cálculo de Bólus & Farmacologia dos Contrastes'
+      },
+      {
+        id: 'mod_cont_02',
+        moduleNumber: 2,
+        title: 'Módulo 2: Operação de Injetoras Automáticas & Sincronização por Bolus Tracking (10h)',
+        workloadHours: 10,
+        description: 'Injetoras de bomba dupla, cateteres de alto fluxo (Gelco 18G/20G), teste com soro e disparo automático de varredura por ROI.',
+        topics: [
+          'Programação de fluxo (mL/s), pressão máxima (PSI) e atraso de varredura (Scan Delay)',
+          'Importância do flush de salina: otimização da coluna de contraste e economia de dose',
+          'Test Bolus (curva tempo-atenuação) vs Bolus Tracking dinâmico em tempo real',
+          'Posicionamento de ROI no tronco pulmonar (TEP) e na aorta ascendente',
+          'Simulação no console: Execução de protocolo vascular contrastado'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Angio-TC com Bolus Tracking e Injetora Dupla'
+      },
+      {
+        id: 'mod_cont_03',
+        moduleNumber: 3,
+        title: 'Módulo 3: Protocolos Multifásicos de Abdome & Exames Digestivos/Urológicos (10h)',
+        workloadHours: 10,
+        description: 'Fases pré-contraste, arterial precoce/tardia, portal e excretora/equilíbrio em órgãos abdominais.',
+        topics: [
+          'Dinâmica vascular do fígado: wash-in arterial e wash-out portal em nódulos',
+          'TC de pâncreas: fase parenquimatosa pancreática (40-45s)',
+          'Urotomografia: fase nefrográfica (100s) e fase excretora com reconstrução 3D do trato urinário',
+          'Exames radiológicos contrastados: EED, Enema Opaco e Histerossalpingografia',
+          'Estudo de casos com visualizador DICOM de abdome multifásico'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Abdome Multifásico em 4 Fases Contrastadas'
+      },
+      {
+        id: 'mod_cont_04',
+        moduleNumber: 4,
+        title: 'Módulo 4: Segurança do Paciente, Reações Adversas, Extravasamento & Prova 40h (10h)',
+        workloadHours: 10,
+        description: 'Protocolos de prevenção de nefrotoxicidade, conduta em extravasamento de contraste, drogas de emergência e certificação final de 40h.',
+        topics: [
+          'Avaliação de função renal (TFGe < 30 mL/min/1.73m²) e hidratação preventiva',
+          'Classificação das reações anafilactoides: leves, moderadas e graves',
+          'Algoritmo de atendimento de emergência na sala de tomografia (Adrenalina, Anti-histamínicos, Corticoides)',
+          'Manejo de extravasamento de grandes volumes (> 50 mL): compressas, elevação e acompanhamento cirúrgico',
+          'Avaliação teórica e emissão do Certificado Oficial de 40 horas com validação digital'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Simulação de Emergência & Certificação Final 40h'
+      }
+    ]
+  },
+  {
+    id: 'cl_centro_cirurgico_40h',
+    code: 'CL-CIR-4005',
+    title: 'Radiologia em Centro Cirúrgico, Arco Cirúrgico em C & Fluoroscopia',
+    subtitle: 'Operação de C-Arm Intraoperatório, Ortopedia, Neurocirurgia, Vascular e Assepsia Estrita',
+    category: 'Centro Cirúrgico',
+    workloadHours: 40,
+    price: 179.00,
+    originalPrice: 350.00,
+    installments: 12,
+    rating: 4.99,
+    reviewCount: 175,
+    enrolledStudentsCount: 490,
+    instructor: 'Prof. Dr. Roberto Mansur',
+    instructorTitle: 'Especialista em Imagem Intraoperatória & Cirurgia Guiada',
+    instructorAvatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=250&q=80',
+    coverImage: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80',
+    description: 'Curso livre de 40 horas especializado na atuação do profissional de imagem dentro do bloco cirúrgico estéril. Aborda a operação do equipamento de fluoroscopia móvel (Arco Cirúrgico em C / C-Arm), comandos de movimentação espacial (orbital, angular, elevação, translação e wig-wag), protocolos de assepsia, paramentação cirúrgica estéril, controle do tempo de pedal de escopia, roadmapping digital em cirurgias vasculares e posicionamento em cirurgias ortopédicas e neurológicas de coluna.',
+    targetAudience: 'Técnicos e tecnólogos em radiologia, biomédicos, residentes de ortopedia, neurocirurgia e cirurgia vascular.',
+    objectives: [
+      'Operar com precisão os 5 eixos de movimentação do Arco Cirúrgico em C sem violar o campo estéril',
+      'Dominar as normas de assepsia cirúrgica, paramentação com capote estéril e colocação de capas plásticas no intensificador',
+      'Executar escopia pulsada com controle de dose (mGy/min) para proteção de toda a equipe cirúrgica',
+      'Posicionar incidências de alta precisão em osteossínteses ortopédicas (haste intramedular, prótese de quadril) e coluna vertebral',
+      'Utilizar a técnica de subtração digital intraoperatória (Roadmapping) em procedimentos endovasculares'
+    ],
+    legalCompliance: 'Curso Livre de Capacitação e Formação Continuada (Lei nº 9.394/1996 Art. 42 e Decreto nº 5.154/2004). Carga horária de 40 horas válida nacionalmente para prova de títulos e concursos.',
+    hasActivionSimulator: true,
+    hasRealDicomCases: true,
+    featured: true,
+    isEnrolled: false,
+    modules: [
+      {
+        id: 'mod_cir_01',
+        moduleNumber: 1,
+        title: 'Módulo 1: Arquitetura do Bloco Cirúrgico, Rotinas e Assepsia Estrita (10h)',
+        workloadHours: 10,
+        description: 'Zonas do centro cirúrgico (não restrita, semirrestrita e restrita), fluxo de ar com pressão positiva, paramentação, escovação e conduta estéril.',
+        topics: [
+          'Zoneamento e controle microbiológico no centro cirúrgico hospitalar',
+          'Técnicas de escovação das mãos com clorexidina degermante e paramentação estéril',
+          'Delimitação do campo cirúrgico e técnica correta de envelopamento do Arco em C com capas estéreis',
+          'Comunicação efetiva com o cirurgião principal, instrumentador e anestesista',
+          'Simulação de entrada em sala e posicionamento do equipamento'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Protocolo de Assepsia & Envelopamento do C-Arm'
+      },
+      {
+        id: 'mod_cir_02',
+        moduleNumber: 2,
+        title: 'Módulo 2: Mecânica e Movimentação Espacial do Arco Cirúrgico em C (10h)',
+        workloadHours: 10,
+        description: 'Controle de freios mecânicos e elétricos: movimento orbital (0° a 115°), angular (+/- 15°), rotação do gantry, elevação vertical e translação horizontal.',
+        topics: [
+          'Geometria do intensificador de imagem vs detector de painel plano (Flat Panel)',
+          'Eixo orbital: obtenção rápida de incidências anteroposterior (AP), perfil estrito e oblíquas',
+          'Movimento wig-wag para alinhamento fino sem mover a base do equipamento',
+          'Posicionamento correto do tubo de raios-X embaixo da mesa cirúrgica para redução da radiação espalhada',
+          'Prática: Simulação de comandos de movimentação em cirurgia de coluna'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Operação dos 5 Eixos Espaciais do Arco em C'
+      },
+      {
+        id: 'mod_cir_03',
+        moduleNumber: 3,
+        title: 'Módulo 3: Aplicações em Ortopedia, Neurocirurgia & Cirurgia Vascular (10h)',
+        workloadHours: 10,
+        description: 'Guiamento intraoperatório para parafusos pediculares de coluna, fixação de fraturas de fêmur e subtração angiográfica digital.',
+        topics: [
+          'Artroplastia de quadril e fixação de colo do fêmur: incidências de Lauenstein e axial',
+          'Artrodese de coluna lombossacra: visualização do trajeto pedicular em perfil contínuo',
+          'Cirurgia vascular periférica: subtração digital (DSA) e técnica de Roadmapping dinâmico',
+          'Colangiografia intraoperatória em colecistectomias',
+          'Estudo de casos fluoroscópicos intraoperatórios em viewer médico'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Fluoroscopia em Osteossíntese & Coluna Vertebral'
+      },
+      {
+        id: 'mod_cir_04',
+        moduleNumber: 4,
+        title: 'Módulo 4: Radioproteção Cirúrgica, Escopia Pulsada & Certificação Final (10h)',
+        workloadHours: 10,
+        description: 'Controle de radiação na sala de operações, uso de fluoroscopia pulsada de baixo mAs, aventais plumbíferos com protetor de tireoide e exame final.',
+        topics: [
+          'Princípio do inverso do quadrado da distância na sala cirúrgica',
+          'Uso obrigatório de vestimentas plumbíferas de 0,5mm Pb e dosímetro de punho/lapela',
+          'Fluoroscopia pulsada (4 a 8 pulsos/s) e recurso Last Image Hold (LIH) para zerar radiação desnecessária',
+          'Auditoria do tempo acumulado de escopia no monitor cirúrgico',
+          'Prova teórica final e emissão do Certificado Oficial de 40 horas com fé pública'
+        ],
+        hasSimulatorPractice: true,
+        simulatorProtocolName: 'Simulação de Escopia Pulsada & Prova de 40h'
       }
     ]
   }

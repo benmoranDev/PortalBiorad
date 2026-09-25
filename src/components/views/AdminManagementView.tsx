@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Course, ThemeMode, EmailNotification } from '../../types';
 import { storageService } from '../../services/storage';
+import { formatCpf, isValidCpf } from '../../utils/cpfValidator';
 
 interface AdminManagementViewProps {
   courses: Course[];
@@ -81,8 +82,10 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
 
   const [newUserName, setNewUserName] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
+  const [newUserCpf, setNewUserCpf] = useState('');
   const [newUserRole, setNewUserRole] = useState<'student' | 'professor' | 'admin'>('student');
   const [newUserSpecialty, setNewUserSpecialty] = useState('');
+  const [userFormError, setUserFormError] = useState<string | null>(null);
 
   const isDark = theme === 'dark';
 
@@ -130,17 +133,29 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {onNavigateTab && (
-            <button
-              onClick={() => onNavigateTab('cadastro_alunos')}
-              className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer hover:bg-cyan-500/20"
-            >
-              <span className="material-symbols-outlined text-sm">how_to_reg</span>
-              <span>Cadastro de Alunos</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => onNavigateTab('cursos_livres')}
+                className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer hover:bg-cyan-500/20"
+              >
+                <span className="material-symbols-outlined text-sm">school</span>
+                <span>Cursos Livres (40h)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigateTab('cadastro_alunos')}
+                className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer hover:bg-cyan-500/20"
+              >
+                <span className="material-symbols-outlined text-sm">how_to_reg</span>
+                <span>Cadastro de Alunos</span>
+              </button>
+            </>
           )}
           <button
+            type="button"
             onClick={() => setShowAddCourseModal(true)}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-md shadow-[#06b6d4]/30 flex items-center gap-1.5 transition-all cursor-pointer hover:opacity-95"
           >
@@ -483,12 +498,27 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
             <form
               onSubmit={e => {
                 e.preventDefault();
-                if (!newUserName || !newUserEmail) return;
+                setUserFormError(null);
+                if (!newUserName.trim() || !newUserEmail.trim()) {
+                  setUserFormError('Nome e E-mail são obrigatórios.');
+                  return;
+                }
+                if (newUserRole === 'student') {
+                  if (!newUserCpf.trim()) {
+                    setUserFormError('O CPF é obrigatório para cadastro de alunos (necessário para emissão do certificado).');
+                    return;
+                  }
+                  if (!isValidCpf(newUserCpf)) {
+                    setUserFormError('O CPF informado é inválido. Digite os 11 dígitos corretos.');
+                    return;
+                  }
+                }
                 const enroll = newUserRole === 'student' ? `2026-RAD-${Math.floor(1000 + Math.random() * 9000)}` : newUserRole === 'professor' ? `DOC-TC-${Math.floor(10 + Math.random() * 90)}` : `ADM-${Math.floor(10 + Math.random() * 90)}`;
+                const formattedCpf = newUserCpf.trim() ? formatCpf(newUserCpf.trim()) : undefined;
                 const newU = {
                   id: `u_${Date.now()}`,
-                  name: newUserName,
-                  email: newUserEmail,
+                  name: newUserName.trim(),
+                  email: newUserEmail.trim(),
                   role: newUserRole,
                   enrollment: enroll,
                   details: newUserSpecialty || (newUserRole === 'student' ? 'Graduação em Radiologia / Imagenologia' : 'Especialista em Tomografia Computadorizada'),
@@ -505,6 +535,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
                   enrollmentId: enroll,
                   specialty: newU.details,
+                  cpf: formattedCpf,
                   gpa: 4.0,
                   completedHours: 0,
                   totalRequiredHours: 180,
@@ -516,14 +547,23 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                 setUsersList(prev => [newU, ...prev]);
                 setNewUserName('');
                 setNewUserEmail('');
+                setNewUserCpf('');
                 setNewUserSpecialty('');
+                setUserFormError(null);
                 setShowAddUserModal(false);
               }}
               className="space-y-3 text-xs"
             >
+              {userFormError && (
+                <div className="p-2.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base">error</span>
+                  <span>{userFormError}</span>
+                </div>
+              )}
+
               <div>
                 <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
-                  Nome Completo
+                  Nome Completo *
                 </label>
                 <input
                   type="text"
@@ -537,20 +577,40 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                 />
               </div>
 
-              <div>
-                <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
-                  E-mail Institucional
-                </label>
-                <input
-                  type="email"
-                  value={newUserEmail}
-                  onChange={e => setNewUserEmail(e.target.value)}
-                  placeholder="beatriz.ramos@radbio.edu.br"
-                  required
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
-                    isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
-                  }`}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={`block mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
+                    E-mail Institucional *
+                  </label>
+                  <input
+                    type="email"
+                    value={newUserEmail}
+                    onChange={e => setNewUserEmail(e.target.value)}
+                    placeholder="beatriz.ramos@radbio.edu.br"
+                    required
+                    className={`w-full p-2.5 rounded-xl border outline-none ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className={`flex items-center justify-between mb-1 font-semibold ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
+                    <span>CPF {newUserRole === 'student' ? '*' : ''}</span>
+                    <span className="text-[10px] text-cyan-400 font-normal">Para o Certificado</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newUserCpf}
+                    onChange={e => setNewUserCpf(formatCpf(e.target.value))}
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    required={newUserRole === 'student'}
+                    className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -563,7 +623,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                       isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                     }`}
                   >
-                    <option value="student">Aluno / Discente</option>
+                    <option value="student">Aluno / Discente (CPF Obrigatório)</option>
                     <option value="professor">Professor / Preceptor</option>
                     <option value="admin">Administrador / Coordenação</option>
                   </select>

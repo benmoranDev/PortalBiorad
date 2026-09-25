@@ -28,6 +28,7 @@ import {
   defaultSupabaseConfig
 } from '../data/initialData';
 import { initialCursosLivres } from '../data/cursosLivresData';
+import { PixConfig, DEFAULT_PIX_CONFIG } from '../utils/pixHelper';
 
 const KEYS = {
   USER: 'radbio_current_user',
@@ -525,15 +526,27 @@ export const storageService = {
     }
     try {
       const cached: CursoLivre[] = JSON.parse(data);
-      // Ensure any newly defined initial 40h courses exist
-      const missing = initialCursosLivres.filter(icl => !cached.some(c => c.id === icl.id));
-      if (missing.length > 0) {
-        const merged = [...cached, ...missing];
-        localStorage.setItem(KEYS.CURSOS_LIVRES, JSON.stringify(merged));
-        return merged;
-      }
-      return cached;
+      // Ensure all 5 core radiology courses are present and properly configured
+      const updatedList = initialCursosLivres.map(initialCourse => {
+        const existing = cached.find(c => c.id === initialCourse.id);
+        if (existing) {
+          return {
+            ...initialCourse,
+            isEnrolled: existing.isEnrolled ?? initialCourse.isEnrolled,
+            progressPercent: existing.progressPercent ?? initialCourse.progressPercent,
+            enrolledStudentsCount: existing.enrolledStudentsCount ?? initialCourse.enrolledStudentsCount
+          };
+        }
+        return initialCourse;
+      });
+
+      // Include any user-created custom courses (starting with cl_custom_ or different IDs)
+      const customCourses = cached.filter(c => !initialCursosLivres.some(ic => ic.id === c.id));
+      const finalList = [...updatedList, ...customCourses];
+      localStorage.setItem(KEYS.CURSOS_LIVRES, JSON.stringify(finalList));
+      return finalList;
     } catch {
+      localStorage.setItem(KEYS.CURSOS_LIVRES, JSON.stringify(initialCursosLivres));
       return initialCursosLivres;
     }
   },
@@ -661,31 +674,20 @@ export const storageService = {
     window.dispatchEvent(new CustomEvent('radbio_state_changed'));
   },
 
-  getPixSettings(): { keyType: string; keyValue: string; merchantName: string; merchantCity: string } {
+  getPixSettings(): PixConfig {
     const data = localStorage.getItem(KEYS.PIX_SETTINGS);
     if (!data) {
-      const defaultSettings = {
-        keyType: 'email',
-        keyValue: 'benmoran29dev@gmail.com',
-        merchantName: 'RADBIO EDUCACAO S/A',
-        merchantCity: 'SAO PAULO'
-      };
-      localStorage.setItem(KEYS.PIX_SETTINGS, JSON.stringify(defaultSettings));
-      return defaultSettings;
+      localStorage.setItem(KEYS.PIX_SETTINGS, JSON.stringify(DEFAULT_PIX_CONFIG));
+      return DEFAULT_PIX_CONFIG;
     }
     try {
-      return JSON.parse(data);
+      return JSON.parse(data) as PixConfig;
     } catch {
-      return {
-        keyType: 'email',
-        keyValue: 'benmoran29dev@gmail.com',
-        merchantName: 'RADBIO EDUCACAO S/A',
-        merchantCity: 'SAO PAULO'
-      };
+      return DEFAULT_PIX_CONFIG;
     }
   },
 
-  savePixSettings(settings: { keyType: string; keyValue: string; merchantName: string; merchantCity: string }): void {
+  savePixSettings(settings: PixConfig): void {
     localStorage.setItem(KEYS.PIX_SETTINGS, JSON.stringify(settings));
     window.dispatchEvent(new CustomEvent('radbio_state_changed'));
   }

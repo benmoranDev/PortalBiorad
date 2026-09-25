@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, ThemeMode } from '../../types';
 import { storageService } from '../../services/storage';
 import { supabaseService } from '../../services/supabaseClient';
+import { formatCpf, isValidCpf } from '../../utils/cpfValidator';
 
 interface StudentRegistrationViewProps {
   theme?: ThemeMode;
@@ -76,12 +77,24 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
       return;
     }
 
+    if (!cpf.trim()) {
+      setFormError('O CPF é obrigatório para emissão e fé pública do Certificado Oficial.');
+      return;
+    }
+
+    if (!isValidCpf(cpf)) {
+      setFormError('O CPF informado é inválido. Digite os 11 dígitos corretos para registro acadêmico.');
+      return;
+    }
+
+    const formattedCpf = formatCpf(cpf.trim());
+
     if (editingStudent) {
       const updated: User = {
         ...editingStudent,
         name: name.trim(),
         email: email.trim(),
-        cpf: cpf.trim(),
+        cpf: formattedCpf,
         phone: phone.trim(),
         specialty: courseName,
         courseName,
@@ -109,7 +122,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
         specialty: courseName,
         courseName,
         shift,
-        cpf: cpf.trim(),
+        cpf: formattedCpf,
         phone: phone.trim(),
         gpa: 4.0,
         completedHours: 0,
@@ -537,18 +550,24 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-semibold text-slate-300">
-                    CPF (Cadastro de Pessoa Física)
+                  <label className="flex items-center justify-between mb-1 font-semibold text-slate-300">
+                    <span>CPF (Obrigatório) *</span>
+                    <span className="text-[10px] text-cyan-400 font-normal">Para o Certificado</span>
                   </label>
                   <input
                     type="text"
+                    required
                     value={cpf}
-                    onChange={e => setCpf(e.target.value)}
+                    onChange={e => setCpf(formatCpf(e.target.value))}
                     placeholder="000.000.000-00"
+                    maxLength={14}
                     className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
                       isDark ? 'bg-[#0a0e17]/80 border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900 focus:bg-white focus:border-cyan-600'
                     }`}
                   />
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    Obrigatório para autenticidade na impressão do certificado.
+                  </p>
                 </div>
               </div>
 

@@ -3,7 +3,8 @@ import { CursoLivre, PaymentTransaction, ThemeMode, User } from '../../types';
 import { storageService } from '../../services/storage';
 import { pdfExportService } from '../../services/pdfExport';
 import { initialPaymentPlans } from '../../data/initialData';
-import { generatePixBrCode, DEFAULT_PIX_CONFIG } from '../../utils/pixHelper';
+import { generatePixBrCode, generatePixQrCodeDataUrl, DEFAULT_PIX_CONFIG, PixConfig } from '../../utils/pixHelper';
+import { formatCpf, isValidCpf } from '../../utils/cpfValidator';
 
 interface PaymentCheckoutViewProps {
   onPaymentSuccess?: (courseTitle: string) => void;
@@ -20,17 +21,19 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
 }) => {
   const isDark = theme === 'dark';
   const currentUser: User = storageService.getCurrentUser();
-  const cursosLivres = storageService.getCursosLivres();
+  const [cursosLivres, setCursosLivres] = useState<CursoLivre[]>(() => storageService.getCursosLivres());
+  const [transactionsList, setTransactionsList] = useState<PaymentTransaction[]>(() => storageService.getPaymentTransactions());
 
   // Load custom Pix settings
-  const [pixSettings, setPixSettings] = useState(() => storageService.getPixSettings());
+  const [pixSettings, setPixSettings] = useState<PixConfig>(() => storageService.getPixSettings());
   const [isEditingPixKey, setIsEditingPixKey] = useState(false);
   const [editPixKeyValue, setEditPixKeyValue] = useState(pixSettings.keyValue || DEFAULT_PIX_CONFIG.keyValue);
-  const [editPixKeyType, setEditPixKeyType] = useState(pixSettings.keyType || 'email');
+  const [editPixKeyType, setEditPixKeyType] = useState<PixConfig['keyType']>(pixSettings.keyType || 'email');
   const [editMerchantName, setEditMerchantName] = useState(pixSettings.merchantName || 'RADBIO EDUCACAO S/A');
+  const [editMerchantCity, setEditMerchantCity] = useState(pixSettings.merchantCity || 'SAO PAULO');
 
-  // Tab mode: 40h courses vs bundled pass
-  const [checkoutMode, setCheckoutMode] = useState<'40h_courses' | 'bundle'>('40h_courses');
+  // Tab mode: '40h_courses' | 'bundle' | 'history'
+  const [checkoutMode, setCheckoutMode] = useState<'40h_courses' | 'bundle' | 'history'>('40h_courses');
 
   // Selected item
   const [selectedCourse, setSelectedCourse] = useState<CursoLivre | null>(() => {
@@ -45,22 +48,25 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
   // Payment Method: 'pix' | 'credit'
   const [paymentMethod, setPaymentMethod] = useState<'pix' | 'credit'>('pix');
 
-  // Gateway mode for credit card: 'mercadopago' | 'direct'
-  const [cardGateway, setCardGateway] = useState<'mercadopago' | 'direct'>('mercadopago');
+  // Gateway mode for credit card: 'mercadopago' | 'asaas' | 'direct'
+  const [cardGateway, setCardGateway] = useState<'mercadopago' | 'asaas' | 'direct'>('mercadopago');
 
   // Credit card state
   const [cardNumber, setCardNumber] = useState('4532 8901 2345 7890');
   const [cardHolder, setCardHolder] = useState(currentUser.name.toUpperCase());
   const [cardExpiry, setCardExpiry] = useState('08/29');
   const [cardCvv, setCardCvv] = useState('482');
-  const [cardCpf, setCardCpf] = useState('384.912.748-02');
+  const [cardCpf, setCardCpf] = useState(currentUser.cpf || '384.912.748-02');
   const [installments, setInstallments] = useState(1);
   const [isCardFlipped, setIsCardFlipped] = useState(false);
+  const [cardError, setCardError] = useState<string | null>(null);
 
   // Pix state
   const [copiedPix, setCopiedPix] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [pixTimeRemaining, setPixTimeRemaining] = useState(900); // 15 minutes in seconds
+  const [realQrCodeDataUrl, setRealQrCodeDataUrl] = useState<string>('');
+  const [isGeneratingQr, setIsGeneratingQr] = useState<boolean>(false);
 
   // Processing & Transaction result
   const [isProcessing, setIsProcessing] = useState(false);
@@ -97,9 +103,10 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
   const cardBrand = useMemo(() => {
     const clean = cardNumber.replace(/\s+/g, '');
     if (clean.startsWith('4')) return 'visa';
-    if (/^5[1-5]/.test(clean)) return 'mastercard';
-    if (/^(606282|3841)/.test(clean) || clean.startsWith('50')) return 'elo';
+    if (/^5[1-5]/.test(clean) || /^2[2-7]/.test(clean)) return 'mastercard';
+    if (/^(606282|3841|50)/.test(clean)) return 'elo';
     if (/^3[47]/.test(clean)) return 'amex';
+    if (/^60/.test(clean)) return 'hipercard';
     return 'mastercard';
   }, [cardNumber]);
 
@@ -118,18 +125,40 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
       pixSettings.keyValue,
       pixSettings.merchantName,
       pixSettings.merchantCity,
-      txId
+      txId,
+      pixSettings.keyType
     );
   }, [activeItem, currentPrice, pixSettings]);
+
+  // Generate Real Scannable QR Code Data URL whenever the payload changes
+  useEffect(() => {
+    let isMounted = true;
+    setIsGeneratingQr(true);
+    generatePixQrCodeDataUrl(pixQrCodeString)
+      .then(url => {
+        if (isMounted) {
+          setRealQrCodeDataUrl(url);
+          setIsGeneratingQr(false);
+        }
+      })
+      .catch(() => {
+        if (isMounted) setIsGeneratingQr(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pixQrCodeString]);
 
   const handleSavePixKeyConfig = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editPixKeyValue.trim()) return;
-    const updated = {
+    const updated: PixConfig = {
       ...pixSettings,
       keyType: editPixKeyType,
       keyValue: editPixKeyValue.trim(),
-      merchantName: editMerchantName.trim() || 'RADBIO EDUCACAO S/A'
+      merchantName: editMerchantName.trim() || 'RADBIO EDUCACAO S/A',
+      merchantCity: editMerchantCity.trim() || 'SAO PAULO'
     };
     storageService.savePixSettings(updated);
     setPixSettings(updated);
@@ -152,26 +181,58 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
   };
 
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value.replace(/\D/g, '').slice(0, 11);
-    if (val.length > 9) {
-      val = val.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    } else if (val.length > 6) {
-      val = val.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3');
-    } else if (val.length > 3) {
-      val = val.replace(/(\d{3})(\d{1,3})/, '$1.$2');
-    }
-    setCardCpf(val);
+    setCardCpf(formatCpf(e.target.value));
+  };
+
+  // Download QR Code image as PNG
+  const handleDownloadQrPng = () => {
+    if (!realQrCodeDataUrl) return;
+    const link = document.createElement('a');
+    link.href = realQrCodeDataUrl;
+    link.download = `QRCode_Pix_RadBio_${(activeItem?.code || '40H')}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Payment Execution (Real & Simulated Webhook Confirmation)
   const handleExecutePayment = () => {
+    setCardError(null);
+
+    // Validate Card fields if credit card
+    if (paymentMethod === 'credit') {
+      const cleanNum = cardNumber.replace(/\s+/g, '');
+      if (cleanNum.length < 13) {
+        setCardError('Digite um número de cartão de crédito válido (16 dígitos).');
+        return;
+      }
+      if (!cardHolder.trim()) {
+        setCardError('Informe o nome do titular do cartão.');
+        return;
+      }
+      if (cardExpiry.length < 5) {
+        setCardError('Informe a data de validade no formato MM/AA.');
+        return;
+      }
+      if (cardCvv.length < 3) {
+        setCardError('Informe o código de segurança (CVV com 3 ou 4 dígitos).');
+        return;
+      }
+      if (!cardCpf.trim() || !isValidCpf(cardCpf)) {
+        setCardError('CPF do titular inválido. O CPF é obrigatório para emissão de nota fiscal e certificado.');
+        return;
+      }
+    }
+
     setIsProcessing(true);
     setProcessingStage(
       paymentMethod === 'pix'
         ? `Consultando chave Pix (${pixSettings.keyValue}) no Banco Central (Bacen SPI)...`
         : cardGateway === 'mercadopago'
-        ? 'Autenticando via Gateway Mercado Pago API • Análise de Risco Antifraude 3D Secure...'
-        : 'Processando transação com a Adquirente Bancária (Criptografia SSL 256 bits)...'
+        ? 'Autenticando via Mercado Pago API • Análise Antifraude 3D Secure...'
+        : cardGateway === 'asaas'
+        ? 'Conectando ao gateway bancário Asaas • Gerando Tokenização PCI...'
+        : 'Processando transação com Adquirente Bancária (Criptografia SSL 256 bits)...'
     );
 
     setTimeout(() => {
@@ -189,7 +250,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
           courseTitle: currentTitle,
           studentName: currentUser.name,
           studentEmail: currentUser.email,
-          studentCpf: cardCpf,
+          studentCpf: cardCpf || currentUser.cpf || '384.912.748-02',
           amount: currentPrice,
           paymentMethod,
           installments: paymentMethod === 'credit' ? installments : 1,
@@ -207,7 +268,15 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
           storageService.enrollInCursoLivre(activeItem.id, tx);
         } else {
           storageService.savePaymentTransaction(tx);
+          // Unlock all courses if bundle
+          const allCourses = storageService.getCursosLivres();
+          allCourses.forEach(c => { c.isEnrolled = true; });
+          storageService.setCursosLivres(allCourses);
         }
+
+        // Refresh internal lists
+        setCursosLivres(storageService.getCursosLivres());
+        setTransactionsList(storageService.getPaymentTransactions());
 
         setIsProcessing(false);
         setCompletedTransaction(tx);
@@ -226,15 +295,15 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
           <div className="space-y-3 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border bg-emerald-500/15 text-emerald-400 border-emerald-500/30">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Matrícula Digital Automatizada com PIX ou Cartão de Crédito</span>
+              <span>Matrícula Digital Automatizada com PIX Real &amp; Cartão de Crédito</span>
             </div>
             <h1 className={`text-2xl sm:text-4xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight ${
               isDark ? 'text-white' : 'text-slate-900'
             }`}>
-              Cursos Livres (40 Horas) &amp; Especializações
+              Cursos Livres (40 Horas) &amp; Pagamentos
             </h1>
             <p className={`text-xs sm:text-sm leading-relaxed ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>
-              Emissão de certificado oficial de 40 horas válido em todo o território nacional conforme a Lei nº 9.394/1996 (LDB) e Decreto nº 5.154/2004. Acesso imediato ao simulador Canon Activion 16 e casos DICOM reais de alta complexidade.
+              Emissão de certificado oficial de 40 horas com fé pública acadêmica conforme a <strong>Lei nº 9.394/1996 (LDB)</strong> e <strong>Decreto nº 5.154/2004</strong>. O QR Code PIX gerado segue o padrão EMV do Banco Central do Brasil e pode ser escaneado diretamente pelo app do seu banco.
             </p>
           </div>
 
@@ -244,34 +313,164 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
           }`}>
             <button
               type="button"
-              onClick={() => setCheckoutMode('40h_courses')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              onClick={() => {
+                setCheckoutMode('40h_courses');
+                setCompletedTransaction(null);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 checkoutMode === '40h_courses'
                   ? 'bg-cyan-500 text-[#090d16] shadow-md shadow-cyan-500/30'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="material-symbols-outlined text-base">school</span>
-              <span>Cursos Livres (40h)</span>
+              <span>Cursos (40h)</span>
             </button>
+
             <button
               type="button"
-              onClick={() => setCheckoutMode('bundle')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              onClick={() => {
+                setCheckoutMode('bundle');
+                setCompletedTransaction(null);
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 checkoutMode === 'bundle'
                   ? 'bg-cyan-500 text-[#090d16] shadow-md shadow-cyan-500/30'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <span className="material-symbols-outlined text-base">auto_awesome</span>
-              <span>Passaporte Completo</span>
+              <span>Passaporte VIP</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCheckoutMode('history');
+                setTransactionsList(storageService.getPaymentTransactions());
+              }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                checkoutMode === 'history'
+                  ? 'bg-emerald-500 text-[#090d16] shadow-md shadow-emerald-500/30'
+                  : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">receipt_long</span>
+              <span>Comprovantes ({transactionsList.length})</span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* Main Checkout Workspace */}
-      {!completedTransaction ? (
+      {/* VIEW MODE: HISTORY OF TRANSACTIONS & RECEIPTS */}
+      {checkoutMode === 'history' ? (
+        <div className="space-y-6 animate-fade-in">
+          <div className={`p-6 sm:p-7 rounded-3xl border backdrop-blur-xl shadow-xl space-y-5 ${
+            isDark ? 'bg-[#181b25]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
+          }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-slate-200/15">
+              <div>
+                <h3 className="text-lg font-bold font-['Plus_Jakarta_Sans'] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-400">history_edu</span>
+                  <span>Histórico de Pagamentos &amp; Comprovantes Fiscais</span>
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Comprovantes oficiais com autenticação digital para fins acadêmicos e comprovação funcional.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCheckoutMode('40h_courses')}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs flex items-center gap-1.5 self-start sm:self-center cursor-pointer hover:opacity-95 shadow-md shadow-cyan-500/20"
+              >
+                <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
+                <span>Nova Matrícula</span>
+              </button>
+            </div>
+
+            {transactionsList.length === 0 ? (
+              <div className="py-12 text-center space-y-3">
+                <span className="material-symbols-outlined text-4xl text-slate-500">receipt</span>
+                <p className="text-sm font-semibold text-slate-400">Nenhuma transação registrada até o momento.</p>
+                <button
+                  type="button"
+                  onClick={() => setCheckoutMode('40h_courses')}
+                  className="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold cursor-pointer hover:bg-cyan-500/30"
+                >
+                  Ver Cursos Disponíveis para Matrícula
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left">
+                  <thead>
+                    <tr className={`border-b text-[11px] font-bold uppercase tracking-wider ${
+                      isDark ? 'border-white/10 text-slate-400' : 'border-slate-200 text-slate-600'
+                    }`}>
+                      <th className="py-3 px-4">Código / Protocolo</th>
+                      <th className="py-3 px-4">Curso / Plano</th>
+                      <th className="py-3 px-4">Forma</th>
+                      <th className="py-3 px-4">Valor</th>
+                      <th className="py-3 px-4">Data &amp; Hora</th>
+                      <th className="py-3 px-4">Status</th>
+                      <th className="py-3 px-4 text-right">Comprovante PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {transactionsList.map(tx => (
+                      <tr key={tx.id} className="hover:bg-white/5 transition-colors">
+                        <td className="py-3.5 px-4 font-mono font-bold text-cyan-400">
+                          {tx.transactionCode}
+                        </td>
+                        <td className="py-3.5 px-4 font-medium max-w-xs truncate">
+                          {tx.courseTitle}
+                        </td>
+                        <td className="py-3.5 px-4 uppercase font-semibold">
+                          {tx.paymentMethod === 'pix' ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-400">
+                              <span className="material-symbols-outlined text-xs">qr_code_2</span>
+                              PIX
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-cyan-400">
+                              <span className="material-symbols-outlined text-xs">credit_card</span>
+                              Cartão ({tx.installments || 1}x)
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono font-bold text-slate-200">
+                          R$ {tx.amount.toFixed(2).replace('.', ',')}
+                        </td>
+                        <td className="py-3.5 px-4 text-slate-400 font-mono text-[11px]">
+                          {tx.paidAt || tx.createdAt}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            Aprovado
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <button
+                            type="button"
+                            onClick={() => pdfExportService.exportComprovante(tx)}
+                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-[11px] inline-flex items-center gap-1.5 transition-all cursor-pointer border border-white/15"
+                            title="Baixar comprovante oficial em formato PDF Paisagem"
+                          >
+                            <span className="material-symbols-outlined text-sm text-cyan-400">download</span>
+                            <span>Baixar PDF</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : !completedTransaction ? (
+        /* MAIN CHECKOUT WORKSPACE (PIX / CARD) */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Course Selector & Summary (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
@@ -281,10 +480,10 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
               <div className="flex items-center justify-between border-b pb-4 border-slate-200/15">
                 <h2 className="text-base font-bold font-['Plus_Jakarta_Sans'] flex items-center gap-2">
                   <span className="material-symbols-outlined text-cyan-400">inventory_2</span>
-                  {checkoutMode === '40h_courses' ? 'Selecione o Curso Livre (40h)' : 'Selecione o Plano de Ensino'}
+                  {checkoutMode === '40h_courses' ? 'Selecione o Curso Livre (40h)' : 'Selecione o Plano VIP'}
                 </h2>
                 <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
-                  {checkoutMode === '40h_courses' ? `${cursosLivres.length} Disponíveis` : 'Acesso Total'}
+                  {checkoutMode === '40h_courses' ? `${cursosLivres.length} Cursos` : 'Acesso Total'}
                 </span>
               </div>
 
@@ -368,7 +567,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
               }`}>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Carga Horária Reconhecida:</span>
-                  <span className="font-bold text-emerald-400">{currentWorkload} Horas Oficiais (MEC/LDB)</span>
+                  <span className="font-bold text-emerald-400">{currentWorkload} Horas Oficiais (LDB 9.394)</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Simulador Canon Activion 16:</span>
@@ -376,7 +575,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Certificado Digital em PDF:</span>
-                  <span className="font-bold text-emerald-400">Incluso com QR Code</span>
+                  <span className="font-bold text-emerald-400">Incluso com QR Code &amp; CPF</span>
                 </div>
                 <div className="border-t pt-2 mt-2 border-slate-200/10 flex justify-between items-baseline">
                   <span className="font-bold text-sm">Total da Matrícula:</span>
@@ -416,9 +615,9 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                     }`}
                   >
                     <span className="material-symbols-outlined text-lg">qr_code_2</span>
-                    <span>PIX Instantâneo</span>
+                    <span>PIX Instantâneo Real</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
-                      Imediato
+                      QR Code Real
                     </span>
                   </button>
 
@@ -456,7 +655,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-500 font-bold">
-                            Chave Pix Destinatária (Conta de Recebimento)
+                            Chave Pix Destinatária (Bacen SPI)
                           </span>
                           <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                             Ativa
@@ -492,8 +691,8 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                         isDark ? 'bg-white/5 hover:bg-white/10 text-emerald-300 border-emerald-500/30' : 'bg-white hover:bg-emerald-100 text-emerald-800 border-emerald-300 shadow-sm'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-xs">settings</span>
-                      <span>Alterar Minha Chave</span>
+                      <span className="material-symbols-outlined text-xs">tune</span>
+                      <span>Configurar Chave</span>
                     </button>
                   </div>
 
@@ -504,7 +703,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                     }`}>
                       <div className="flex items-center justify-between border-b pb-2 border-slate-200/10">
                         <span className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">tune</span>
+                          <span className="material-symbols-outlined text-sm">settings_suggest</span>
                           Configurar Chave Pix do Sistema
                         </span>
                         <button
@@ -521,7 +720,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                           <label className="block mb-1 font-semibold text-gray-300">Tipo de Chave</label>
                           <select
                             value={editPixKeyType}
-                            onChange={e => setEditPixKeyType(e.target.value)}
+                            onChange={e => setEditPixKeyType(e.target.value as PixConfig['keyType'])}
                             className={`w-full p-2.5 rounded-xl border font-mono ${
                               isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-800'
                             }`}
@@ -529,7 +728,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                             <option value="email">E-mail</option>
                             <option value="cpf">CPF</option>
                             <option value="cnpj">CNPJ</option>
-                            <option value="phone">Celular</option>
+                            <option value="phone">Celular (+55)</option>
                             <option value="random">Chave Aleatória (EVP)</option>
                           </select>
                         </div>
@@ -547,13 +746,26 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                           />
                         </div>
 
-                        <div className="sm:col-span-3">
+                        <div className="sm:col-span-2">
                           <label className="block mb-1 font-semibold text-gray-300">Nome do Titular/Beneficiário (Bacen)</label>
                           <input
                             type="text"
                             value={editMerchantName}
                             onChange={e => setEditMerchantName(e.target.value)}
-                            placeholder="RADBIO EDUCACAO S/A"
+                            placeholder="RADBIO EDUCACAO"
+                            className={`w-full p-2.5 rounded-xl border font-mono ${
+                              isDark ? 'bg-[#0a0e17] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-800'
+                            }`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block mb-1 font-semibold text-gray-300">Cidade (Bacen)</label>
+                          <input
+                            type="text"
+                            value={editMerchantCity}
+                            onChange={e => setEditMerchantCity(e.target.value)}
+                            placeholder="SAO PAULO"
                             className={`w-full p-2.5 rounded-xl border font-mono ${
                               isDark ? 'bg-[#0a0e17] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-800'
                             }`}
@@ -567,6 +779,8 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                           onClick={() => {
                             setEditPixKeyValue(DEFAULT_PIX_CONFIG.keyValue);
                             setEditPixKeyType(DEFAULT_PIX_CONFIG.keyType);
+                            setEditMerchantName(DEFAULT_PIX_CONFIG.merchantName);
+                            setEditMerchantCity(DEFAULT_PIX_CONFIG.merchantCity);
                           }}
                           className="px-3 py-1.5 rounded-xl text-xs text-gray-400 hover:text-white cursor-pointer"
                         >
@@ -589,7 +803,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                     <div className="flex items-center justify-between border-b pb-3 border-slate-200/15 text-xs">
                       <div className="flex items-center gap-2 text-emerald-400 font-bold">
                         <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                        <span>Chave Dinâmica Oficial Gerada</span>
+                        <span>QR Code PIX Real EMV (Bacen)</span>
                       </div>
                       <div className="flex items-center gap-1.5 font-mono text-gray-400 text-[11px]">
                         <span className="material-symbols-outlined text-sm">schedule</span>
@@ -597,67 +811,63 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                       </div>
                     </div>
 
-                    {/* QR Code Container */}
-                    <div className="relative inline-block bg-white p-3 rounded-2xl shadow-xl">
-                      <svg viewBox="0 0 160 160" className="w-44 h-44 mx-auto">
-                        {/* Realistic Mock Pix QR Matrix */}
-                        <rect x="0" y="0" width="160" height="160" fill="#ffffff" />
-                        {/* Corner Targets */}
-                        <rect x="10" y="10" width="40" height="40" fill="#020617" rx="6" />
-                        <rect x="16" y="16" width="28" height="28" fill="#ffffff" rx="4" />
-                        <rect x="22" y="22" width="16" height="16" fill="#020617" rx="2" />
-
-                        <rect x="110" y="10" width="40" height="40" fill="#020617" rx="6" />
-                        <rect x="116" y="16" width="28" height="28" fill="#ffffff" rx="4" />
-                        <rect x="122" y="22" width="16" height="16" fill="#020617" rx="2" />
-
-                        <rect x="10" y="110" width="40" height="40" fill="#020617" rx="6" />
-                        <rect x="16" y="116" width="28" height="28" fill="#ffffff" rx="4" />
-                        <rect x="22" y="122" width="16" height="16" fill="#020617" rx="2" />
-
-                        {/* Alignment pattern */}
-                        <rect x="115" y="115" width="25" height="25" fill="#020617" rx="4" />
-                        <rect x="120" y="120" width="15" height="15" fill="#ffffff" rx="2" />
-                        <rect x="124" y="124" width="7" height="7" fill="#020617" />
-
-                        {/* Timing and data bits */}
-                        <rect x="58" y="15" width="44" height="6" fill="#020617" />
-                        <rect x="58" y="30" width="10" height="60" fill="#020617" />
-                        <rect x="75" y="45" width="25" height="12" fill="#020617" />
-                        <rect x="68" y="70" width="30" height="8" fill="#020617" />
-                        <rect x="15" y="58" width="6" height="44" fill="#020617" />
-                        <rect x="30" y="58" width="14" height="20" fill="#020617" />
-                        <rect x="110" y="60" width="40" height="8" fill="#020617" />
-                        <rect x="125" y="75" width="20" height="20" fill="#020617" />
-                        <rect x="60" y="95" width="45" height="10" fill="#020617" />
-                        <rect x="60" y="115" width="45" height="12" fill="#020617" />
-                        <rect x="60" y="135" width="30" height="15" fill="#020617" />
-
-                        {/* Pix Center Logo Badge */}
-                        <circle cx="80" cy="80" r="14" fill="#00a572" />
-                        <text x="80" y="84" fill="#ffffff" fontSize="9" fontWeight="bold" textAnchor="middle">
-                          PIX
-                        </text>
-                      </svg>
+                    {/* REAL SCANNABLE QR CODE IMAGE */}
+                    <div className="relative inline-block bg-white p-3.5 rounded-2xl shadow-2xl border-2 border-emerald-500/30">
+                      {isGeneratingQr ? (
+                        <div className="w-48 h-48 flex flex-col items-center justify-center text-slate-800 space-y-2">
+                          <span className="material-symbols-outlined text-3xl text-emerald-500 animate-spin">sync</span>
+                          <span className="text-[11px] font-bold font-mono">Gerando QR Code...</span>
+                        </div>
+                      ) : realQrCodeDataUrl ? (
+                        <div className="relative group">
+                          <img
+                            src={realQrCodeDataUrl}
+                            alt="QR Code PIX Real para Pagamento"
+                            className="w-48 h-48 sm:w-52 sm:h-52 object-contain rounded-xl block mx-auto"
+                          />
+                          {/* Central PIX Watermark Logo */}
+                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div className="w-11 h-11 rounded-full bg-[#00a572] border-2 border-white shadow-md flex items-center justify-center text-white font-extrabold text-[10px] tracking-wider">
+                              PIX
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-48 h-48 flex items-center justify-center text-slate-700 text-xs">
+                          Carregando matriz QR...
+                        </div>
+                      )}
                     </div>
 
                     <div>
                       <p className={`text-xs font-semibold ${isDark ? 'text-gray-200' : 'text-slate-800'}`}>
-                        Abra o app do seu banco e escaneie o código QR acima
+                        Abra o app do seu banco no celular e aponte a câmera para o QR Code acima
                       </p>
                       <p className={`text-[11px] mt-0.5 ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
                         Beneficiário: <strong className="text-emerald-400">{pixSettings.merchantName}</strong> • Chave: <strong className="font-mono text-cyan-400">{pixSettings.keyValue}</strong>
                       </p>
                       <p className={`text-[10px] mt-0.5 ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
-                        Compatível com Nubank, Inter, Itaú, Bradesco, Banco do Brasil, Santander, Caixa e todos os bancos Bacen.
+                        Compatível com Nubank, Itaú, Banco do Brasil, Inter, Bradesco, Santander, Caixa, C6 e todos os bancos do Brasil.
                       </p>
+                    </div>
+
+                    {/* Download QR Image button */}
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        onClick={handleDownloadQrPng}
+                        className="px-3.5 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-slate-300 font-bold text-[11px] flex items-center gap-1.5 cursor-pointer transition-all"
+                      >
+                        <span className="material-symbols-outlined text-sm text-cyan-400">image</span>
+                        <span>Baixar Imagem do QR Code (PNG)</span>
+                      </button>
                     </div>
 
                     {/* Copia e Cola box */}
                     <div className="space-y-1.5 text-left">
                       <div className="flex items-center justify-between">
                         <label className="text-[10px] font-bold uppercase text-gray-400 tracking-wider">
-                          Código Pix Copia e Cola (EMV BRCode)
+                          Código Pix Copia e Cola Oficial (Payload EMV)
                         </label>
                         <span className="text-[10px] font-mono text-emerald-400">Padrão Bacen SPI</span>
                       </div>
@@ -683,7 +893,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Pix Simulation Trigger Button */}
+                  {/* Pix Confirm Trigger Button */}
                   <button
                     type="button"
                     onClick={handleExecutePayment}
@@ -724,22 +934,29 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
 
                       <button
                         type="button"
-                        onClick={() => setCardGateway('direct')}
+                        onClick={() => setCardGateway('asaas')}
                         className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          cardGateway === 'direct'
+                          cardGateway === 'asaas'
                             ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 ring-1 ring-cyan-400/40'
                             : isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-600'
                         }`}
                       >
                         <span className="material-symbols-outlined text-sm">credit_card</span>
-                        <span>Asaas / PagBank</span>
+                        <span>Asaas Gateway</span>
                       </button>
 
-                      <div className={`hidden sm:flex items-center justify-center p-2 rounded-xl text-[10px] font-mono ${
-                        isDark ? 'text-gray-400' : 'text-slate-500'
-                      }`}>
-                        <span>Antifraude 3D Secure</span>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setCardGateway('direct')}
+                        className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                          cardGateway === 'direct'
+                            ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 ring-1 ring-emerald-400/40'
+                            : isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-600'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm">security</span>
+                        <span>Rede / Cielo</span>
+                      </button>
                     </div>
                   </div>
 
@@ -804,6 +1021,13 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                       )}
                     </div>
                   </div>
+
+                  {cardError && (
+                    <div className="p-3 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">error</span>
+                      <span>{cardError}</span>
+                    </div>
+                  )}
 
                   {/* Card Form Inputs */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -870,7 +1094,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                     </div>
 
                     <div>
-                      <label className="block mb-1 font-bold text-gray-300">CPF do Titular do Cartão</label>
+                      <label className="block mb-1 font-bold text-gray-300">CPF do Titular do Cartão *</label>
                       <input
                         type="text"
                         value={cardCpf}
@@ -970,7 +1194,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 Parabéns, {currentUser.name}!
               </h2>
               <p className={`text-xs sm:text-sm max-w-lg mx-auto ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
-                Sua matrícula no <strong>{completedTransaction.courseTitle}</strong> foi concluída e o acesso de 40 horas está 100% liberado!
+                Sua matrícula no <strong>{completedTransaction.courseTitle}</strong> foi homologada e o acesso com carga horária de 40 horas está 100% liberado!
               </p>
             </div>
 
@@ -997,6 +1221,10 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 <span className="font-bold text-emerald-400">40 Horas Certificadas (LDB 9.394/96)</span>
               </div>
               <div className="flex justify-between items-center">
+                <span className="text-gray-400">ALUNO &amp; CPF:</span>
+                <span className="text-gray-300">{completedTransaction.studentName} {completedTransaction.studentCpf ? `(CPF: ${completedTransaction.studentCpf})` : ''}</span>
+              </div>
+              <div className="flex justify-between items-center">
                 <span className="text-gray-400">DATA &amp; HORA:</span>
                 <span className="text-gray-300">{completedTransaction.paidAt}</span>
               </div>
@@ -1011,19 +1239,19 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                   isDark ? 'bg-white/10 hover:bg-white/20 text-white border-white/20' : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
                 }`}
               >
-                <span className="material-symbols-outlined text-base">receipt_long</span>
+                <span className="material-symbols-outlined text-base text-cyan-400">receipt_long</span>
                 <span>Baixar Comprovante Oficial (PDF Paisagem)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
-                  if (onNavigateTab) onNavigateTab('cursos_livres');
+                  if (onNavigateTab) onNavigateTab('aulas');
                 }}
                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/30 flex items-center justify-center gap-2 cursor-pointer hover:opacity-95 transition-all"
               >
                 <span className="material-symbols-outlined text-base">play_lesson</span>
-                <span>Acessar Aulas &amp; Simulador (40h)</span>
+                <span>Acessar Sala de Aula &amp; Simulador</span>
               </button>
             </div>
           </div>

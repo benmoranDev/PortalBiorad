@@ -723,14 +723,16 @@ export const pdfExportService = {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9);
     doc.setTextColor(100, 116, 139);
-    doc.text('NOME DO ALUNO(A)', 28, 132);
-    doc.text('E-MAIL CADASTRADO', 160, 132);
+    doc.text('NOME DO ALUNO(A) / CPF', 28, 132);
+    doc.text('E-MAIL / PROTOCOLO BACEN', 160, 132);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10.5);
     doc.setTextColor(15, 23, 42);
-    doc.text(tx.studentName, 28, 139, { maxWidth: 125 });
-    doc.text(tx.studentEmail, 160, 139, { maxWidth: 105 });
+    const studentInfo = tx.studentCpf ? `${tx.studentName} • CPF: ${tx.studentCpf}` : tx.studentName;
+    doc.text(studentInfo, 28, 139, { maxWidth: 128 });
+    const authProtocol = tx.pixEndToEndId ? `${tx.studentEmail} • E2E: ${tx.pixEndToEndId.slice(0, 18)}...` : tx.studentEmail;
+    doc.text(authProtocol, 160, 139, { maxWidth: 110 });
 
     // Legal notice box
     doc.setFillColor(241, 245, 249);

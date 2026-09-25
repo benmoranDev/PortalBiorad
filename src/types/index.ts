@@ -41,7 +41,16 @@ export interface Course {
   instructor: string;
   instructorTitle: string;
   instructorAvatar?: string;
-  category: 'Tomografia Computadorizada' | 'Exames Contrastados' | 'Centro Cirúrgico' | 'Ressonância Magnética' | 'Radiologia Geral' | 'Radioproteção' | 'Medicina Nuclear';
+  category:
+    | 'Radioproteção'
+    | 'Tomografia Computadorizada'
+    | 'Reconstruções 3D Avançadas'
+    | 'Exames Contrastados'
+    | 'Centro Cirúrgico'
+    | 'Ressonância Magnética'
+    | 'Radiologia Geral'
+    | 'Medicina Nuclear'
+    | string;
   progress: number;
   currentModule: number;
   totalModules: number;
@@ -204,7 +213,13 @@ export interface CursoLivre {
   code: string;
   title: string;
   subtitle: string;
-  category: 'Tomografia Computadorizada' | 'Urgência & Trauma' | 'Angiotomografia' | 'Radioproteção' | 'Reconstrução 3D & DICOM' | 'Exames Contrastados';
+  category:
+    | 'Radioproteção'
+    | 'Tomografia Computadorizada'
+    | 'Reconstruções 3D Avançadas'
+    | 'Exames Contrastados'
+    | 'Centro Cirúrgico'
+    | string;
   workloadHours: number; // 40h standard
   price: number;
   originalPrice: number;
