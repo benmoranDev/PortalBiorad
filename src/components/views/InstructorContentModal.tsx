@@ -1,31 +1,47 @@
-import React, { useState } from 'react';
-import { Lesson, LessonResource, LessonQuizQuestion, ThemeMode } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { Lesson, LessonResource, LessonQuizQuestion, ThemeMode, Course } from '../../types';
 import { parseVideoUrl, formatDuration, parseTimeStringToSeconds } from '../../utils/videoHelper';
 
 interface InstructorContentModalProps {
   lessons: Lesson[];
+  courses?: Course[];
   activeLesson: Lesson;
   isOpen: boolean;
   onClose: () => void;
   onSaveLesson: (updated: Lesson) => void;
   onAddNewLesson: (newLesson: Lesson) => void;
+  onDeleteLesson?: (lessonId: string) => void;
+  selectedCourseId?: string;
   theme?: ThemeMode;
 }
 
 export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
   lessons,
+  courses = [],
   activeLesson,
   isOpen,
   onClose,
   onSaveLesson,
   onAddNewLesson,
+  onDeleteLesson,
+  selectedCourseId,
   theme = 'dark'
 }) => {
   if (!isOpen) return null;
   const isDark = theme === 'dark';
 
   const [activeTab, setActiveTab] = useState<'video' | 'resources' | 'quiz'>('video');
-  const [selectedLessonId, setSelectedLessonId] = useState(activeLesson.id);
+  const [targetCourseId, setTargetCourseId] = useState<string>(
+    selectedCourseId || activeLesson.courseId || (courses[0]?.id || 'course_tc_701')
+  );
+
+  // Filter lessons belonging to the selected course
+  const courseLessons = lessons.filter(l => l.courseId === targetCourseId);
+  const [selectedLessonId, setSelectedLessonId] = useState<string>(() => {
+    const matching = courseLessons.find(l => l.id === activeLesson.id);
+    if (matching) return matching.id;
+    return courseLessons[0]?.id || activeLesson.id;
+  });
 
   const currentLesson = lessons.find(l => l.id === selectedLessonId) || activeLesson;
 
@@ -46,13 +62,23 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
   const [resourceDesc, setResourceDesc] = useState('');
   const [resourceType, setResourceType] = useState<LessonResource['type']>('pdf');
   const [resourceSize, setResourceSize] = useState('5.4 MB');
+  const [resourceUrl, setResourceUrl] = useState('');
   const [resourcePreview, setResourcePreview] = useState('');
+  const [uploadSuccessMsg, setUploadSuccessMsg] = useState<string | null>(null);
 
   // Quiz Form State
   const [quizQuestion, setQuizQuestion] = useState('');
   const [quizOptions, setQuizOptions] = useState(['', '', '', '']);
   const [quizCorrectIdx, setQuizCorrectIdx] = useState(0);
   const [quizExplanation, setQuizExplanation] = useState('');
+
+  // Synchronize when targetCourseId changes
+  useEffect(() => {
+    const matching = lessons.filter(l => l.courseId === targetCourseId);
+    if (matching.length > 0 && !matching.some(l => l.id === selectedLessonId)) {
+      handleSelectLesson(matching[0].id);
+    }
+  }, [targetCourseId, lessons]);
 
   // When switching selected lesson
   const handleSelectLesson = (id: string) => {
@@ -68,12 +94,12 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
     }
   };
 
-  // Quick preset video URLs
+  // Video Presets
   const videoPresets = [
-    { label: 'Vídeo MP4 Educacional (Big Buck)', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
-    { label: 'Vídeo MP4 TC Tórax (Elephants Dream)', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
-    { label: 'Vídeo MP4 Angiotomografia (Tears of Steel)', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
-    { label: 'YouTube: Aula TC Tórax CBR', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
+    { label: 'Vídeo MP4 TC Tórax & Janela Pulmonar', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
+    { label: 'Vídeo MP4 Angiotomografia & Contraste', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
+    { label: 'Vídeo MP4 Reconstruções MPR & 3D', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
+    { label: 'YouTube: Aula TC Avançada', url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }
   ];
 
   const handleAddMarker = () => {
@@ -93,6 +119,7 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
     e.preventDefault();
     const updated: Lesson = {
       ...currentLesson,
+      courseId: targetCourseId,
       title,
       description,
       durationMinutes: Number(durationMinutes) || 45,
@@ -101,31 +128,54 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
       markers
     };
     onSaveLesson(updated);
+    setUploadSuccessMsg('✓ Alterações da aula salvas com sucesso!');
+    setTimeout(() => setUploadSuccessMsg(null), 3000);
   };
 
   const handleCreateNewLesson = () => {
-    const nextChapter = lessons.length + 1;
+    const nextChapter = courseLessons.length + 1;
+    const currentCourse = courses.find(c => c.id === targetCourseId);
     const newLesson: Lesson = {
       id: `les_${Date.now()}`,
-      courseId: activeLesson.courseId || 'course_tc_701',
+      courseId: targetCourseId,
       chapterNumber: nextChapter,
-      title: `Nova Aula: Módulo ${nextChapter} - Tomografia Computadorizada`,
-      description: 'Aula gravada com foco em protocolos e diagnóstico radiológico por imagem.',
+      title: `Capítulo 0${nextChapter}: Fundamentos e Protocolos • ${currentCourse?.title || 'Radiologia'}`,
+      description: 'Aula com foco em aquisição tomográfica, reconstruções axiais/coronais e análise diagnóstica.',
       durationMinutes: 45,
-      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+      videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
       videoSource: 'direct_mp4',
       isCompleted: false,
       ctWindowType: 'pulmonary',
       markers: [
-        { timeSeconds: 60, label: 'Introdução e Objetivos' },
-        { timeSeconds: 600, label: 'Parâmetros de Aquisição' },
-        { timeSeconds: 1500, label: 'Casos Clínicos e Discussão' }
+        { timeSeconds: 60, label: 'Introdução e Posicionamento' },
+        { timeSeconds: 600, label: 'Aquisição de Volumetria' },
+        { timeSeconds: 1500, label: 'Análise de Casos Clínicos' }
       ],
       resources: [],
       quizQuestions: []
     };
     onAddNewLesson(newLesson);
     handleSelectLesson(newLesson.id);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setResourceTitle(file.name.replace(/\.[^/.]+$/, ''));
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      setResourceSize(`${sizeMb} MB`);
+      
+      const ext = file.name.split('.').pop()?.toLowerCase();
+      if (ext === 'pdf') setResourceType('pdf');
+      else if (ext === 'dcm' || ext === 'zip') setResourceType('case_study');
+      else if (ext === 'xls' || ext === 'xlsx') setResourceType('spreadsheet');
+      else setResourceType('protocol');
+
+      // Create a local blob URL for instant preview/download
+      const objectUrl = URL.createObjectURL(file);
+      setResourceUrl(objectUrl);
+      setResourceDesc(`Arquivo anexado: ${file.name} (${sizeMb} MB)`);
+    }
   };
 
   const handleAddResource = (e: React.FormEvent) => {
@@ -135,12 +185,13 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
       id: `res_${Date.now()}`,
       lessonId: currentLesson.id,
       title: resourceTitle.trim(),
-      description: resourceDesc.trim() || 'Material complementar disponibilizado pelo corpo docente.',
+      description: resourceDesc.trim() || 'Material complementar anexado exclusivamente para este curso.',
       type: resourceType,
       fileSize: resourceSize,
+      url: resourceUrl || undefined,
       dateAdded: 'Hoje',
       authorName: 'Prof. Dr. Marcus Vinicius',
-      previewContent: resourcePreview.trim()
+      previewContent: resourcePreview.trim() || `# ${resourceTitle}\n\nMaterial oficial disponibilizado pelo corpo docente do curso.\nContém diretrizes clínicas, tabelas de dosimetria e parâmetros para reconstrução tomográfica.`
     };
 
     const updated: Lesson = {
@@ -151,7 +202,10 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
     onSaveLesson(updated);
     setResourceTitle('');
     setResourceDesc('');
+    setResourceUrl('');
     setResourcePreview('');
+    setUploadSuccessMsg('✓ Novo material didático anexado à aula!');
+    setTimeout(() => setUploadSuccessMsg(null), 3000);
   };
 
   const handleRemoveResource = (resourceId: string) => {
@@ -184,6 +238,8 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
     setQuizQuestion('');
     setQuizOptions(['', '', '', '']);
     setQuizExplanation('');
+    setUploadSuccessMsg('✓ Questão de fixação adicionada!');
+    setTimeout(() => setUploadSuccessMsg(null), 3000);
   };
 
   const handleRemoveQuizQuestion = (qId: string) => {
@@ -212,27 +268,29 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-500 font-bold">
-                  Studio do Professor • Gestão de Conteúdo
+                  Biorad Cursos • Studio do Professor
                 </span>
                 <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">
-                  Docente Autorizado
+                  Gestão de Aulas &amp; Materiais
                 </span>
               </div>
               <h2 className="text-lg font-bold font-['Plus_Jakarta_Sans']">
-                Upload de Vídeos, Capítulos e Recursos Didáticos
+                Upload de Vídeos &amp; Anexos por Curso
               </h2>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={handleCreateNewLesson}
-              className="px-3 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-500 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-emerald-500/20"
             >
-              <span className="material-symbols-outlined text-sm">add_circle</span>
-              <span>Nova Aula</span>
+              <span className="material-symbols-outlined text-sm font-bold">add_circle</span>
+              <span>Adicionar Nova Aula</span>
             </button>
             <button
+              type="button"
               onClick={onClose}
               className="p-1.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
             >
@@ -241,31 +299,65 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
           </div>
         </div>
 
-        {/* Lesson Selector Bar */}
-        <div className={`px-5 py-3 border-b flex items-center gap-3 text-xs overflow-x-auto ${
-          isDark ? 'bg-[#0e111a] border-white/5' : 'bg-slate-100 border-slate-200'
+        {/* Course & Lesson Target Selector */}
+        <div className={`px-5 py-3 border-b space-y-2.5 ${
+          isDark ? 'bg-[#0e111a] border-white/10' : 'bg-slate-100 border-slate-200'
         }`}>
-          <span className={`font-semibold shrink-0 ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
-            Selecione a Aula:
-          </span>
-          <div className="flex items-center gap-2">
-            {lessons.map(les => (
-              <button
-                key={les.id}
-                onClick={() => handleSelectLesson(les.id)}
-                className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-all cursor-pointer ${
-                  les.id === currentLesson.id
-                    ? isDark
-                      ? 'bg-cyan-500/20 border border-cyan-500 text-cyan-400 font-bold'
-                      : 'bg-cyan-600 text-white font-bold'
-                    : isDark
-                      ? 'bg-white/5 hover:bg-white/10 text-gray-300'
-                      : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'
-                }`}
-              >
-                Cap. {les.chapterNumber}: {les.title.slice(0, 26)}...
-              </button>
-            ))}
+          {/* Target Course Dropdown */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className={`text-xs font-bold uppercase tracking-wider font-mono ${isDark ? 'text-cyan-400' : 'text-cyan-800'}`}>
+              Curso Alvo:
+            </span>
+            <select
+              value={targetCourseId}
+              onChange={e => setTargetCourseId(e.target.value)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold outline-none border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-[#181b25] border-cyan-500/40 text-white focus:border-cyan-400'
+                  : 'bg-white border-slate-300 text-slate-900 focus:border-cyan-600 shadow-sm'
+              }`}
+            >
+              {courses.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.code ? `[${c.code}] ` : ''}{c.title}
+                </option>
+              ))}
+            </select>
+
+            <span className="text-[11px] text-gray-400 font-mono">
+              ({courseLessons.length} {courseLessons.length === 1 ? 'aula cadastrada' : 'aulas cadastradas'})
+            </span>
+          </div>
+
+          {/* Lesson Selector horizontal strip */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+            <span className={`font-semibold shrink-0 text-[11px] ${isDark ? 'text-gray-400' : 'text-slate-600'}`}>
+              Aulas deste Curso:
+            </span>
+            {courseLessons.length === 0 ? (
+              <span className="text-amber-400 text-xs italic">
+                Nenhuma aula cadastrada ainda neste curso. Clique em "+ Adicionar Nova Aula" acima.
+              </span>
+            ) : (
+              courseLessons.map(les => (
+                <button
+                  key={les.id}
+                  type="button"
+                  onClick={() => handleSelectLesson(les.id)}
+                  className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-all cursor-pointer ${
+                    les.id === currentLesson.id
+                      ? isDark
+                        ? 'bg-cyan-500/20 border border-cyan-400 text-cyan-300 font-bold shadow-sm'
+                        : 'bg-cyan-700 text-white font-bold shadow-sm'
+                      : isDark
+                        ? 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/5'
+                        : 'bg-white hover:bg-slate-200 text-slate-700 border border-slate-200'
+                  }`}
+                >
+                  Cap. {les.chapterNumber}: {les.title.slice(0, 24)}...
+                </button>
+              ))
+            )}
           </div>
         </div>
 
@@ -274,6 +366,7 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
           isDark ? 'border-white/10' : 'border-slate-200'
         }`}>
           <button
+            type="button"
             onClick={() => setActiveTab('video')}
             className={`pb-3 font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'video'
@@ -282,9 +375,10 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
             }`}
           >
             <span className="material-symbols-outlined text-base">play_circle</span>
-            <span>Vídeo &amp; Capítulos (Timestamps)</span>
+            <span>Vídeo da Aula &amp; Capítulos</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('resources')}
             className={`pb-3 font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'resources'
@@ -293,9 +387,10 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
             }`}
           >
             <span className="material-symbols-outlined text-base">folder_open</span>
-            <span>Materiais Didáticos ({currentLesson.resources?.length || 0})</span>
+            <span>Materiais &amp; Anexos do Curso ({currentLesson.resources?.length || 0})</span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('quiz')}
             className={`pb-3 font-semibold flex items-center gap-2 transition-all cursor-pointer ${
               activeTab === 'quiz'
@@ -304,612 +399,491 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
             }`}
           >
             <span className="material-symbols-outlined text-base">quiz</span>
-            <span>Quiz de Fixação ({currentLesson.quizQuestions?.length || 0})</span>
+            <span>Perguntas de Fixação ({currentLesson.quizQuestions?.length || 0})</span>
           </button>
         </div>
 
-        {/* Tab Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6 text-xs">
-          {/* TAB 1: VIDEO & TIMESTAMPS */}
+        {/* Feedback Alert */}
+        {uploadSuccessMsg && (
+          <div className="mx-5 mt-3 p-3 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 text-xs flex items-center gap-2 font-mono">
+            <span className="material-symbols-outlined text-base">check_circle</span>
+            <span>{uploadSuccessMsg}</span>
+          </div>
+        )}
+
+        {/* Body Content */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {/* TAB 1: VIDEO CONFIGURATION */}
           {activeTab === 'video' && (
-            <form onSubmit={handleSaveVideoSettings} className="space-y-5">
+            <form onSubmit={handleSaveVideoSettings} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Título da Aula
-                  </label>
+                  <label className="text-xs font-semibold text-gray-300">Título da Aula:</label>
                   <input
                     type="text"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
-                    required
-                    className={`w-full p-2.5 rounded-xl border outline-none ${
-                      isDark ? 'bg-[#0e111a] border-white/10 text-white focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500'
+                    className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-600'
                     }`}
+                    placeholder="Ex: Capítulo 01: Janelamento Pulmonar em TC Multislice"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                      Duração (minutos)
-                    </label>
+                    <label className="text-xs font-semibold text-gray-300">Duração (minutos):</label>
                     <input
                       type="number"
-                      min={5}
-                      max={240}
                       value={durationMinutes}
                       onChange={e => setDurationMinutes(Number(e.target.value))}
-                      className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
-                        isDark ? 'bg-[#0e111a] border-white/10 text-white focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500'
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                       }`}
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                      Janela TC
-                    </label>
+                    <label className="text-xs font-semibold text-gray-300">Janela TC / HU:</label>
                     <select
                       value={ctWindowType}
                       onChange={e => setCtWindowType(e.target.value as any)}
-                      className={`w-full p-2.5 rounded-xl border outline-none ${
-                        isDark ? 'bg-[#0e111a] border-white/10 text-white focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500'
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                       }`}
                     >
                       <option value="pulmonary">Pulmonar (WW 1500 / WL -600)</option>
-                      <option value="bone">Óssea (WW 2500 / WL +450)</option>
-                      <option value="mediastinum">Mediastino (WW 400 / WL +40)</option>
-                      <option value="brain">Crânio/Cerebral (WW 80 / WL +35)</option>
+                      <option value="mediastinum">Mediastino (WW 350 / WL 40)</option>
+                      <option value="bone">Óssea (WW 2000 / WL 400)</option>
+                      <option value="brain">Craniana (WW 80 / WL 35)</option>
                     </select>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                  Descrição e Objetivos Pedagógicos
-                </label>
+                <label className="text-xs font-semibold text-gray-300">Descrição e Objetivos de Aprendizagem:</label>
                 <textarea
                   rows={2}
                   value={description}
                   onChange={e => setDescription(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
-                    isDark ? 'bg-[#0e111a] border-white/10 text-white focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500'
+                  className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                    isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
+                  placeholder="Descreva os tópicos abordados nesta aula..."
                 />
               </div>
 
-              {/* Video URL Input & Presets */}
-              <div className="space-y-2">
+              {/* Video URL & Presets */}
+              <div className="space-y-2 p-4 rounded-2xl border bg-black/20 border-white/10">
                 <div className="flex items-center justify-between">
-                  <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    URL do Vídeo da Aula (Suporta YouTube, Vimeo, ou Link MP4/WebM)
+                  <label className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-base">link</span>
+                    <span>Link do Vídeo (MP4, YouTube, Vimeo, Google Drive, Loom, Cloudflare):</span>
                   </label>
-                  <span className="text-[10px] text-cyan-500 font-mono font-bold">
-                    Tipo Detectado: {parsedVideo.type.toUpperCase()}
+                  <span className="text-[10px] font-mono text-gray-400">
+                    Formato: {parsedVideo.type.toUpperCase()}
                   </span>
                 </div>
+
                 <input
                   type="text"
                   value={videoUrl}
                   onChange={e => setVideoUrl(e.target.value)}
-                  placeholder="https://www.youtube.com/watch?v=... ou https://.../aula.mp4"
-                  className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
-                    isDark ? 'bg-[#0e111a] border-white/10 text-cyan-300 focus:border-cyan-500' : 'bg-slate-50 border-slate-300 text-cyan-800 focus:border-cyan-500'
+                  className={`w-full px-3 py-2.5 rounded-xl text-xs font-mono outline-none border ${
+                    isDark ? 'bg-[#0a0e17] border-cyan-500/40 text-[#4cd7f6]' : 'bg-white border-slate-300 text-slate-900'
                   }`}
+                  placeholder="Cole aqui o link do vídeo (https://...)"
                 />
 
-                {/* Presets */}
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>Exemplos Rápidos:</span>
-                  {videoPresets.map((vp, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => setVideoUrl(vp.url)}
-                      className={`text-[10px] px-2.5 py-1 rounded-lg border transition-colors cursor-pointer ${
-                        isDark
-                          ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/10'
-                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
-                      }`}
-                    >
-                      {vp.label}
-                    </button>
-                  ))}
+                {/* Video Presets */}
+                <div className="pt-2">
+                  <span className="text-[10px] uppercase font-mono text-gray-400 font-bold block mb-1.5">
+                    Vídeos de Demonstração (Clique para aplicar):
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {videoPresets.map((vp, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setVideoUrl(vp.url)}
+                        className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] text-gray-300 border border-white/10 cursor-pointer"
+                      >
+                        {vp.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              {/* Video Live Preview */}
-              <div className={`p-4 rounded-2xl border space-y-2 ${
-                isDark ? 'bg-[#0a0e17] border-white/10' : 'bg-slate-100 border-slate-300'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[11px] text-cyan-500 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-sm">tv</span>
-                    Pré-visualização do Player do Aluno
-                  </span>
-                  <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    Verifique se o vídeo carrega adequadamente
-                  </span>
+              {/* Chapter Markers */}
+              <div className="space-y-2 p-4 rounded-2xl border bg-black/20 border-white/10">
+                <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-base">timer</span>
+                  <span>Marcadores de Capítulos (Timestamps Interativos):</span>
+                </label>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={newMarkerTime}
+                    onChange={e => setNewMarkerTime(e.target.value)}
+                    className={`w-24 px-3 py-2 rounded-xl text-xs font-mono outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
+                    }`}
+                    placeholder="05:30"
+                  />
+                  <input
+                    type="text"
+                    value={newMarkerLabel}
+                    onChange={e => setNewMarkerLabel(e.target.value)}
+                    className={`flex-1 px-3 py-2 rounded-xl text-xs outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
+                    }`}
+                    placeholder="Ex: Início do Protocolo de Contraste Arterial"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddMarker}
+                    className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs cursor-pointer"
+                  >
+                    Adicionar
+                  </button>
                 </div>
 
-                <div className="aspect-video w-full rounded-xl overflow-hidden bg-black flex items-center justify-center relative">
-                  {parsedVideo.type === 'youtube' && (
-                    <iframe
-                      src={parsedVideo.embedUrl}
-                      title="YouTube Preview"
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  )}
-
-                  {parsedVideo.type === 'vimeo' && (
-                    <iframe
-                      src={parsedVideo.embedUrl}
-                      title="Vimeo Preview"
-                      className="w-full h-full border-0"
-                      allow="autoplay; fullscreen; picture-in-picture"
-                      allowFullScreen
-                    />
-                  )}
-
-                  {parsedVideo.type === 'html5' && (
-                    <video
-                      controls
-                      src={videoUrl}
-                      className="w-full h-full object-contain"
-                    >
-                      Seu navegador não suporta a tag de vídeo.
-                    </video>
-                  )}
-
-                  {parsedVideo.type === 'unknown' && (
-                    <div className="text-gray-400 text-xs">Insira uma URL de vídeo válida acima.</div>
-                  )}
-                </div>
-              </div>
-
-              {/* Timestamps / Chapters Management */}
-              <div className={`p-4 rounded-2xl border space-y-3 ${
-                isDark ? 'bg-[#141f38]/40 border-white/5' : 'bg-slate-50 border-slate-200'
-              }`}>
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-xs flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-sm text-cyan-500">schedule</span>
-                    <span>Capítulos da Aula (Marcadores Clicáveis)</span>
-                  </h4>
-                  <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                    {markers.length} marcadores cadastrados
-                  </span>
-                </div>
-
-                <div className="space-y-2">
+                <div className="space-y-1.5 mt-2">
                   {markers.map((m, idx) => (
                     <div
                       key={idx}
-                      className={`p-2.5 rounded-xl border flex items-center justify-between text-xs ${
-                        isDark ? 'bg-[#0a0e17]/80 border-white/5' : 'bg-white border-slate-200'
-                      }`}
+                      className="p-2 rounded-xl bg-[#0a0e17]/80 border border-white/5 flex items-center justify-between text-xs"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-cyan-500/15 text-cyan-400 text-[11px]">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono font-bold text-[10px]">
                           {formatDuration(m.timeSeconds)}
                         </span>
-                        <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-800'}`}>
-                          {m.label}
-                        </span>
+                        <span className="text-gray-300">{m.label}</span>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemoveMarker(idx)}
-                        className="text-red-400 hover:text-red-300 p-1 cursor-pointer"
-                        title="Remover marcador"
+                        className="text-rose-400 hover:text-rose-300 p-1 cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-sm">delete</span>
                       </button>
                     </div>
                   ))}
                 </div>
-
-                {/* Add new marker */}
-                <div className="grid grid-cols-12 gap-2 pt-1">
-                  <div className="col-span-3 sm:col-span-2">
-                    <input
-                      type="text"
-                      placeholder="03:45"
-                      value={newMarkerTime}
-                      onChange={e => setNewMarkerTime(e.target.value)}
-                      className={`w-full p-2 rounded-xl border text-center font-mono outline-none ${
-                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
-                      }`}
-                    />
-                  </div>
-                  <div className="col-span-6 sm:col-span-8">
-                    <input
-                      type="text"
-                      placeholder="Ex: Aquisição com Contraste / Janela Óssea..."
-                      value={newMarkerLabel}
-                      onChange={e => setNewMarkerLabel(e.target.value)}
-                      className={`w-full p-2 rounded-xl border outline-none ${
-                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
-                      }`}
-                    />
-                  </div>
-                  <div className="col-span-3 sm:col-span-2">
-                    <button
-                      type="button"
-                      onClick={handleAddMarker}
-                      className="w-full h-full rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-1 shadow cursor-pointer hover:opacity-95"
-                    >
-                      <span className="material-symbols-outlined text-sm">add</span>
-                      <span>Inserir</span>
-                    </button>
-                  </div>
-                </div>
               </div>
 
-              {/* Submit Lesson */}
-              <div className="flex justify-end pt-2">
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-lg shadow-[#06b6d4]/30 cursor-pointer hover:opacity-95"
-                >
-                  Salvar Alterações da Aula
-                </button>
+              {/* Action Buttons */}
+              <div className="flex items-center justify-between pt-2">
+                {onDeleteLesson && courseLessons.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`Deseja realmente excluir a aula "${currentLesson.title}"?`)) {
+                        onDeleteLesson(currentLesson.id);
+                      }
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-semibold cursor-pointer"
+                  >
+                    Excluir esta Aula
+                  </button>
+                )}
+                <div className="ml-auto flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 text-xs font-semibold cursor-pointer"
+                  >
+                    Fechar
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-cyan-500/20 cursor-pointer"
+                  >
+                    Salvar Configurações do Vídeo
+                  </button>
+                </div>
               </div>
             </form>
           )}
 
-          {/* TAB 2: RESOURCES / MATERIAIS */}
+          {/* TAB 2: RESOURCES & DOWNLOADABLES SPECIFIC TO THIS COURSE/LESSON */}
           {activeTab === 'resources' && (
-            <div className="space-y-6">
-              {/* Existing Resources list */}
-              <div className="space-y-3">
+            <div className="space-y-5">
+              {/* Form to attach new resource */}
+              <form onSubmit={handleAddResource} className="p-4 rounded-2xl border bg-black/20 border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-cyan-500">
-                    Materiais Anexados a Esta Aula ({currentLesson.resources?.length || 0})
-                  </h3>
+                  <h4 className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-base">upload_file</span>
+                    <span>Anexar Novo Arquivo / Material para este Curso:</span>
+                  </h4>
+                  <span className="text-[10px] text-gray-400 font-mono">
+                    Vinculado a: Cap. {currentLesson.chapterNumber}
+                  </span>
                 </div>
 
-                {(!currentLesson.resources || currentLesson.resources.length === 0) ? (
-                  <div className={`p-6 rounded-2xl border text-center ${
-                    isDark ? 'bg-[#0a0e17]/50 border-white/5 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-                  }`}>
-                    Nenhum material cadastrado nesta aula. Adicione apostilas, protocolos ou casos abaixo.
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {currentLesson.resources.map(res => (
-                      <div
-                        key={res.id}
-                        className={`p-3.5 rounded-xl border flex flex-col justify-between gap-2 ${
-                          isDark ? 'bg-[#141f38]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0">
-                              <span className="material-symbols-outlined text-lg">
-                                {res.type === 'pdf' ? 'picture_as_pdf' : res.type === 'protocol' ? 'medical_services' : 'description'}
-                              </span>
-                            </div>
-                            <div>
-                              <h4 className={`font-bold leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {res.title}
-                              </h4>
-                              <p className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                                {res.type.toUpperCase()} • {res.fileSize || '3.5 MB'}
-                              </p>
-                            </div>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveResource(res.id)}
-                            className="text-red-400 hover:text-red-300 p-1 cursor-pointer"
-                            title="Remover material"
-                          >
-                            <span className="material-symbols-outlined text-sm">delete</span>
-                          </button>
-                        </div>
-                        <p className={`text-[11px] line-clamp-2 ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>
-                          {res.description}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Form to attach new material */}
-              <form onSubmit={handleAddResource} className={`p-5 rounded-2xl border space-y-4 ${
-                isDark ? 'bg-[#0a0e17]/70 border-cyan-500/20' : 'bg-cyan-50/50 border-cyan-200'
-              }`}>
-                <h4 className="font-bold text-xs text-cyan-500 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-base">upload_file</span>
-                  <span>Disponibilizar Novo Material de Apoio</span>
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                      Título do Material / Documento
-                    </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1 md:col-span-2">
+                    <label className="text-xs font-semibold text-gray-300">Título do Material:</label>
                     <input
                       type="text"
                       value={resourceTitle}
                       onChange={e => setResourceTitle(e.target.value)}
-                      placeholder="Ex: Protocolo de Janelamento Pulmonar em HRCT"
-                      required
-                      className={`w-full p-2.5 rounded-xl border outline-none ${
-                        isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
                       }`}
+                      placeholder="Ex: Protocolo Completo de Angiotomografia Coronariana PDF"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                      Categoria
-                    </label>
+                    <label className="text-xs font-semibold text-gray-300">Tipo de Documento:</label>
                     <select
                       value={resourceType}
                       onChange={e => setResourceType(e.target.value as any)}
-                      className={`w-full p-2.5 rounded-xl border outline-none ${
-                        isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
                       }`}
                     >
-                      <option value="pdf">Apostila / Slides em PDF</option>
-                      <option value="protocol">Protocolo Clínico de TC</option>
-                      <option value="case_study">Estudo de Caso Ilustrado</option>
-                      <option value="spreadsheet">Tabela / Planilha de Cálculo</option>
+                      <option value="pdf">Apostila / Guia PDF</option>
+                      <option value="protocol">Protocolo Técnico de Exame</option>
+                      <option value="case_study">Casos Clínicos &amp; DICOM (.dcm)</option>
                       <option value="article">Artigo Científico / Diretriz</option>
-                      <option value="podcast">Podcast / Áudio Didático</option>
+                      <option value="spreadsheet">Planilha de Dosimetria</option>
                     </select>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                      Descrição Rápida
-                    </label>
-                    <input
-                      type="text"
-                      value={resourceDesc}
-                      onChange={e => setResourceDesc(e.target.value)}
-                      placeholder="Resumo em 1 linha sobre o objetivo do material..."
-                      className={`w-full p-2.5 rounded-xl border outline-none ${
-                        isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
-                      }`}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                      Tamanho Estimado
-                    </label>
+                    <label className="text-xs font-semibold text-gray-300">Tamanho Estimado:</label>
                     <input
                       type="text"
                       value={resourceSize}
                       onChange={e => setResourceSize(e.target.value)}
-                      placeholder="Ex: 8.2 MB"
-                      className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
-                        isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
+                      className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                        isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
                       }`}
+                      placeholder="Ex: 8.4 MB"
                     />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-300">Upload de Arquivo Local:</label>
+                    <label className="w-full px-3 py-2 rounded-xl text-xs border border-dashed border-cyan-400/40 hover:border-cyan-400 flex items-center justify-center gap-2 cursor-pointer bg-cyan-500/10 text-cyan-300 transition-all text-center">
+                      <span className="material-symbols-outlined text-base">cloud_upload</span>
+                      <span>Selecionar Arquivo do Computador</span>
+                      <input
+                        type="file"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+                    </label>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Conteúdo / Resumo Acadêmico para Leitura Prévia do Aluno
-                  </label>
+                  <label className="text-xs font-semibold text-gray-300">Link Externo / URL de Download (Opcional):</label>
+                  <input
+                    type="text"
+                    value={resourceUrl}
+                    onChange={e => setResourceUrl(e.target.value)}
+                    className={`w-full px-3 py-2 rounded-xl text-xs font-mono outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
+                    }`}
+                    placeholder="https://drive.google.com/... ou https://seuservidor.com/arquivo.pdf"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-gray-300">Resumo / Conteúdo de Pré-visualização:</label>
                   <textarea
                     rows={3}
                     value={resourcePreview}
                     onChange={e => setResourcePreview(e.target.value)}
-                    placeholder="Insira os principais tópicos, parâmetros ou diretrizes contidas neste material..."
-                    className={`w-full p-2.5 rounded-xl border outline-none font-mono text-[11px] ${
-                      isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
+                    className={`w-full px-3 py-2 rounded-xl text-xs outline-none border font-mono ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
                     }`}
+                    placeholder="Conteúdo textual, notas clínicas ou pontos-chave que aparecem no leitor do aluno..."
                   />
                 </div>
 
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs shadow cursor-pointer hover:opacity-95 flex items-center gap-1.5"
-                  >
-                    <span className="material-symbols-outlined text-base">attachment</span>
-                    <span>Anexar Material à Aula</span>
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 cursor-pointer"
+                >
+                  Salvar e Anexar Material Didático
+                </button>
               </form>
+
+              {/* List of current attached resources */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                  Materiais Anexados a esta Aula ({currentLesson.resources?.length || 0}):
+                </h4>
+                {(!currentLesson.resources || currentLesson.resources.length === 0) ? (
+                  <p className="text-xs text-gray-500 italic p-4 text-center border border-dashed rounded-2xl border-white/10">
+                    Nenhum material didático anexado a esta aula ainda. Use o formulário acima para enviar apostilas, protocolos ou casos DICOM.
+                  </p>
+                ) : (
+                  currentLesson.resources.map(res => (
+                    <div
+                      key={res.id}
+                      className="p-3 rounded-2xl bg-[#0a0e17]/80 border border-white/10 flex items-center justify-between text-xs gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-lg">
+                            {res.type === 'pdf' ? 'picture_as_pdf' : res.type === 'protocol' ? 'assignment' : 'biotech'}
+                          </span>
+                        </div>
+                        <div className="truncate">
+                          <div className="font-bold text-white truncate">{res.title}</div>
+                          <div className="text-[10px] text-gray-400 font-mono truncate">
+                            {res.fileSize || '3.2 MB'} • {res.type.toUpperCase()} • Postado por {res.authorName || 'Corpo Docente'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveResource(res.id)}
+                          className="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-semibold cursor-pointer"
+                        >
+                          Remover
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
 
-          {/* TAB 3: QUIZ DE FIXAÇÃO */}
+          {/* TAB 3: QUIZ & KNOWLEDGE CHECK */}
           {activeTab === 'quiz' && (
-            <div className="space-y-6">
-              {/* Existing Quiz Questions */}
-              <div className="space-y-3">
-                <h3 className="font-bold text-xs uppercase tracking-wider text-cyan-500">
-                  Questões Cadastradas para o Quiz ({currentLesson.quizQuestions?.length || 0})
-                </h3>
-
-                {(!currentLesson.quizQuestions || currentLesson.quizQuestions.length === 0) ? (
-                  <div className={`p-6 rounded-2xl border text-center ${
-                    isDark ? 'bg-[#0a0e17]/50 border-white/5 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-                  }`}>
-                    Nenhuma pergunta cadastrada. Crie questionários para fixar o aprendizado dos alunos.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {currentLesson.quizQuestions.map((q, qIdx) => (
-                      <div
-                        key={q.id}
-                        className={`p-4 rounded-xl border space-y-2.5 ${
-                          isDark ? 'bg-[#141f38]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-mono text-cyan-500 font-bold">
-                              QUESTÃO #{qIdx + 1}
-                            </span>
-                            <h4 className={`font-bold leading-snug ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                              {q.question}
-                            </h4>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveQuizQuestion(q.id)}
-                            className="text-red-400 hover:text-red-300 p-1 cursor-pointer"
-                            title="Remover pergunta"
-                          >
-                            <span className="material-symbols-outlined text-sm">delete</span>
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
-                          {q.options.map((opt, oIdx) => (
-                            <div
-                              key={oIdx}
-                              className={`p-2 rounded-lg border flex items-center gap-2 ${
-                                oIdx === q.correctAnswerIndex
-                                  ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-400 font-semibold'
-                                  : isDark ? 'bg-black/30 border-white/5 text-gray-400' : 'bg-white border-slate-200 text-slate-600'
-                              }`}
-                            >
-                              <span className="font-mono font-bold">{String.fromCharCode(65 + oIdx)})</span>
-                              <span>{opt}</span>
-                              {oIdx === q.correctAnswerIndex && (
-                                <span className="ml-auto material-symbols-outlined text-xs text-emerald-500">check</span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        {q.explanation && (
-                          <div className={`p-2 rounded-lg text-[10px] border flex items-start gap-1.5 ${
-                            isDark ? 'bg-[#0a0e17] border-white/5 text-gray-300' : 'bg-white border-slate-200 text-slate-600'
-                          }`}>
-                            <span className="material-symbols-outlined text-xs text-cyan-500 shrink-0">info</span>
-                            <span><strong>Gabarito Comentado:</strong> {q.explanation}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Add New Question */}
-              <form onSubmit={handleAddQuizQuestion} className={`p-5 rounded-2xl border space-y-4 ${
-                isDark ? 'bg-[#0a0e17]/70 border-emerald-500/20' : 'bg-emerald-50/50 border-emerald-200'
-              }`}>
-                <h4 className="font-bold text-xs text-emerald-500 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-base">add_task</span>
-                  <span>Adicionar Nova Questão de Fixação</span>
+            <div className="space-y-5">
+              <form onSubmit={handleAddQuizQuestion} className="p-4 rounded-2xl border bg-black/20 border-white/10 space-y-3">
+                <h4 className="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-base">quiz</span>
+                  <span>Nova Pergunta de Fixação:</span>
                 </h4>
 
                 <div className="space-y-1">
-                  <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Enunciado da Questão
-                  </label>
+                  <label className="text-xs font-semibold text-gray-300">Enunciado da Questão:</label>
                   <input
                     type="text"
                     value={quizQuestion}
                     onChange={e => setQuizQuestion(e.target.value)}
-                    placeholder="Ex: Qual o valor médio de HU da gordura corporal na TC?"
-                    required
-                    className={`w-full p-2.5 rounded-xl border outline-none ${
-                      isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
+                    className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
                     }`}
+                    placeholder="Ex: Qual o valor médio de atenuação Hounsfield (HU) do sangue coagulado?"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Alternativas de Resposta (Selecione a Correta):
-                  </label>
-                  {quizOptions.map((opt, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setQuizCorrectIdx(idx)}
-                        className={`w-8 h-8 rounded-lg font-mono font-bold text-xs flex items-center justify-center shrink-0 cursor-pointer border transition-all ${
-                          quizCorrectIdx === idx
-                            ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow'
-                            : isDark ? 'bg-[#181b25] border-white/10 text-gray-400' : 'bg-white border-slate-300 text-slate-600'
-                        }`}
-                        title="Marcar como gabarito correto"
-                      >
-                        {String.fromCharCode(65 + idx)}
-                      </button>
+                  <label className="text-xs font-semibold text-gray-300">Alternativas (Marque a correta):</label>
+                  {quizOptions.map((opt, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="correctAnswer"
+                        checked={quizCorrectIdx === i}
+                        onChange={() => setQuizCorrectIdx(i)}
+                        className="accent-cyan-500 w-4 h-4 cursor-pointer"
+                      />
                       <input
                         type="text"
                         value={opt}
                         onChange={e => {
                           const updated = [...quizOptions];
-                          updated[idx] = e.target.value;
+                          updated[i] = e.target.value;
                           setQuizOptions(updated);
                         }}
-                        placeholder={`Alternativa ${String.fromCharCode(65 + idx)}...`}
-                        required
-                        className={`w-full p-2 rounded-xl border outline-none ${
-                          quizCorrectIdx === idx
-                            ? 'border-emerald-500/60 ring-1 ring-emerald-500/30'
-                            : isDark ? 'border-white/10' : 'border-slate-300'
-                        } ${isDark ? 'bg-[#181b25] text-white' : 'bg-white text-slate-900'}`}
+                        className={`flex-1 px-3 py-1.5 rounded-xl text-xs outline-none border ${
+                          isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
+                        }`}
+                        placeholder={`Alternativa ${String.fromCharCode(65 + i)}`}
                       />
                     </div>
                   ))}
                 </div>
 
                 <div className="space-y-1">
-                  <label className={`font-semibold ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                    Justificativa / Comentário Pedagógico do Professor
-                  </label>
-                  <textarea
-                    rows={2}
+                  <label className="text-xs font-semibold text-gray-300">Explicação / Justificativa Pedagógica:</label>
+                  <input
+                    type="text"
                     value={quizExplanation}
                     onChange={e => setQuizExplanation(e.target.value)}
-                    placeholder="Explicação exibida ao aluno para justificar a resposta correta..."
-                    className={`w-full p-2.5 rounded-xl border outline-none text-[11px] ${
-                      isDark ? 'bg-[#181b25] border-white/10 text-white' : 'bg-white border-slate-300 text-slate-900'
+                    className={`w-full px-3 py-2 rounded-xl text-xs outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-white border-slate-300'
                     }`}
+                    placeholder="Ex: O sangue coagulado apresenta densidade elevada entre +55 e +75 HU..."
                   />
                 </div>
 
-                <div className="flex justify-end pt-1">
-                  <button
-                    type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-emerald-500 text-slate-950 font-bold text-xs shadow cursor-pointer hover:opacity-95 flex items-center gap-1.5"
-                  >
-                    <span className="material-symbols-outlined text-base">save</span>
-                    <span>Salvar Pergunta no Quiz</span>
-                  </button>
-                </div>
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-cyan-500/20 cursor-pointer"
+                >
+                  Adicionar Pergunta ao Questionário
+                </button>
               </form>
+
+              {/* List of quiz questions */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider font-mono">
+                  Perguntas Cadastradas ({currentLesson.quizQuestions?.length || 0}):
+                </h4>
+                {(!currentLesson.quizQuestions || currentLesson.quizQuestions.length === 0) ? (
+                  <p className="text-xs text-gray-500 italic p-4 text-center border border-dashed rounded-2xl border-white/10">
+                    Nenhuma pergunta cadastrada para esta aula.
+                  </p>
+                ) : (
+                  currentLesson.quizQuestions.map((q, idx) => (
+                    <div
+                      key={q.id}
+                      className="p-3.5 rounded-2xl bg-[#0a0e17]/80 border border-white/10 space-y-2 text-xs"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="font-bold text-white flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-[10px]">
+                            {idx + 1}
+                          </span>
+                          <span>{q.question}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveQuizQuestion(q.id)}
+                          className="text-rose-400 hover:text-rose-300 p-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-7">
+                        {q.options.map((opt, oIdx) => (
+                          <div
+                            key={oIdx}
+                            className={`p-1.5 rounded-lg border text-[11px] ${
+                              oIdx === q.correctAnswerIndex
+                                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300 font-bold'
+                                : 'bg-white/5 border-white/5 text-gray-400'
+                            }`}
+                          >
+                            {String.fromCharCode(65 + oIdx)}) {opt} {oIdx === q.correctAnswerIndex && '✓'}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className={`p-4 border-t flex items-center justify-between ${
-          isDark ? 'bg-[#141f38]/60 border-white/10' : 'bg-slate-50 border-slate-200'
-        }`}>
-          <span className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-            As alterações são refletidas instantaneamente em tempo real para os alunos da turma.
-          </span>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-semibold cursor-pointer"
-          >
-            Concluir Edições
-          </button>
         </div>
       </div>
     </div>

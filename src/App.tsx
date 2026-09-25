@@ -391,6 +391,7 @@ export default function App() {
           {currentTab === 'aulas' && (
             <ClassroomView
               lessons={lessons}
+              courses={displayCourses}
               activeLesson={activeLesson}
               onSelectLesson={setActiveLesson}
               onOpenSimulator={() => setIsSimulatorOpen(true)}

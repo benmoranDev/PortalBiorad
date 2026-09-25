@@ -92,23 +92,104 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
   const handleCreateCourse = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle || !newCode) return;
+    const courseId = `course_${Date.now()}`;
     const course: Course = {
-      id: `course_${Date.now()}`,
+      id: courseId,
       code: newCode,
       title: newTitle,
-      description: 'Especialização técnica com ênfase em diagnóstico por imagem e tomografia.',
-      credits: 4,
+      description: 'Especialização técnica com ênfase em diagnóstico por imagem e tomografia computadorizada.',
+      credits: 40,
       instructor: newInstructor || 'Prof. Dr. Marcus Vinicius',
       instructorTitle: 'Especialista em Tomografia Computadorizada CBR',
       category: newCategory,
       progress: 0,
       currentModule: 1,
-      totalModules: 8,
+      totalModules: 4,
       grade: 0,
       status: 'active',
-      price: 450.00
+      price: 149.00
     };
     onAddCourse(course);
+
+    // Automatically initialize first 3 lessons for this new course
+    const initialCourseLessons: Lesson[] = [
+      {
+        id: `les_${Date.now()}_1`,
+        courseId: courseId,
+        chapterNumber: 1,
+        title: `Capítulo 01: Fundamentos e Protocolos Iniciais • ${newTitle}`,
+        description: `Introdução teórica e prática aos conceitos essenciais do curso de ${newTitle}.`,
+        durationMinutes: 45,
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+        videoSource: 'direct_mp4',
+        isCompleted: false,
+        ctWindowType: 'pulmonary',
+        markers: [
+          { timeSeconds: 60, label: 'Introdução e Objetivos' },
+          { timeSeconds: 600, label: 'Parâmetros Técnicos' },
+          { timeSeconds: 1200, label: 'Casos Clínicos e Discussão' }
+        ],
+        resources: [
+          {
+            id: `res_${Date.now()}_1`,
+            lessonId: `les_${Date.now()}_1`,
+            title: `Apostila Completa em PDF - ${newTitle}`,
+            description: 'Material didático oficial em PDF com tabelas e referências anatômicas.',
+            type: 'pdf',
+            fileSize: '6.4 MB',
+            dateAdded: 'Hoje',
+            authorName: newInstructor || 'Prof. Dr. Marcus Vinicius',
+            previewContent: `# ${newTitle}\n\nGuia Oficial de Estudos Biorad Cursos.\nMaterial pedagógico elaborado em conformidade com as diretrizes do CBR e ANVISA.`
+          }
+        ],
+        quizQuestions: [
+          {
+            id: `quiz_${Date.now()}_1`,
+            lessonId: `les_${Date.now()}_1`,
+            question: `Qual a importância da calibração e protocolo correto em ${newTitle}?`,
+            options: [
+              'Garantir alta resolução espacial com a menor dose de radiação possível (ALARA)',
+              'Aumentar o tempo de exame desnecessariamente',
+              'Substituir a necessidade de contraste iodado em todos os casos',
+              'Dispensar o laudo médico'
+            ],
+            correctAnswerIndex: 0,
+            explanation: 'O princípio ALARA preconiza obter o melhor diagnóstico com a menor exposição à radiação.'
+          }
+        ]
+      },
+      {
+        id: `les_${Date.now()}_2`,
+        courseId: courseId,
+        chapterNumber: 2,
+        title: `Capítulo 02: Aquisição de Imagens e Estações de Trabalho • ${newTitle}`,
+        description: 'Técnicas de aquisição volumétrica, janelamento Hounsfield e reconstruções MPR.',
+        durationMinutes: 50,
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+        videoSource: 'direct_mp4',
+        isCompleted: false,
+        ctWindowType: 'mediastinum',
+        markers: [
+          { timeSeconds: 60, label: 'Aquisição Volumétrica' },
+          { timeSeconds: 700, label: 'Reconstrução Multiplanar (MPR)' }
+        ],
+        resources: [
+          {
+            id: `res_${Date.now()}_2`,
+            lessonId: `les_${Date.now()}_2`,
+            title: 'Protocolo Prático de Aquisição de Exame',
+            description: 'Passo a passo detalhado para bancada e workstation.',
+            type: 'protocol',
+            fileSize: '3.8 MB',
+            dateAdded: 'Hoje',
+            authorName: newInstructor || 'Prof. Dr. Marcus Vinicius'
+          }
+        ]
+      }
+    ];
+
+    initialCourseLessons.forEach(l => storageService.addLesson(l));
+
     setShowAddCourseModal(false);
     setNewTitle('');
     setNewCode('');

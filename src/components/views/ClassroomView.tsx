@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Lesson, LessonResource, LessonNote, ThemeMode, User } from '../../types';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Lesson, LessonResource, LessonNote, ThemeMode, User, Course } from '../../types';
 import { storageService } from '../../services/storage';
 import { parseVideoUrl, formatDuration } from '../../utils/videoHelper';
 import { InstructorContentModal } from './InstructorContentModal';
@@ -7,6 +7,7 @@ import { ResourceViewerModal } from './ResourceViewerModal';
 
 interface ClassroomViewProps {
   lessons: Lesson[];
+  courses?: Course[];
   onOpenSimulator: () => void;
   onSelectLesson: (lesson: Lesson) => void;
   activeLesson: Lesson;
@@ -18,6 +19,7 @@ interface ClassroomViewProps {
 
 export const ClassroomView: React.FC<ClassroomViewProps> = ({
   lessons,
+  courses = [],
   onOpenSimulator,
   onSelectLesson,
   activeLesson,
@@ -28,6 +30,40 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
 }) => {
   const isDark = theme === 'dark';
   const isTeacherOrAdmin = currentUser?.role === 'professor' || currentUser?.role === 'admin';
+
+  // Active Course state
+  const [selectedCourseId, setSelectedCourseId] = useState<string>(() => {
+    return activeLesson.courseId || courses[0]?.id || 'course_tc_701';
+  });
+
+  // Filter lessons belonging to active course
+  const courseLessons = useMemo(() => {
+    const filtered = lessons.filter(l => l.courseId === selectedCourseId);
+    if (filtered.length === 0) {
+      // If none explicitly matched, return lessons that match activeLesson or general
+      return lessons;
+    }
+    return filtered;
+  }, [lessons, selectedCourseId]);
+
+  // Active course object
+  const currentCourse = useMemo(() => {
+    return courses.find(c => c.id === selectedCourseId) || {
+      id: selectedCourseId,
+      code: 'TC-701',
+      title: 'Tomografia Computadorizada Clínica & Activion 16',
+      description: 'Especialização prática com simulador e protocolos avançados.',
+      credits: 40,
+      instructor: 'Prof. Dr. Marcus Vinicius',
+      instructorTitle: 'Especialista em Tomografia CBR',
+      category: 'Tomografia Computadorizada',
+      progress: 80,
+      currentModule: 4,
+      totalModules: 8,
+      grade: 9.8,
+      status: 'active' as const
+    };
+  }, [courses, selectedCourseId]);
 
   // Video State
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -40,9 +76,8 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
 
   // Tabs & Panels
   const [activeTab, setActiveTab] = useState<'ementa' | 'downloads' | 'notes' | 'quiz'>('ementa');
-  const [rightPanelTab, setRightPanelTab] = useState<'chat' | 'roadmap'>('chat');
+  const [rightPanelTab, setRightPanelTab] = useState<'chat' | 'roadmap'>('roadmap');
   const [resourceFilter, setResourceFilter] = useState<string>('all');
-  const [lessonCategoryFilter, setLessonCategoryFilter] = useState<string>('all');
 
   // Modals
   const [isInstructorModalOpen, setIsInstructorModalOpen] = useState(false);
@@ -76,22 +111,17 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
       avatar: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&q=80',
       time: '14:17',
       text: 'Excelente pergunta, Lucas! O tempo de delay preconizado para a fase portal venosa é rigorosamente entre 65 e 75 segundos. Isso garante a opacificação homogênea do parênquima hepático e veia porta.'
-    },
-    {
-      id: 'c3',
-      sender: 'Beatriz Lima',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80',
-      time: '14:21',
-      timeOffset: '15:40',
-      text: 'Para pacientes com taxa de filtração glomerular reduzida, é recomendado protocolo de hidratação venosa antes da TC com contraste?'
     }
   ]);
 
   // Video parsing
   const parsedVideo = parseVideoUrl(activeLesson.videoUrl);
 
-  // Sync state when activeLesson changes
+  // Synchronize when activeLesson changes
   useEffect(() => {
+    if (activeLesson.courseId && activeLesson.courseId !== selectedCourseId) {
+      setSelectedCourseId(activeLesson.courseId);
+    }
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(activeLesson.durationMinutes * 60 || 2700);
@@ -105,6 +135,15 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
       videoRef.current.pause();
     }
   }, [activeLesson.id]);
+
+  // When course selector changes
+  const handleCourseChange = (newCourseId: string) => {
+    setSelectedCourseId(newCourseId);
+    const matching = lessons.filter(l => l.courseId === newCourseId);
+    if (matching.length > 0) {
+      onSelectLesson(matching[0]);
+    }
+  };
 
   // Video Event Handlers
   const togglePlayPause = () => {
@@ -197,12 +236,19 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
     };
     storageService.updateLesson(updatedLesson);
     onSelectLesson(updatedLesson);
+
+    // Recalculate completed count
+    const allCourseLessons = lessons.filter(l => l.courseId === activeLesson.courseId || !l.courseId);
+    const completed = allCourseLessons.filter(l => l.id === updatedLesson.id ? updatedLesson.isCompleted : l.isCompleted).length;
+    if (completed >= allCourseLessons.length && onIssueCertificate) {
+      onIssueCertificate(currentCourse.title, currentCourse.credits || 40, currentCourse.id);
+    }
   };
 
   // Navigation between lessons
-  const currentIndex = lessons.findIndex(l => l.id === activeLesson.id);
-  const prevLesson = currentIndex > 0 ? lessons[currentIndex - 1] : null;
-  const nextLesson = currentIndex < lessons.length - 1 ? lessons[currentIndex + 1] : null;
+  const currentIndex = courseLessons.findIndex(l => l.id === activeLesson.id);
+  const prevLesson = currentIndex > 0 ? courseLessons[currentIndex - 1] : null;
+  const nextLesson = currentIndex < courseLessons.length - 1 ? courseLessons[currentIndex + 1] : null;
 
   // Add Note at Current Timestamp
   const handleAddNote = (e: React.FormEvent) => {
@@ -292,64 +338,118 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
     return res.type === resourceFilter;
   });
 
-  // Calculate percentage of video watched
+  const completedCount = courseLessons.filter(l => l.isCompleted).length;
+  const totalCount = courseLessons.length || 1;
+  const courseProgressPct = Math.round((completedCount / totalCount) * 100);
   const playbackPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
 
   return (
-    <div className="p-4 sm:p-6 max-w-[1720px] mx-auto space-y-6">
-      {/* PROFESSOR CONTROL BANNER */}
-      <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md ${
+    <div className="p-4 sm:p-6 lg:p-8 max-w-[1760px] mx-auto space-y-6">
+      {/* 1. COURSE SELECTOR & INSTRUCTOR MANAGEMENT HEADER */}
+      <section className={`p-4 sm:p-5 rounded-3xl border shadow-xl backdrop-blur-2xl transition-all ${
         isDark
-          ? 'bg-gradient-to-r from-[#141f38] via-[#1c1f29] to-[#0a1826] border-cyan-500/30'
-          : 'bg-gradient-to-r from-cyan-50 via-white to-emerald-50 border-cyan-200'
+          ? 'bg-gradient-to-r from-[#141f38]/90 via-[#18233a] to-[#0f172a] border-cyan-500/30'
+          : 'bg-gradient-to-r from-cyan-50/90 via-white to-emerald-50/80 border-slate-200'
       }`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#06b6d4] to-[#4edea3] flex items-center justify-center text-slate-950 font-bold shadow-md shrink-0">
-            <span className="material-symbols-outlined text-2xl">school</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-xs uppercase tracking-wider text-cyan-500">
-                Central Docente &amp; Sala de Aulas
-              </span>
-              <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
-                isTeacherOrAdmin
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-              }`}>
-                {isTeacherOrAdmin ? 'Painel do Professor' : 'Ambiente Virtual do Aluno'}
-              </span>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          {/* Course Selector Dropdown & Info */}
+          <div className="flex items-center gap-3.5 flex-wrap min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0 flex items-center justify-center">
+              <div className={`w-full h-full rounded-[14px] flex items-center justify-center ${isDark ? 'bg-[#090d16]' : 'bg-white'}`}>
+                <span className="material-symbols-outlined text-2xl text-cyan-400">
+                  biotech
+                </span>
+              </div>
             </div>
-            <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
-              Gerenciamento de vídeos em alta resolução, marcadores de capítulos, apostilas em PDF e questionários de fixação.
-            </p>
+
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-500 font-bold">
+                  Biorad Cursos • Sala de Aula Virtual
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                  courseProgressPct >= 100
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                }`}>
+                  {courseProgressPct >= 100 ? '100% Concluído • Certificado Disponível' : `${courseProgressPct}% do Curso Concluído`}
+                </span>
+              </div>
+
+              {/* Course Switcher Dropdown */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`text-xs font-semibold ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
+                  Curso em Reprodução:
+                </span>
+                <select
+                  value={selectedCourseId}
+                  onChange={e => handleCourseChange(e.target.value)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold outline-none border transition-all cursor-pointer ${
+                    isDark
+                      ? 'bg-[#0a0e17] border-cyan-500/50 text-white focus:border-cyan-400'
+                      : 'bg-white border-slate-300 text-slate-900 focus:border-cyan-600 shadow-sm'
+                  }`}
+                >
+                  {courses.length > 0 ? (
+                    courses.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.code ? `[${c.code}] ` : ''}{c.title}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="course_tc_701">Tomografia Computadorizada Clínica &amp; Activion 16</option>
+                  )}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Open Simulator Button */}
+            <button
+              type="button"
+              onClick={onOpenSimulator}
+              className={`px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border shadow-sm ${
+                isDark
+                  ? 'bg-cyan-500/15 hover:bg-cyan-500/25 border-cyan-500/40 text-cyan-400'
+                  : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-300 text-cyan-800'
+              }`}
+              title="Abrir Simulador Canon Activion 16"
+            >
+              <span className="material-symbols-outlined text-base">precision_manufacturing</span>
+              <span>Simulador TC</span>
+            </button>
+
+            {/* Teacher Studio Button */}
+            {isTeacherOrAdmin && (
+              <button
+                type="button"
+                onClick={() => setIsInstructorModalOpen(true)}
+                className="px-4 py-2 rounded-2xl bg-gradient-to-r from-[#06b6d4] to-[#10b981] text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:opacity-95 cursor-pointer transition-all"
+              >
+                <span className="material-symbols-outlined text-base">tune</span>
+                <span>Gerenciar Vídeos &amp; Anexos</span>
+              </button>
+            )}
           </div>
         </div>
+      </section>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => setIsInstructorModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-bold text-xs flex items-center gap-2 shadow-md shadow-[#06b6d4]/25 hover:opacity-95 cursor-pointer transition-all"
-          >
-            <span className="material-symbols-outlined text-base">tune</span>
-            <span>Studio do Professor (Gerenciar Vídeos &amp; Materiais)</span>
-          </button>
-        </div>
-      </div>
-
+      {/* 2. MAIN PLAYER & CONTENT GRID */}
       <div className="grid grid-cols-12 gap-6">
-        {/* LEFT COLUMN: Video Player & Conteúdo Didático (8 cols) */}
-        <section className="col-span-12 xl:col-span-8 flex flex-col gap-5">
+        {/* LEFT COLUMN: Video Player & Tabs (8 cols) */}
+        <section className="col-span-12 xl:col-span-8 flex flex-col gap-6">
           {/* Interactive Video Player Container */}
           <div
             id="lesson-player-container"
-            className="relative rounded-2xl overflow-hidden bg-[#0a0e17] border border-white/15 shadow-[0_12px_45px_-5px_rgba(0,0,0,0.8)] ring-1 ring-[#4cd7f6]/25 group"
+            className="relative rounded-3xl overflow-hidden bg-[#0a0e17] border border-white/15 shadow-[0_12px_45px_-5px_rgba(0,0,0,0.8)] ring-1 ring-[#4cd7f6]/25 group"
           >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#4cd7f6]/60 to-transparent z-20" />
 
             {/* Video Canvas / Player */}
             <div className="relative w-full aspect-video bg-[#000000] overflow-hidden flex items-center justify-center">
-              {/* Case 1: Direct MP4 / WebM / HTML5 video */}
+              {/* HTML5 Direct Video */}
               {parsedVideo.type === 'html5' && (
                 <video
                   ref={videoRef}
@@ -362,7 +462,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 />
               )}
 
-              {/* Case 2: YouTube Embed */}
+              {/* YouTube Embed */}
               {parsedVideo.type === 'youtube' && (
                 <iframe
                   src={parsedVideo.embedUrl}
@@ -373,7 +473,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 />
               )}
 
-              {/* Case 3: Vimeo Embed */}
+              {/* Vimeo Embed */}
               {parsedVideo.type === 'vimeo' && (
                 <iframe
                   src={parsedVideo.embedUrl}
@@ -384,18 +484,18 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 />
               )}
 
-              {/* HUD Radiológico Superior */}
+              {/* Top HUD */}
               <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2 pointer-events-none z-10">
                 <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0a0e17]/85 backdrop-blur-md border border-white/20 text-[#4cd7f6] text-xs font-semibold shadow-lg">
                   <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-pulse shadow-[0_0_8px_#4cd7f6]" />
-                  AULA DIGITAL TC • 4K
+                  AULA DIGITAL • 4K
                 </span>
                 <span className="px-2.5 py-1 rounded-full bg-[#0a0e17]/85 backdrop-blur-md border border-white/20 text-[#bcc9cd] text-xs font-mono shadow-lg">
                   CAPÍTULO 0{activeLesson.chapterNumber} • {activeLesson.ctWindowType?.toUpperCase() || 'PULMONAR'}
                 </span>
               </div>
 
-              {/* Status "Concluída" Badge no canto superior direito */}
+              {/* Completion badge */}
               {activeLesson.isCompleted && (
                 <div className="absolute top-4 right-4 z-10 flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-500/90 text-slate-950 font-bold text-xs shadow-lg backdrop-blur-md pointer-events-none">
                   <span className="material-symbols-outlined text-sm font-bold">check_circle</span>
@@ -418,10 +518,10 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 </button>
               )}
 
-              {/* Glass Floating Player Controls Bar (para HTML5) */}
+              {/* Floating Player Controls Bar */}
               {parsedVideo.type === 'html5' && (
                 <div className="absolute inset-x-3 sm:inset-x-4 bottom-3 sm:bottom-4 p-2.5 sm:p-3 rounded-2xl bg-[#141824]/90 backdrop-blur-xl border border-white/15 shadow-2xl z-20 transition-all duration-300">
-                  {/* Timeline with Clickable Chapter Markers */}
+                  {/* Timeline with Markers */}
                   <div
                     onClick={handleProgressBarClick}
                     className="relative w-full mb-2.5 sm:mb-3 h-3 flex items-center cursor-pointer group/timeline select-none"
@@ -433,7 +533,6 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                       />
                     </div>
 
-                    {/* Interactive Chapter Markers on timeline */}
                     {activeLesson.markers?.map((marker, idx) => {
                       const markerPercent = duration > 0 ? (marker.timeSeconds / duration) * 100 : 0;
                       if (markerPercent < 0 || markerPercent > 100) return null;
@@ -447,24 +546,21 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                           className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white ring-2 ring-[#06b6d4] hover:scale-150 hover:bg-[#4cd7f6] transition-all cursor-pointer z-10 group/marker"
                           style={{ left: `${markerPercent}%` }}
                         >
-                          {/* Tooltip */}
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/marker:flex flex-col items-center pointer-events-none z-30">
-                            <span className="px-2.5 py-1 rounded-lg bg-black/90 border border-white/20 text-[10px] font-sans text-white whitespace-nowrap shadow-xl">
-                              {formatDuration(marker.timeSeconds)} • {marker.label}
-                            </span>
+                          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md bg-[#0a0e17] text-white text-[10px] font-medium whitespace-nowrap opacity-0 group-hover/marker:opacity-100 transition-opacity pointer-events-none border border-white/10 shadow-lg">
+                            {formatDuration(marker.timeSeconds)} - {marker.label}
                           </div>
                         </div>
                       );
                     })}
                   </div>
 
-                  {/* Controls Cluster */}
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1 sm:gap-2">
+                  {/* Controls Row */}
+                  <div className="flex items-center justify-between text-white text-xs">
+                    <div className="flex items-center gap-3">
                       <button
+                        type="button"
                         onClick={togglePlayPause}
-                        className="p-1.5 rounded-lg text-[#4cd7f6] hover:bg-white/10 transition-colors cursor-pointer"
-                        title={isPlaying ? 'Pausar' : 'Reproduzir'}
+                        className="p-1 rounded-lg text-[#4cd7f6] hover:bg-white/10 transition-colors cursor-pointer"
                       >
                         <span className="material-symbols-outlined text-2xl">
                           {isPlaying ? 'pause' : 'play_arrow'}
@@ -472,26 +568,28 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => handleSkip(-10)}
-                        className="p-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                        title="Voltar 10 segundos"
+                        className="p-1 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer"
+                        title="Voltar 10s"
                       >
-                        <span className="material-symbols-outlined text-xl">replay_10</span>
+                        <span className="material-symbols-outlined text-lg">replay_10</span>
                       </button>
-
                       <button
+                        type="button"
                         onClick={() => handleSkip(10)}
-                        className="p-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                        title="Avançar 10 segundos"
+                        className="p-1 rounded-lg text-gray-300 hover:text-white transition-colors cursor-pointer"
+                        title="Avançar 10s"
                       >
-                        <span className="material-symbols-outlined text-xl">forward_10</span>
+                        <span className="material-symbols-outlined text-lg">forward_10</span>
                       </button>
 
-                      {/* Volume Slider */}
-                      <div className="hidden sm:flex items-center gap-1.5 pl-1">
+                      {/* Volume */}
+                      <div className="flex items-center gap-1.5 ml-2">
                         <button
+                          type="button"
                           onClick={handleToggleMute}
-                          className="text-gray-300 hover:text-white cursor-pointer"
+                          className="p-1 rounded-lg text-gray-300 hover:text-white cursor-pointer"
                         >
                           <span className="material-symbols-outlined text-lg">
                             {isMuted || volume === 0 ? 'volume_off' : volume < 0.5 ? 'volume_down' : 'volume_up'}
@@ -499,52 +597,43 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                         </button>
                         <input
                           type="range"
-                          min={0}
-                          max={1}
-                          step={0.05}
+                          min="0"
+                          max="1"
+                          step="0.05"
                           value={isMuted ? 0 : volume}
                           onChange={handleVolumeChange}
-                          className="w-16 h-1 bg-white/20 accent-[#4cd7f6] rounded-lg cursor-pointer"
+                          className="w-16 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-cyan-400"
                         />
                       </div>
 
-                      {/* Time Counter */}
-                      <span className="text-xs font-mono text-gray-300 pl-1 sm:pl-2">
-                        <span className="text-white font-bold">{formatDuration(currentTime)}</span> / {formatDuration(duration)}
+                      {/* Timers */}
+                      <span className="font-mono text-[11px] text-gray-300 ml-2">
+                        {formatDuration(currentTime)} / {formatDuration(duration)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      {/* Playback Speed Selector */}
-                      <div className="relative flex items-center gap-1">
-                        {[0.75, 1.0, 1.25, 1.5, 2.0].map(spd => (
+                    <div className="flex items-center gap-2">
+                      {/* Speed */}
+                      <div className="flex items-center gap-1 bg-white/10 rounded-lg p-0.5 font-mono text-[10px]">
+                        {[1, 1.25, 1.5, 2].map(speed => (
                           <button
-                            key={spd}
-                            onClick={() => handleSpeedChange(spd)}
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer ${
-                              playbackSpeed === spd
-                                ? 'bg-cyan-500 text-slate-950 font-bold'
-                                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                            key={speed}
+                            type="button"
+                            onClick={() => handleSpeedChange(speed)}
+                            className={`px-1.5 py-0.5 rounded cursor-pointer ${
+                              playbackSpeed === speed ? 'bg-cyan-500 text-slate-950 font-bold' : 'text-gray-300 hover:text-white'
                             }`}
                           >
-                            {spd}x
+                            {speed}x
                           </button>
                         ))}
                       </div>
 
-                      {/* Simulator Shortcut */}
-                      <button
-                        onClick={onOpenSimulator}
-                        className="hidden md:flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#00a572]/20 border border-[#4edea3]/30 text-[#4edea3] text-xs font-mono cursor-pointer hover:bg-[#00a572]/30"
-                      >
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#4edea3]" />
-                        <span>Simulador TC</span>
-                      </button>
-
                       {/* Fullscreen */}
                       <button
+                        type="button"
                         onClick={handleToggleFullscreen}
-                        className="p-1.5 rounded-lg text-gray-300 hover:text-[#4cd7f6] cursor-pointer"
+                        className="p-1 rounded-lg text-gray-300 hover:text-white cursor-pointer"
                         title="Tela Cheia"
                       >
                         <span className="material-symbols-outlined text-xl">fullscreen</span>
@@ -555,963 +644,569 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
               )}
             </div>
 
-            {/* Quick Navigation Between Lessons Bar */}
-            <div className={`px-4 py-2.5 border-t flex items-center justify-between text-xs ${
-              isDark ? 'bg-[#10141f] border-white/10' : 'bg-slate-100 border-slate-200'
+            {/* Lesson Title & Quick Controls Bar */}
+            <div className={`p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t ${
+              isDark ? 'border-white/10 bg-[#0f1422]' : 'border-slate-200 bg-white'
             }`}>
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={!prevLesson}
-                  onClick={() => prevLesson && onSelectLesson(prevLesson)}
-                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1 font-semibold transition-all ${
-                    prevLesson
-                      ? isDark
-                        ? 'bg-white/5 hover:bg-white/10 text-white cursor-pointer'
-                        : 'bg-white hover:bg-slate-200 text-slate-800 cursor-pointer shadow-sm'
-                      : 'opacity-40 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">arrow_back</span>
-                  <span>Aula Anterior</span>
-                </button>
-
-                <button
-                  disabled={!nextLesson}
-                  onClick={() => nextLesson && onSelectLesson(nextLesson)}
-                  className={`px-3 py-1.5 rounded-xl flex items-center gap-1 font-semibold transition-all ${
-                    nextLesson
-                      ? isDark
-                        ? 'bg-white/5 hover:bg-white/10 text-white cursor-pointer'
-                        : 'bg-white hover:bg-slate-200 text-slate-800 cursor-pointer shadow-sm'
-                      : 'opacity-40 cursor-not-allowed text-gray-500'
-                  }`}
-                >
-                  <span>Próxima Aula</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleToggleComplete}
-                  className={`px-4 py-1.5 rounded-xl font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
-                    activeLesson.isCompleted
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
-                      : 'bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-slate-950 hover:opacity-95'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    {activeLesson.isCompleted ? 'check_circle' : 'done'}
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-cyan-400 font-mono">
+                    Capítulo 0{activeLesson.chapterNumber}
                   </span>
-                  <span>{activeLesson.isCompleted ? 'Aula Concluída ✓' : 'Marcar como Concluída'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Chapter Markers Strip */}
-          {activeLesson.markers && activeLesson.markers.length > 0 && (
-            <div className={`p-3.5 rounded-2xl border flex items-center gap-2 overflow-x-auto ${
-              isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-            }`}>
-              <span className={`text-[11px] font-bold shrink-0 flex items-center gap-1 ${isDark ? 'text-gray-300' : 'text-slate-700'}`}>
-                <span className="material-symbols-outlined text-sm text-cyan-500">bookmarks</span>
-                Capítulos:
-              </span>
-              <div className="flex items-center gap-2">
-                {activeLesson.markers.map((m, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSeek(m.timeSeconds)}
-                    className={`px-3 py-1 rounded-xl text-xs flex items-center gap-1.5 shrink-0 border transition-all cursor-pointer ${
-                      currentTime >= m.timeSeconds && (!activeLesson.markers[idx + 1] || currentTime < activeLesson.markers[idx + 1].timeSeconds)
-                        ? isDark
-                          ? 'bg-cyan-500/20 border-cyan-500 text-cyan-400 font-bold shadow'
-                          : 'bg-cyan-50 border-cyan-500 text-cyan-800 font-bold'
-                        : isDark
-                          ? 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                    }`}
-                  >
-                    <span className="font-mono text-[10px] text-cyan-500 font-bold">
-                      {formatDuration(m.timeSeconds)}
-                    </span>
-                    <span>{m.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Video Metadata & Instructor Profile */}
-          <div className={`p-6 rounded-2xl backdrop-blur-xl border shadow-xl space-y-6 ${
-            isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-          }`}>
-            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-slate-200/20">
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                    isDark
-                      ? 'bg-[#4cd7f6]/10 border-[#4cd7f6]/30 text-[#4cd7f6]'
-                      : 'bg-cyan-50 border-cyan-300 text-cyan-800'
-                  }`}>
-                    Capítulo 0{activeLesson.chapterNumber} • Tomografia Computadorizada
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold flex items-center gap-1 border ${
-                    isDark
-                      ? 'bg-[#00a572]/10 border-[#4edea3]/30 text-[#4edea3]'
-                      : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                  }`}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                    Turma de Radiologia 2026
+                  <span className="text-gray-400">•</span>
+                  <span className={`text-xs font-mono ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
+                    {activeLesson.durationMinutes} minutos de prática clínica
                   </span>
                 </div>
-
-                <h1 className={`text-xl sm:text-2xl font-bold tracking-tight font-['Plus_Jakarta_Sans'] ${
+                <h2 className={`text-lg sm:text-xl font-bold font-['Plus_Jakarta_Sans'] mt-0.5 ${
                   isDark ? 'text-white' : 'text-slate-900'
                 }`}>
                   {activeLesson.title}
-                </h1>
-
-                <div className="flex flex-wrap items-center gap-4 pt-1">
-                  <div className={`flex items-center gap-3 px-3 py-1.5 rounded-xl border ${
-                    isDark ? 'bg-[#181b25]/70 border-white/10' : 'bg-slate-50 border-slate-200'
-                  }`}>
-                    <img
-                      src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=150&q=80"
-                      alt="Instrutor"
-                      className="w-8 h-8 rounded-lg object-cover ring-1 ring-cyan-500/40"
-                    />
-                    <div>
-                      <p className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        Prof. Dr. Marcus Vinicius
-                      </p>
-                      <p className="text-[10px] text-cyan-600 font-medium">Médico Radiologista • Especialista em TC</p>
-                    </div>
-                  </div>
-
-                  <div className={`flex items-center gap-1.5 text-xs ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>
-                    <span className="material-symbols-outlined text-cyan-600 text-base">timer</span>
-                    <span>Duração: {activeLesson.durationMinutes} minutos</span>
-                  </div>
-
-                  {activeLesson.testScore && (
-                    <div className="flex items-center gap-1 text-xs font-bold text-emerald-500">
-                      <span className="material-symbols-outlined text-base">grade</span>
-                      <span>Nota no Quiz: {activeLesson.testScore}%</span>
-                    </div>
-                  )}
-                </div>
+                </h2>
               </div>
 
+              {/* Previous / Next / Complete buttons */}
               <div className="flex items-center gap-2 shrink-0">
+                {prevLesson && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectLesson(prevLesson)}
+                    className={`px-3 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                      isDark ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    <span className="material-symbols-outlined text-base">arrow_back</span>
+                    <span className="hidden sm:inline">Aula Anterior</span>
+                  </button>
+                )}
+
+                {/* Mark Completed Button */}
                 <button
                   type="button"
-                  onClick={onOpenSimulator}
-                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-md shadow-[#06b6d4]/30 hover:opacity-95"
-                >
-                  <span className="material-symbols-outlined text-base">neurology</span>
-                  <span>Praticar no Simulador de TC</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Bottom Tabs: Ementa, Recursos para Download, Anotações, Quiz */}
-            <div>
-              <div className="flex flex-wrap items-center gap-4 sm:gap-6 border-b border-slate-200/20 text-xs">
-                <button
-                  onClick={() => setActiveTab('ementa')}
-                  className={`pb-3 font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    activeTab === 'ementa'
-                      ? 'text-cyan-500 border-b-2 border-cyan-500 font-bold'
-                      : isDark ? 'text-[#bcc9cd] hover:text-white' : 'text-slate-500 hover:text-slate-900'
+                  onClick={handleToggleComplete}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
+                    activeLesson.isCompleted
+                      ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
+                      : 'bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300'
                   }`}
                 >
-                  <span className="material-symbols-outlined text-base">subject</span>
-                  <span>Ementa &amp; Objetivos</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('downloads')}
-                  className={`pb-3 font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    activeTab === 'downloads'
-                      ? 'text-cyan-500 border-b-2 border-cyan-500 font-bold'
-                      : isDark ? 'text-[#bcc9cd] hover:text-white' : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">folder_open</span>
-                  <span>Materiais Didáticos</span>
-                  <span className={`px-2 py-0.2 rounded-full text-[10px] font-bold ${
-                    isDark ? 'bg-[#262a34] text-[#4cd7f6]' : 'bg-cyan-100 text-cyan-800'
-                  }`}>
-                    {activeLesson.resources?.length || 0}
+                  <span className="material-symbols-outlined text-base">
+                    {activeLesson.isCompleted ? 'check_circle' : 'radio_button_unchecked'}
                   </span>
+                  <span>{activeLesson.isCompleted ? 'Concluída' : 'Marcar como Concluída'}</span>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab('notes')}
-                  className={`pb-3 font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    activeTab === 'notes'
-                      ? 'text-cyan-500 border-b-2 border-cyan-500 font-bold'
-                      : isDark ? 'text-[#bcc9cd] hover:text-white' : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">edit_note</span>
-                  <span>Minhas Anotações ({studentNotes.length})</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab('quiz')}
-                  className={`pb-3 font-semibold flex items-center gap-2 transition-colors cursor-pointer ${
-                    activeTab === 'quiz'
-                      ? 'text-cyan-500 border-b-2 border-cyan-500 font-bold'
-                      : isDark ? 'text-[#bcc9cd] hover:text-white' : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-base">quiz</span>
-                  <span>Quiz de Fixação</span>
-                  {quizScore !== null && (
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">
-                      {quizScore}%
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              <div className="pt-5">
-                {/* TAB 1: EMENTA */}
-                {activeTab === 'ementa' && (
-                  <div className={`space-y-4 text-xs leading-relaxed ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>
-                    <p className="text-sm font-medium leading-relaxed">
-                      {activeLesson.description}
-                    </p>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                      <div className={`p-3.5 rounded-xl border ${
-                        isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-                      }`}>
-                        <span className="text-cyan-500 font-bold block mb-1">Competência 01</span>
-                        <span className={isDark ? 'text-white' : 'text-slate-900 font-medium'}>
-                          Diferenciação de Atenuação e Janelamento Hounsfield (HU)
-                        </span>
-                      </div>
-                      <div className={`p-3.5 rounded-xl border ${
-                        isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-                      }`}>
-                        <span className="text-emerald-500 font-bold block mb-1">Competência 02</span>
-                        <span className={isDark ? 'text-white' : 'text-slate-900 font-medium'}>
-                          Reconstruções 3D Multiplanares (MPR e Volume Rendering)
-                        </span>
-                      </div>
-                      <div className={`p-3.5 rounded-xl border ${
-                        isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
-                      }`}>
-                        <span className="text-amber-400 font-bold block mb-1">Competência 03</span>
-                        <span className={isDark ? 'text-white' : 'text-slate-900 font-medium'}>
-                          Protocolos de Contraste Iodado e Radioproteção (ALARA)
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 2: MATERIAIS & RECURSOS DIDÁTICOS */}
-                {activeTab === 'downloads' && (
-                  <div className="space-y-4">
-                    {/* Category Filter Pills */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      {[
-                        { id: 'all', label: 'Todos os Recursos' },
-                        { id: 'pdf', label: 'Apostilas (PDF)' },
-                        { id: 'protocol', label: 'Protocolos de TC' },
-                        { id: 'case_study', label: 'Casos Clínicos' },
-                        { id: 'spreadsheet', label: 'Planilhas & Tabelas' },
-                        { id: 'podcast', label: 'Podcasts' }
-                      ].map(tab => (
-                        <button
-                          key={tab.id}
-                          onClick={() => setResourceFilter(tab.id)}
-                          className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                            resourceFilter === tab.id
-                              ? isDark
-                                ? 'bg-cyan-500 text-slate-950 font-bold shadow'
-                                : 'bg-cyan-600 text-white font-bold'
-                              : isDark
-                                ? 'bg-white/5 text-gray-300 hover:bg-white/10'
-                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                          }`}
-                        >
-                          {tab.label}
-                        </button>
-                      ))}
-
-                      {isTeacherOrAdmin && (
-                        <button
-                          onClick={() => setIsInstructorModalOpen(true)}
-                          className="ml-auto px-3 py-1 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold flex items-center gap-1 cursor-pointer hover:bg-cyan-500/30"
-                        >
-                          <span className="material-symbols-outlined text-sm">add</span>
-                          <span>Anexar Novo</span>
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Resources Cards Grid */}
-                    {filteredResources.length === 0 ? (
-                      <div className={`p-8 rounded-2xl border text-center space-y-2 ${
-                        isDark ? 'bg-[#0a0e17]/50 border-white/5 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-                      }`}>
-                        <span className="material-symbols-outlined text-3xl text-cyan-500">folder_off</span>
-                        <p>Nenhum recurso encontrado nesta categoria.</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        {filteredResources.map(res => (
-                          <div
-                            key={res.id}
-                            className={`p-4 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
-                              isDark
-                                ? 'bg-[#0a0e17]/70 border-white/10 hover:border-cyan-500/40 shadow-sm'
-                                : 'bg-slate-50 border-slate-200 hover:border-cyan-400 shadow-sm'
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="w-11 h-11 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center shrink-0">
-                                <span className="material-symbols-outlined text-2xl">
-                                  {res.type === 'pdf' ? 'picture_as_pdf' : res.type === 'protocol' ? 'medical_services' : res.type === 'spreadsheet' ? 'table_chart' : res.type === 'podcast' ? 'podcasts' : 'description'}
-                                </span>
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[10px] font-mono font-bold uppercase text-cyan-500">
-                                    {res.type}
-                                  </span>
-                                  {res.fileSize && (
-                                    <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                                      • {res.fileSize}
-                                    </span>
-                                  )}
-                                </div>
-                                <h4 className={`text-xs font-bold leading-snug mt-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                  {res.title}
-                                </h4>
-                                <p className={`text-[11px] mt-1 line-clamp-2 ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>
-                                  {res.description}
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-between pt-2 border-t border-slate-200/15 text-xs">
-                              <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                                {res.authorName || 'Coordenação RadBio'}
-                              </span>
-
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => setSelectedResourceForView(res)}
-                                  className="px-2.5 py-1 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-                                >
-                                  <span className="material-symbols-outlined text-sm">visibility</span>
-                                  <span>Visualizar</span>
-                                </button>
-                                <button
-                                  onClick={() => setSelectedResourceForView(res)}
-                                  className="p-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 cursor-pointer transition-colors"
-                                  title="Baixar material"
-                                >
-                                  <span className="material-symbols-outlined text-sm">download</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* TAB 3: ANOTAÇÕES COM CARIMBO DE TEMPO */}
-                {activeTab === 'notes' && (
-                  <div className="space-y-4">
-                    {/* Add note input */}
-                    <form onSubmit={handleAddNote} className={`p-4 rounded-2xl border space-y-3 ${
-                      isDark ? 'bg-[#0a0e17]/70 border-white/10' : 'bg-slate-50 border-slate-200'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-cyan-500 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-sm">timer</span>
-                          <span>Criar Nota no Minuto Atual: <strong>{formatDuration(currentTime)}</strong></span>
-                        </span>
-                        <span className={`text-[10px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                          Ao clicar no timestamp, o vídeo salta para o momento anotado
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={noteText}
-                          onChange={e => setNoteText(e.target.value)}
-                          placeholder="Escreva sua anotação ou dúvida sobre este trecho da aula..."
-                          className={`flex-1 p-2.5 rounded-xl border text-xs outline-none ${
-                            isDark ? 'bg-[#181b25] border-white/10 text-white focus:border-cyan-500' : 'bg-white border-slate-300 text-slate-900 focus:border-cyan-500'
-                          }`}
-                        />
-                        <button
-                          type="submit"
-                          className="px-4 py-2.5 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs shadow cursor-pointer hover:opacity-95 shrink-0 flex items-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-sm">bookmark_add</span>
-                          <span>Salvar Nota</span>
-                        </button>
-                      </div>
-                    </form>
-
-                    {/* Saved Notes List */}
-                    <div className="space-y-2.5">
-                      {studentNotes.length === 0 ? (
-                        <div className={`p-6 rounded-2xl border text-center ${
-                          isDark ? 'bg-[#0a0e17]/40 border-white/5 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-                        }`}>
-                          Você ainda não adicionou anotações nesta aula. Use o campo acima para gravar observações importantes.
-                        </div>
-                      ) : (
-                        studentNotes.map(note => (
-                          <div
-                            key={note.id}
-                            className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 text-xs ${
-                              isDark ? 'bg-[#0a0e17]/80 border-white/10' : 'bg-white border-slate-200 shadow-sm'
-                            }`}
-                          >
-                            <div className="flex items-start gap-3">
-                              <button
-                                onClick={() => handleSeek(note.timeSeconds)}
-                                className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-400 font-mono font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors shrink-0"
-                                title="Saltar para este momento no vídeo"
-                              >
-                                <span className="material-symbols-outlined text-xs">play_arrow</span>
-                                <span>{formatDuration(note.timeSeconds)}</span>
-                              </button>
-                              <div>
-                                <p className={`font-medium ${isDark ? 'text-gray-200' : 'text-slate-800'}`}>
-                                  {note.content}
-                                </p>
-                                <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-slate-400'}`}>
-                                  Gravado {note.createdAt}
-                                </span>
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => handleDeleteNote(note.id)}
-                              className="text-gray-400 hover:text-red-400 p-1 cursor-pointer"
-                              title="Excluir nota"
-                            >
-                              <span className="material-symbols-outlined text-sm">delete</span>
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* TAB 4: QUIZ DE FIXAÇÃO */}
-                {activeTab === 'quiz' && (
-                  <div className="space-y-4">
-                    {(!activeLesson.quizQuestions || activeLesson.quizQuestions.length === 0) ? (
-                      <div className={`p-8 rounded-2xl border text-center space-y-2 ${
-                        isDark ? 'bg-[#0a0e17]/50 border-white/5 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-500'
-                      }`}>
-                        <span className="material-symbols-outlined text-3xl text-cyan-500">quiz</span>
-                        <p>Nenhum questionário cadastrado para esta aula.</p>
-                      </div>
-                    ) : (
-                      <form onSubmit={handleSubmitQuiz} className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-xs uppercase tracking-wider text-cyan-500">
-                            Teste de Fixação de Conhecimentos ({activeLesson.quizQuestions.length} questões)
-                          </span>
-                          {quizScore !== null && (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                              Nota Final: {quizScore}%
-                            </span>
-                          )}
-                        </div>
-
-                        {activeLesson.quizQuestions.map((q, qIdx) => (
-                          <div
-                            key={q.id}
-                            className={`p-4 rounded-2xl border space-y-3 ${
-                              isDark ? 'bg-[#0a0e17]/80 border-white/10' : 'bg-slate-50 border-slate-200'
-                            }`}
-                          >
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-mono text-cyan-500 font-bold">
-                                QUESTÃO 0{qIdx + 1}
-                              </span>
-                              <h4 className={`text-xs font-bold leading-relaxed ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                                {q.question}
-                              </h4>
-                            </div>
-
-                            <div className="space-y-2 pt-1 text-xs">
-                              {q.options.map((opt, optIdx) => {
-                                const isSelected = userQuizAnswers[q.id] === optIdx;
-                                const isCorrect = optIdx === q.correctAnswerIndex;
-                                let optionClasses = isDark
-                                  ? 'bg-[#181b25] border-white/10 text-gray-300'
-                                  : 'bg-white border-slate-200 text-slate-700';
-
-                                if (quizSubmitted) {
-                                  if (isCorrect) {
-                                    optionClasses = 'bg-emerald-500/20 border-emerald-500 text-emerald-400 font-bold';
-                                  } else if (isSelected && !isCorrect) {
-                                    optionClasses = 'bg-red-500/20 border-red-500 text-red-400 font-bold';
-                                  }
-                                } else if (isSelected) {
-                                  optionClasses = isDark
-                                    ? 'bg-cyan-500/20 border-cyan-500 text-cyan-300 font-semibold'
-                                    : 'bg-cyan-100 border-cyan-500 text-cyan-900 font-semibold';
-                                }
-
-                                return (
-                                  <label
-                                    key={optIdx}
-                                    onClick={() => !quizSubmitted && handleAnswerSelect(q.id, optIdx)}
-                                    className={`p-3 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${optionClasses}`}
-                                  >
-                                    <span className="font-mono font-bold w-5 text-center">
-                                      {String.fromCharCode(65 + optIdx)})
-                                    </span>
-                                    <span className="flex-1 leading-snug">{opt}</span>
-                                    {quizSubmitted && isCorrect && (
-                                      <span className="material-symbols-outlined text-sm text-emerald-400">check_circle</span>
-                                    )}
-                                    {quizSubmitted && isSelected && !isCorrect && (
-                                      <span className="material-symbols-outlined text-sm text-red-400">cancel</span>
-                                    )}
-                                  </label>
-                                );
-                              })}
-                            </div>
-
-                            {quizSubmitted && q.explanation && (
-                              <div className={`p-3 rounded-xl border text-[11px] leading-relaxed flex items-start gap-2 ${
-                                isDark ? 'bg-cyan-950/20 border-cyan-500/20 text-cyan-200' : 'bg-cyan-50 border-cyan-200 text-cyan-800'
-                              }`}>
-                                <span className="material-symbols-outlined text-sm text-cyan-500 shrink-0 mt-0.5">help</span>
-                                <div>
-                                  <strong className="block mb-0.5">Comentário do Professor:</strong>
-                                  <span>{q.explanation}</span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-
-                        <div className="flex items-center justify-between pt-2">
-                          <span className={`text-[11px] ${isDark ? 'text-gray-400' : 'text-slate-500'}`}>
-                            {quizSubmitted ? 'Respostas salvas e registradas no boletim.' : 'Responda todas as questões e clique em Enviar.'}
-                          </span>
-                          <button
-                            type="submit"
-                            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-slate-950 font-bold text-xs shadow-md shadow-[#06b6d4]/25 cursor-pointer hover:opacity-95"
-                          >
-                            {quizSubmitted ? 'Refazer Teste' : 'Enviar Respostas & Calcular Nota'}
-                          </button>
-                        </div>
-                      </form>
-                    )}
-                  </div>
+                {nextLesson && (
+                  <button
+                    type="button"
+                    onClick={() => onSelectLesson(nextLesson)}
+                    className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-md"
+                  >
+                    <span className="hidden sm:inline">Próxima Aula</span>
+                    <span className="material-symbols-outlined text-base">arrow_forward</span>
+                  </button>
                 )}
               </div>
             </div>
           </div>
-        </section>
 
-        {/* RIGHT COLUMN: Chat / Dúvidas & Roadmap (4 cols) */}
-        <section className="col-span-12 xl:col-span-4 flex flex-col gap-4">
-          <div className={`rounded-2xl border flex flex-col h-[750px] shadow-xl overflow-hidden ${
-            isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
+          {/* Interactive Tabs (Ementa, Downloads, Notes, Quiz) */}
+          <div className={`p-6 rounded-3xl border shadow-xl backdrop-blur-2xl transition-all ${
+            isDark ? 'bg-[#141c2e]/80 border-white/10' : 'bg-white border-slate-200 shadow-slate-200'
           }`}>
-            {/* Header Tabs */}
-            <div className={`p-3 border-b flex items-center justify-between ${
-              isDark ? 'bg-[#181b25]/70 border-white/10' : 'bg-slate-50 border-slate-200'
-            }`}>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setRightPanelTab('chat')}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
-                    rightPanelTab === 'chat'
-                      ? 'bg-cyan-500 text-slate-950 font-bold'
-                      : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Tirar Dúvidas
-                </button>
-                <button
-                  onClick={() => setRightPanelTab('roadmap')}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold cursor-pointer ${
-                    rightPanelTab === 'roadmap'
-                      ? 'bg-cyan-500 text-slate-950 font-bold'
-                      : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Aulas do Módulo ({lessons.length})
-                </button>
-              </div>
+            {/* Tabs Row */}
+            <div className="flex items-center gap-2 sm:gap-4 border-b border-white/10 pb-4 overflow-x-auto text-xs">
+              <button
+                type="button"
+                onClick={() => setActiveTab('ementa')}
+                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'ementa'
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">description</span>
+                <span>Ementa &amp; Objetivos</span>
+              </button>
 
               <button
-                onClick={() => setHandRaised(!handRaised)}
-                className={`p-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors ${
-                  handRaised
-                    ? 'bg-amber-500/20 text-amber-500 border-amber-400'
-                    : isDark ? 'bg-white/5 border-white/10 text-gray-400 hover:text-white' : 'bg-slate-100 border-slate-200 text-slate-600'
+                type="button"
+                onClick={() => setActiveTab('downloads')}
+                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'downloads'
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Pedir ajuda do monitor"
               >
-                <span className="material-symbols-outlined text-sm">front_hand</span>
-                <span className="hidden sm:inline">{handRaised ? 'Mão Levantada' : 'Pedir Ajuda'}</span>
+                <span className="material-symbols-outlined text-lg">folder_open</span>
+                <span>Material &amp; Anexos ({allResources.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('notes')}
+                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'notes'
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">edit_note</span>
+                <span>Minhas Anotações ({studentNotes.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('quiz')}
+                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'quiz'
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg">quiz</span>
+                <span>Questionário ({activeLesson.quizQuestions?.length || 0})</span>
               </button>
             </div>
 
-            {/* TAB 1: CHAT / FÓRUM */}
-            {rightPanelTab === 'chat' && (
-              <div className="flex-1 flex flex-col justify-between overflow-hidden">
-                <div className="flex-1 p-3.5 overflow-y-auto space-y-3">
-                  {chatMessages.map(msg => (
-                    <div
-                      key={msg.id}
-                      className={`p-3 rounded-xl text-xs space-y-1.5 ${
-                        msg.isTutor
-                          ? isDark
-                            ? 'bg-[#4cd7f6]/10 border border-[#4cd7f6]/40'
-                            : 'bg-cyan-50 border border-cyan-200'
-                          : isDark
-                            ? 'bg-[#0a0e17]/80 border border-white/5'
-                            : 'bg-slate-50 border border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5">
-                          <img src={msg.avatar} alt={msg.sender} className="w-5 h-5 rounded-full object-cover" />
-                          <span className={`font-semibold ${msg.isTutor ? 'text-cyan-500' : isDark ? 'text-white' : 'text-slate-900'}`}>
-                            {msg.sender}
-                          </span>
-                          {msg.isTutor && (
-                            <span className="material-symbols-outlined text-cyan-500 text-xs">verified</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {msg.timeOffset && (
-                            <span className="px-1.5 py-0.2 rounded font-mono text-[9px] bg-cyan-500/15 text-cyan-400 font-bold">
-                              @{msg.timeOffset}
-                            </span>
-                          )}
-                          <span className={`text-[10px] font-mono ${isDark ? 'text-[#869397]' : 'text-slate-400'}`}>
-                            {msg.time}
-                          </span>
-                        </div>
-                      </div>
-                      <p className={`pl-1 leading-relaxed ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>{msg.text}</p>
-                    </div>
-                  ))}
+            {/* TAB CONTENT 1: EMENTA */}
+            {activeTab === 'ementa' && (
+              <div className="pt-6 space-y-4 text-xs sm:text-sm">
+                <div className="space-y-2">
+                  <h3 className={`text-base font-bold font-['Plus_Jakarta_Sans'] ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Descrição da Aula
+                  </h3>
+                  <p className={`leading-relaxed ${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
+                    {activeLesson.description}
+                  </p>
                 </div>
 
-                {/* Chat Input */}
-                <form onSubmit={handleSendChat} className={`p-3 border-t ${
-                  isDark ? 'bg-[#181b25]/90 border-white/10' : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <div className="relative flex items-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div className={`p-4 rounded-2xl border space-y-1.5 ${
+                    isDark ? 'bg-[#0a0e17]/60 border-white/10' : 'bg-slate-50 border-slate-200'
+                  }`}>
+                    <div className="font-bold text-cyan-400 flex items-center gap-1.5 text-xs">
+                      <span className="material-symbols-outlined text-base">person</span>
+                      <span>Corpo Docente Responsável</span>
+                    </div>
+                    <p className="font-semibold text-sm">{currentCourse.instructor}</p>
+                    <p className="text-[11px] text-gray-400">{currentCourse.instructorTitle}</p>
+                  </div>
+
+                  <div className={`p-4 rounded-2xl border space-y-1.5 ${
+                    isDark ? 'bg-[#0a0e17]/60 border-white/10' : 'bg-slate-50 border-slate-200'
+                  }`}>
+                    <div className="font-bold text-emerald-400 flex items-center gap-1.5 text-xs">
+                      <span className="material-symbols-outlined text-base">science</span>
+                      <span>Janelamento Radiológico (Hounsfield)</span>
+                    </div>
+                    <p className="font-semibold text-sm uppercase">Janela {activeLesson.ctWindowType || 'Pulmonar'}</p>
+                    <p className="text-[11px] text-gray-400">Otimizado para análise de densidades anatômicas finas.</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT 2: DOWNLOADS & ANEXOS */}
+            {activeTab === 'downloads' && (
+              <div className="pt-6 space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h3 className={`text-base font-bold font-['Plus_Jakarta_Sans'] ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                    Materiais &amp; Anexos do Curso
+                  </h3>
+                  {/* Filter chips */}
+                  <div className="flex items-center gap-1.5 text-xs">
+                    {['all', 'pdf', 'protocol', 'case_study'].map(f => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setResourceFilter(f)}
+                        className={`px-2.5 py-1 rounded-xl cursor-pointer ${
+                          resourceFilter === f
+                            ? 'bg-cyan-500 text-slate-950 font-bold'
+                            : isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-slate-100 text-slate-700'
+                        }`}
+                      >
+                        {f === 'all' ? 'Todos' : f === 'pdf' ? 'PDFs' : f === 'protocol' ? 'Protocolos' : 'Casos TC'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {filteredResources.length === 0 ? (
+                  <div className="p-8 text-center border border-dashed rounded-3xl border-white/15 space-y-2">
+                    <span className="material-symbols-outlined text-3xl text-gray-400">folder_off</span>
+                    <p className="text-xs text-gray-400">
+                      Nenhum arquivo anexado para este filtro. O professor pode anexar PDFs e protocolos específicos a qualquer momento.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {filteredResources.map(res => (
+                      <div
+                        key={res.id}
+                        className={`p-4 rounded-2xl border flex flex-col justify-between gap-3 transition-all ${
+                          isDark ? 'bg-[#0a0e17]/70 border-white/10 hover:border-cyan-400/40' : 'bg-slate-50 border-slate-200 hover:border-cyan-400'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-xl">
+                              {res.type === 'pdf' ? 'picture_as_pdf' : res.type === 'protocol' ? 'assignment' : 'biotech'}
+                            </span>
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-xs truncate leading-snug">{res.title}</h4>
+                            <p className="text-[11px] text-gray-400 line-clamp-2 mt-0.5">{res.description}</p>
+                            <span className="inline-block mt-1 text-[10px] font-mono text-cyan-400">
+                              {res.fileSize || '4.2 MB'} • {res.type.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedResourceForView(res)}
+                            className={`flex-1 py-1.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1 cursor-pointer transition-all ${
+                              isDark ? 'bg-white/5 hover:bg-white/10 border-white/10 text-white' : 'bg-white hover:bg-slate-100 border-slate-300 text-slate-800'
+                            }`}
+                          >
+                            <span className="material-symbols-outlined text-sm">visibility</span>
+                            <span>Ler Online</span>
+                          </button>
+
+                          <a
+                            href={res.url || '#'}
+                            download={res.title}
+                            onClick={e => {
+                              if (!res.url) {
+                                e.preventDefault();
+                                setSelectedResourceForView(res);
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs flex items-center gap-1 cursor-pointer transition-all"
+                          >
+                            <span className="material-symbols-outlined text-sm">download</span>
+                            <span>Baixar</span>
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB CONTENT 3: ANOTAÇÕES */}
+            {activeTab === 'notes' && (
+              <div className="pt-6 space-y-4">
+                <form onSubmit={handleAddNote} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-cyan-400">
+                      Nova Anotação Sincronizada com o Vídeo:
+                    </label>
+                    <span className="text-[11px] font-mono text-gray-400">
+                      Timestamp: {formatDuration(currentTime)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
-                      placeholder={`Dúvida aos ${formatDuration(currentTime)}...`}
-                      className={`w-full pl-3 pr-20 py-2.5 rounded-xl border text-xs outline-none ${
-                        isDark
-                          ? 'bg-[#0a0e17]/80 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4cd7f6]'
-                          : 'bg-white border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500'
+                      value={noteText}
+                      onChange={e => setNoteText(e.target.value)}
+                      placeholder={`Escreva sua nota sobre o minuto ${formatDuration(currentTime)}...`}
+                      className={`flex-1 px-4 py-2.5 rounded-2xl text-xs outline-none border ${
+                        isDark ? 'bg-[#0a0e17] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-600'
                       }`}
                     />
                     <button
                       type="submit"
-                      className="absolute right-1 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#06b6d4] to-[#4cd7f6] text-[#090d16] font-bold text-xs shadow cursor-pointer hover:opacity-95"
+                      className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs cursor-pointer shadow-md"
                     >
-                      Enviar
+                      Salvar Nota
                     </button>
                   </div>
                 </form>
+
+                <div className="space-y-2 pt-2">
+                  {studentNotes.length === 0 ? (
+                    <p className="text-xs text-gray-400 italic text-center p-4">
+                      Você ainda não salvou anotações para esta aula. Digite acima para registrar pontos importantes.
+                    </p>
+                  ) : (
+                    studentNotes.map(n => (
+                      <div
+                        key={n.id}
+                        className={`p-3 rounded-2xl border flex items-center justify-between text-xs gap-3 ${
+                          isDark ? 'bg-[#0a0e17]/80 border-white/10' : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => handleSeek(n.timeSeconds)}
+                            className="px-2 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 font-mono font-bold text-[10px] cursor-pointer hover:bg-cyan-500/30"
+                            title="Pular para este segundo no vídeo"
+                          >
+                            ▶ {formatDuration(n.timeSeconds)}
+                          </button>
+                          <span className="text-gray-200">{n.content}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteNote(n.id)}
+                          className="text-rose-400 hover:text-rose-300 p-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
 
-            {/* TAB 2: ROADMAP DE AULAS */}
-            {rightPanelTab === 'roadmap' && (
-              <div className="flex-1 p-4 overflow-y-auto space-y-3">
-                <div className={`text-xs font-semibold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  Módulos e Aulas Disponíveis:
-                </div>
-                {lessons.map(les => (
-                  <div
-                    key={les.id}
-                    onClick={() => onSelectLesson(les)}
-                    className={`p-3 rounded-xl border text-xs cursor-pointer transition-all ${
-                      les.id === activeLesson.id
-                        ? isDark
-                          ? 'bg-[#4cd7f6]/15 border-[#4cd7f6] text-white shadow-md'
-                          : 'bg-cyan-50 border-cyan-500 text-slate-900 shadow-sm'
-                        : isDark
-                          ? 'bg-[#0a0e17]/60 border-white/5 text-[#bcc9cd] hover:bg-[#1c1f29]'
-                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-mono text-[10px] text-cyan-500 font-bold">
-                        CAPÍTULO 0{les.chapterNumber}
-                      </span>
-                      {les.isCompleted ? (
-                        <span className="text-emerald-500 flex items-center gap-0.5 text-[10px] font-bold">
-                          <span className="material-symbols-outlined text-xs">check_circle</span> Concluído
-                        </span>
-                      ) : (
-                        <span className="text-amber-500 text-[10px] font-mono font-medium">Em Andamento</span>
+            {/* TAB CONTENT 4: QUIZ */}
+            {activeTab === 'quiz' && (
+              <div className="pt-6 space-y-4">
+                {(!activeLesson.quizQuestions || activeLesson.quizQuestions.length === 0) ? (
+                  <p className="text-xs text-gray-400 italic text-center p-6 border border-dashed rounded-2xl border-white/10">
+                    Nenhum questionário anexado para este capítulo.
+                  </p>
+                ) : (
+                  <form onSubmit={handleSubmitQuiz} className="space-y-4">
+                    {activeLesson.quizQuestions.map((q, idx) => (
+                      <div
+                        key={q.id}
+                        className={`p-4 rounded-2xl border space-y-3 ${
+                          isDark ? 'bg-[#0a0e17]/80 border-white/10' : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <div className="font-bold text-xs sm:text-sm flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-mono text-xs">
+                            {idx + 1}
+                          </span>
+                          <span>{q.question}</span>
+                        </div>
+
+                        <div className="space-y-1.5 pl-8">
+                          {q.options.map((opt, oIdx) => (
+                            <label
+                              key={oIdx}
+                              className={`flex items-center gap-2 p-2 rounded-xl text-xs cursor-pointer border transition-all ${
+                                userQuizAnswers[q.id] === oIdx
+                                  ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold'
+                                  : 'bg-white/5 border-transparent text-gray-300 hover:bg-white/10'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`question_${q.id}`}
+                                checked={userQuizAnswers[q.id] === oIdx}
+                                onChange={() => handleAnswerSelect(q.id, oIdx)}
+                                className="accent-cyan-500"
+                              />
+                              <span>{String.fromCharCode(65 + oIdx)}) {opt}</span>
+                            </label>
+                          ))}
+                        </div>
+
+                        {quizSubmitted && (
+                          <div className={`p-2.5 rounded-xl text-xs font-mono pl-8 ${
+                            userQuizAnswers[q.id] === q.correctAnswerIndex
+                              ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-rose-500/15 text-rose-300 border border-rose-500/30'
+                          }`}>
+                            <strong>{userQuizAnswers[q.id] === q.correctAnswerIndex ? '✓ Correto!' : '✕ Incorreto.'}</strong> {q.explanation}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+
+                    <div className="flex items-center justify-between pt-2">
+                      {quizScore !== null && (
+                        <div className="text-xs font-bold font-mono text-emerald-400">
+                          Pontuação Obtida: {quizScore}% {quizScore >= 70 ? '• Aprovado com Louvor' : '• Tente Novamente'}
+                        </div>
                       )}
+                      <button
+                        type="submit"
+                        className="ml-auto px-6 py-2.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 font-bold text-xs cursor-pointer shadow-md"
+                      >
+                        Enviar Respostas para Correção
+                      </button>
                     </div>
-                    <p className={`font-semibold leading-snug ${isDark ? 'text-white' : 'text-slate-900'}`}>{les.title}</p>
-                    <div className={`flex justify-between items-center text-[10px] mt-2 ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
-                      <span>Duração: {les.durationMinutes} min</span>
-                      {les.testScore && <span className="text-emerald-500 font-semibold">Nota: {les.testScore}%</span>}
-                    </div>
-                  </div>
-                ))}
+                  </form>
+                )}
               </div>
             )}
           </div>
         </section>
 
-        {/* BOTTOM SECTION: Roteiro Completo da Disciplina */}
-        <section className="col-span-12">
-          <div className={`p-6 rounded-2xl backdrop-blur-xl border shadow-xl space-y-4 ${
-            isDark ? 'bg-[#141f38]/40 border-white/10' : 'bg-white border-slate-200 shadow-sm'
+        {/* RIGHT COLUMN: Roadmap & Chat (4 cols) */}
+        <section className="col-span-12 xl:col-span-4 flex flex-col gap-6">
+          {/* Roadmap & Chat Container */}
+          <div className={`p-5 rounded-3xl border shadow-xl backdrop-blur-2xl flex flex-col flex-1 ${
+            isDark ? 'bg-[#141c2e]/80 border-white/10' : 'bg-white border-slate-200 shadow-slate-200'
           }`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h2 className={`text-lg font-bold tracking-tight flex items-center gap-2 font-['Plus_Jakarta_Sans'] ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}>
-                  <span>Roteiro de Aprendizagem da Disciplina</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-mono border ${
-                    isDark
-                      ? 'bg-[#4cd7f6]/10 text-[#4cd7f6] border-[#4cd7f6]/20'
-                      : 'bg-cyan-50 text-cyan-800 border-cyan-300 font-semibold'
-                  }`}>
-                    Progresso Geral: {Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100)}%
-                  </span>
-                </h2>
-                <p className={`text-xs ${isDark ? 'text-[#bcc9cd]' : 'text-slate-600'}`}>
-                  Complete as aulas gravadas, realize os testes de fixação e pratique no simulador de tomografia para aprovação.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                {onNavigateTab && (
-                  <button
-                    onClick={() => {
-                      if (onIssueCertificate && Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100) {
-                        onIssueCertificate('Tomografia Computadorizada Clínica & Operação do Activion 16 (40h)', 40, 'course_tc_701');
-                      }
-                      onNavigateTab('certificados');
-                    }}
-                    className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
-                      Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100
-                        ? 'bg-emerald-500 text-slate-950 font-bold border-emerald-400 shadow-md'
-                        : isDark
-                        ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
-                        : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-sm">
-                      {Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100 ? 'workspace_premium' : 'lock'}
-                    </span>
-                    <span>
-                      {Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100) >= 100
-                        ? 'Emitir Certificado (100%)'
-                        : `Certificado Bloqueado (${Math.round((lessons.filter(l => l.isCompleted).length / lessons.length) * 100)}%)`}
-                    </span>
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setIsInstructorModalOpen(true)}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
-                    isDark
-                      ? 'bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border-cyan-500/30'
-                      : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">video_settings</span>
-                  <span>Gerenciar Aulas e Vídeos</span>
-                </button>
-                <button
-                  onClick={onOpenSimulator}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer ${
-                    isDark
-                      ? 'bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/30'
-                      : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">science</span>
-                  <span>Laboratório Virtual de TC</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Filter by Specialty (Tomografia, Contrastados, Centro Cirúrgico, Todas) */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/10">
-              <span className={`text-xs font-semibold mr-1 flex items-center gap-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
-                <span className="material-symbols-outlined text-sm text-cyan-400">filter_list</span>
-                Especialidade:
-              </span>
+            {/* Panel Tabs */}
+            <div className="flex items-center gap-2 border-b border-white/10 pb-3 mb-4">
               <button
-                onClick={() => setLessonCategoryFilter('all')}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
-                  lessonCategoryFilter === 'all'
-                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md font-bold'
-                    : isDark
-                    ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10'
-                    : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                type="button"
+                onClick={() => setRightPanelTab('roadmap')}
+                className={`flex-1 py-2 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  rightPanelTab === 'roadmap'
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Todas as Aulas ({lessons.length})
+                <span className="material-symbols-outlined text-base">format_list_numbered</span>
+                <span>Roteiro do Curso ({courseLessons.length})</span>
               </button>
+
               <button
-                onClick={() => setLessonCategoryFilter('tc')}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                  lessonCategoryFilter === 'tc'
-                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md font-bold'
-                    : isDark
-                    ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/20'
-                    : 'bg-cyan-50 border-cyan-200 text-cyan-800 hover:bg-cyan-100'
+                type="button"
+                onClick={() => setRightPanelTab('chat')}
+                className={`flex-1 py-2 rounded-2xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  rightPanelTab === 'chat'
+                    ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
+                    : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <span className="material-symbols-outlined text-sm">biotech</span>
-                <span>Tomografia Computadorizada</span>
-              </button>
-              <button
-                onClick={() => setLessonCategoryFilter('contrastados')}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                  lessonCategoryFilter === 'contrastados'
-                    ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-md font-bold'
-                    : isDark
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-800 hover:bg-emerald-100'
-                }`}
-              >
-                <span className="material-symbols-outlined text-sm">vaccines</span>
-                <span>Exames Contrastados</span>
-              </button>
-              <button
-                onClick={() => setLessonCategoryFilter('cirurgico')}
-                className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all cursor-pointer border flex items-center gap-1.5 ${
-                  lessonCategoryFilter === 'cirurgico'
-                    ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-bold'
-                    : isDark
-                    ? 'bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20'
-                    : 'bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100'
-                }`}
-              >
-                <span className="material-symbols-outlined text-sm">medical_services</span>
-                <span>Centro Cirúrgico</span>
+                <span className="material-symbols-outlined text-base">forum</span>
+                <span>Dúvidas &amp; Chat</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-1">
-              {lessons
-                .filter(item => {
-                  if (lessonCategoryFilter === 'tc') {
-                    return item.courseId?.includes('tc') || item.title?.toLowerCase().includes('tomografia') || item.title?.toLowerCase().includes('hounsfield');
-                  }
-                  if (lessonCategoryFilter === 'contrastados') {
-                    return item.courseId?.includes('contrast') || item.title?.toLowerCase().includes('contraste') || item.description?.toLowerCase().includes('contraste');
-                  }
-                  if (lessonCategoryFilter === 'cirurgico') {
-                    return item.courseId?.includes('cirurg') || item.title?.toLowerCase().includes('cirúrg') || item.description?.toLowerCase().includes('cirúrg');
-                  }
-                  return true;
-                })
-                .map(item => {
-                  const isContrast = item.courseId?.includes('contrast') || item.title?.toLowerCase().includes('contraste');
-                  const isCirurg = item.courseId?.includes('cirurg') || item.title?.toLowerCase().includes('cirúrg');
-
+            {/* ROADMAP PANEL */}
+            {rightPanelTab === 'roadmap' && (
+              <div className="space-y-2.5 flex-1 overflow-y-auto max-h-[640px] pr-1">
+                {courseLessons.map(les => {
+                  const isCurrent = les.id === activeLesson.id;
                   return (
-                <div
-                  key={item.id}
-                  onClick={() => onSelectLesson(item)}
-                  className={`p-4 rounded-xl border relative overflow-hidden cursor-pointer transition-all ${
-                    item.id === activeLesson.id
-                      ? isDark
-                        ? 'bg-[#1c1f29] border-2 border-[#4cd7f6] shadow-[0_0_25px_rgba(6,182,212,0.2)]'
-                        : 'bg-cyan-50/80 border-2 border-cyan-500 shadow-sm'
-                      : isDark
-                        ? 'bg-[#141f38]/60 border-white/10 hover:border-[#4cd7f6]/50'
-                        : 'bg-white border-slate-200 hover:border-cyan-300 shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                      isContrast
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : isCirurg
-                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                        : 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                    }`}>
-                      {isContrast ? 'Contrastados' : isCirurg ? 'Centro Cirúrgico' : 'Tomografia'}
-                    </span>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}>
-                      <span className={`material-symbols-outlined text-sm ${item.isCompleted ? 'text-emerald-500' : 'text-cyan-500'}`}>
-                        {item.isCompleted ? 'check_circle' : 'play_circle'}
-                      </span>
+                    <div
+                      key={les.id}
+                      onClick={() => onSelectLesson(les)}
+                      className={`p-3.5 rounded-2xl border text-xs cursor-pointer transition-all flex items-start justify-between gap-3 ${
+                        isCurrent
+                          ? isDark
+                            ? 'bg-cyan-500/20 border-cyan-400 text-white shadow-lg shadow-cyan-500/10'
+                            : 'bg-cyan-50 border-cyan-400 text-slate-900 shadow-sm'
+                          : isDark
+                            ? 'bg-[#0a0e17]/60 border-white/5 text-gray-300 hover:bg-white/5'
+                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${
+                          les.isCompleted
+                            ? 'bg-emerald-500 text-slate-950 font-bold'
+                            : isCurrent
+                              ? 'bg-cyan-500 text-slate-950 font-bold'
+                              : 'bg-white/10 text-gray-400'
+                        }`}>
+                          {les.isCompleted ? '✓' : `0${les.chapterNumber}`}
+                        </div>
+
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-xs leading-snug line-clamp-2">{les.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-[10px] font-mono text-gray-400">
+                            <span>{les.durationMinutes} min</span>
+                            <span>•</span>
+                            <span>{les.resources?.length || 0} materiais</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0">
+                        {isCurrent && (
+                          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-cyan-400 text-slate-950">
+                            Assistindo
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <h3 className={`text-xs font-semibold mb-1 leading-snug line-clamp-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                    {item.title}
-                  </h3>
-                  <p className={`text-[11px] mb-3 line-clamp-2 ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
-                    {item.description}
-                  </p>
-                  <div className={`flex items-center justify-between text-[10px] ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
-                    <span>{item.durationMinutes} min • {item.resources?.length || 0} anexos</span>
-                    {item.testScore && <span className="text-emerald-500 font-bold">Nota: {item.testScore}%</span>}
-                  </div>
-                </div>
                   );
                 })}
-            </div>
+              </div>
+            )}
+
+            {/* CHAT PANEL */}
+            {rightPanelTab === 'chat' && (
+              <div className="flex flex-col flex-1 h-full min-h-[480px]">
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1 max-h-[460px]">
+                  {chatMessages.map(msg => (
+                    <div
+                      key={msg.id}
+                      className={`p-3 rounded-2xl border text-xs space-y-1 ${
+                        msg.isTutor
+                          ? isDark ? 'bg-emerald-950/40 border-emerald-500/40' : 'bg-emerald-50 border-emerald-200'
+                          : isDark ? 'bg-[#0a0e17]/80 border-white/5' : 'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`font-bold ${msg.isTutor ? 'text-emerald-400' : 'text-cyan-400'}`}>
+                          {msg.sender}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-mono">{msg.time}</span>
+                      </div>
+                      <p className="text-gray-300 leading-relaxed">{msg.text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <form onSubmit={handleSendChat} className="pt-3 border-t border-white/10 mt-auto flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={e => setChatInput(e.target.value)}
+                    placeholder="Envie sua dúvida ao professor..."
+                    className={`flex-1 px-3 py-2 rounded-xl text-xs outline-none border ${
+                      isDark ? 'bg-[#0a0e17] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
+                    }`}
+                  />
+                  <button
+                    type="submit"
+                    className="p-2 rounded-xl bg-cyan-500 text-slate-950 font-bold hover:bg-cyan-400 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-lg">send</span>
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         </section>
       </div>
 
-      {/* Modals */}
+      {/* MODALS */}
       <InstructorContentModal
-        lessons={lessons}
-        activeLesson={activeLesson}
         isOpen={isInstructorModalOpen}
         onClose={() => setIsInstructorModalOpen(false)}
+        lessons={lessons}
+        courses={courses}
+        activeLesson={activeLesson}
+        selectedCourseId={selectedCourseId}
         onSaveLesson={updated => {
           storageService.updateLesson(updated);
-          onSelectLesson(updated);
+          if (updated.id === activeLesson.id) {
+            onSelectLesson(updated);
+          }
         }}
-        onAddNewLesson={newLesson => {
-          storageService.addLesson(newLesson);
-          onSelectLesson(newLesson);
+        onAddNewLesson={newLes => {
+          storageService.addLesson(newLes);
+          onSelectLesson(newLes);
+        }}
+        onDeleteLesson={lesId => {
+          storageService.deleteLesson(lesId);
         }}
         theme={theme}
       />
 
       <ResourceViewerModal
-        resource={selectedResourceForView}
+        isOpen={!!selectedResourceForView}
         onClose={() => setSelectedResourceForView(null)}
+        resource={selectedResourceForView}
         theme={theme}
       />
     </div>
