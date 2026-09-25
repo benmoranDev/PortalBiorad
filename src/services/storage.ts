@@ -62,37 +62,33 @@ export const storageService = {
   getAuthSession(): { isAuthenticated: boolean; user: User | null } {
     const data = localStorage.getItem(KEYS.AUTH_SESSION);
     if (!data) {
-      // Default to Ben Moran (Admin) as authenticated active administrator
-      const defaultSession = { isAuthenticated: true, user: adminUserBen };
-      localStorage.setItem(KEYS.AUTH_SESSION, JSON.stringify(defaultSession));
-      localStorage.setItem(KEYS.USER, JSON.stringify(adminUserBen));
-      return defaultSession;
+      return { isAuthenticated: false, user: null };
     }
     try {
       const parsed = JSON.parse(data);
-      // If user was previously stuck on student Lucas Mendonça, switch immediately to admin Ben Moran
-      if (parsed?.user?.id === 'usr_student_01' || parsed?.user?.name === 'Lucas Mendonça' || parsed?.user?.email === 'lucas.mendonca@radbio.edu.br') {
-        const adminSession = { isAuthenticated: true, user: adminUserBen };
-        localStorage.setItem(KEYS.AUTH_SESSION, JSON.stringify(adminSession));
-        localStorage.setItem(KEYS.USER, JSON.stringify(adminUserBen));
-        return adminSession;
+      if (parsed && typeof parsed.isAuthenticated === 'boolean') {
+        return parsed;
       }
-      return parsed;
+      return { isAuthenticated: false, user: null };
     } catch {
-      return { isAuthenticated: true, user: adminUserBen };
+      return { isAuthenticated: false, user: null };
     }
   },
 
   setAuthSession(session: { isAuthenticated: boolean; user: User | null }): void {
     localStorage.setItem(KEYS.AUTH_SESSION, JSON.stringify(session));
-    if (session.user) {
+    if (session.isAuthenticated && session.user) {
       localStorage.setItem(KEYS.USER, JSON.stringify(session.user));
+    } else {
+      localStorage.removeItem(KEYS.USER);
     }
     window.dispatchEvent(new CustomEvent('radbio_state_changed'));
   },
 
   logout(): void {
-    localStorage.removeItem(KEYS.AUTH_SESSION);
+    const unauthSession = { isAuthenticated: false, user: null };
+    localStorage.setItem(KEYS.AUTH_SESSION, JSON.stringify(unauthSession));
+    localStorage.removeItem(KEYS.USER);
     window.dispatchEvent(new CustomEvent('radbio_state_changed'));
   },
 
@@ -136,7 +132,8 @@ export const storageService = {
       completedHours: user.completedHours || 0,
       totalRequiredHours: user.totalRequiredHours || 180,
       attendanceRate: user.attendanceRate || 100,
-      status: user.status || 'regular'
+      status: user.status || 'regular',
+      createdAt: user.createdAt || new Date().toLocaleDateString('pt-BR')
     };
     list.push(newUser);
     localStorage.setItem(KEYS.USERS_REGISTRY, JSON.stringify(list));
@@ -145,20 +142,76 @@ export const storageService = {
     return { success: true, message: 'Cadastro acadêmico realizado com sucesso!', user: newUser };
   },
 
+  getStudents(): User[] {
+    return this.getRegisteredUsers().filter(u => u.role === 'student');
+  },
+
+  updateUser(updatedUser: User): { success: boolean; message: string } {
+    const list = this.getRegisteredUsers();
+    const index = list.findIndex(u => u.id === updatedUser.id);
+    if (index === -1) {
+      return { success: false, message: 'Usuário não encontrado para atualização.' };
+    }
+    list[index] = { ...list[index], ...updatedUser };
+    localStorage.setItem(KEYS.USERS_REGISTRY, JSON.stringify(list));
+    syncToSupabaseAsync('radbio_users', updatedUser.id, list[index]);
+    window.dispatchEvent(new CustomEvent('radbio_state_changed'));
+    return { success: true, message: 'Cadastro de aluno atualizado com sucesso!' };
+  },
+
+  deleteUser(userId: string): { success: boolean; message: string } {
+    const list = this.getRegisteredUsers();
+    const user = list.find(u => u.id === userId);
+    if (user?.email.toLowerCase() === 'benmoran29dev@gmail.com') {
+      return { success: false, message: 'Não é permitido excluir o Administrador Geral do Sistema.' };
+    }
+    const filtered = list.filter(u => u.id !== userId);
+    localStorage.setItem(KEYS.USERS_REGISTRY, JSON.stringify(filtered));
+    window.dispatchEvent(new CustomEvent('radbio_state_changed'));
+    return { success: true, message: 'Aluno removido do registro acadêmico.' };
+  },
+
   login(identifier: string, pass: string): { success: boolean; message: string; user?: User } {
     const list = this.getRegisteredUsers();
     const cleanId = identifier.toLowerCase().trim();
-    const user = list.find(
+    const cleanPass = pass.trim();
+
+    // Check if user matches by email or enrollmentId
+    let user = list.find(
       u => u.email.toLowerCase().trim() === cleanId || u.enrollmentId.toLowerCase().trim() === cleanId
     );
+
+    // If not found yet in registry, ensure admin fallback if matching Ben Moran
+    if (!user && (cleanId === 'benmoran29dev@gmail.com' || cleanId === 'adm-ben-2026' || cleanId === 'admin')) {
+      user = adminUserBen;
+    }
 
     if (!user) {
       return { success: false, message: 'Usuário não localizado. Verifique a matrícula ou e-mail.' };
     }
 
-    // Passwords check (default demo accepts '123' or exact match or blank in test)
-    if (user.password && user.password !== pass && pass !== '123' && pass !== 'admin') {
-      return { success: false, message: 'Senha incorreta. Utilize a senha cadastrada ou a de demonstração (123).' };
+    // Passwords check:
+    // Accept user's set password, user's enrollment code (e.g. ADM-BEN-2026), '123', or 'admin'
+    const isBenAdmin =
+      user.email.toLowerCase() === 'benmoran29dev@gmail.com' ||
+      user.enrollmentId.toLowerCase() === 'adm-ben-2026';
+
+    const isPasswordValid =
+      !user.password ||
+      user.password === cleanPass ||
+      user.password.toLowerCase() === cleanPass.toLowerCase() ||
+      user.enrollmentId.toLowerCase() === cleanPass.toLowerCase() ||
+      cleanPass === '123' ||
+      cleanPass.toLowerCase() === 'admin' ||
+      (isBenAdmin && (
+        cleanPass.toUpperCase() === 'ADM-BEN-2026' ||
+        cleanPass.toLowerCase() === 'benmoran29dev@gmail.com' ||
+        cleanPass === '123' ||
+        cleanPass === 'admin'
+      ));
+
+    if (!isPasswordValid) {
+      return { success: false, message: 'Senha incorreta. Você pode utilizar sua senha cadastrada ou seu código de matrícula.' };
     }
 
     const session = { isAuthenticated: true, user };
@@ -169,32 +222,37 @@ export const storageService = {
   getCurrentUser(): User {
     const session = this.getAuthSession();
     if (session.isAuthenticated && session.user) {
-      if (session.user.id === 'usr_student_01' || session.user.name === 'Lucas Mendonça' || session.user.email === 'lucas.mendonca@radbio.edu.br') {
-        this.setCurrentUser(adminUserBen);
-        return adminUserBen;
-      }
       return session.user;
     }
     const data = localStorage.getItem(KEYS.USER);
-    if (!data) {
-      localStorage.setItem(KEYS.USER, JSON.stringify(adminUserBen));
-      return adminUserBen;
+    if (data) {
+      try {
+        const user = JSON.parse(data);
+        if (user && user.id) return user;
+      } catch {}
     }
-    try {
-      const user = JSON.parse(data);
-      if (user?.id === 'usr_student_01' || user?.name === 'Lucas Mendonça' || user?.email === 'lucas.mendonca@radbio.edu.br') {
-        localStorage.setItem(KEYS.USER, JSON.stringify(adminUserBen));
-        return adminUserBen;
-      }
-      return user;
-    } catch {
-      return adminUserBen;
-    }
+    return {
+      id: 'guest',
+      name: 'Visitante',
+      email: 'visitante@radbio.edu.br',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+      enrollmentId: 'VISITANTE',
+      specialty: 'Visitante',
+      gpa: 0,
+      completedHours: 0,
+      totalRequiredHours: 0,
+      attendanceRate: 0,
+      status: 'regular'
+    };
   },
 
   setCurrentUser(user: User): void {
     localStorage.setItem(KEYS.USER, JSON.stringify(user));
-    localStorage.setItem(KEYS.AUTH_SESSION, JSON.stringify({ isAuthenticated: true, user }));
+    const session = this.getAuthSession();
+    if (session.isAuthenticated) {
+      localStorage.setItem(KEYS.AUTH_SESSION, JSON.stringify({ ...session, user }));
+    }
     window.dispatchEvent(new CustomEvent('radbio_state_changed'));
   },
 
@@ -447,7 +505,7 @@ export const storageService = {
     } else {
       document.documentElement.classList.remove('dark');
     }
-    window.dispatchEvent(new CustomEvent('radbio_state_changed'));
+    window.dispatchEvent(new CustomEvent('radbio_theme_changed', { detail: theme }));
   },
 
   getNotes(): string {

@@ -18,6 +18,11 @@ export interface User {
   attendanceRate: number;
   status: 'regular' | 'warning' | 'honor';
   password?: string; // Stored securely in client storage for portal login
+  cpf?: string;
+  phone?: string;
+  courseName?: string;
+  shift?: string;
+  createdAt?: string;
 }
 
 export interface AuthSession {

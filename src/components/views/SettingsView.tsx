@@ -220,6 +220,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
   };
 
+  const [isSyncingAuth, setIsSyncingAuth] = useState(false);
+
+  const handleSyncAuthUsers = async () => {
+    setIsSyncingAuth(true);
+    try {
+      const res = await supabaseService.syncUsersToSupabaseAuth();
+      setIsSyncingAuth(false);
+      onShowSuccessToast(res.message);
+    } catch (err: any) {
+      setIsSyncingAuth(false);
+      alert('Erro ao sincronizar usuários com Supabase Auth: ' + (err?.message || String(err)));
+    }
+  };
+
   const handleCopySql = () => {
     const sql = getSupabaseSqlSchema();
     navigator.clipboard.writeText(sql);
@@ -662,6 +676,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
         )}
+
+        {/* Supabase Authentication Card */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-[#141f38] border border-emerald-500/30 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30 shrink-0">
+                <span className="material-symbols-outlined text-2xl">manage_accounts</span>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span>Supabase Authentication (auth.users)</span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                    Conectado
+                  </span>
+                </h4>
+                <p className="text-xs text-slate-300">
+                  Gerencie os usuários e alunos registrados diretamente no painel <strong>Authentication &gt; Users</strong> do Supabase.
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              disabled={isSyncingAuth}
+              onClick={handleSyncAuthUsers}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#3ecf8e] to-[#06b6d4] text-[#090d16] font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:opacity-95 disabled:opacity-50 shrink-0"
+            >
+              <span className={`material-symbols-outlined text-base ${isSyncingAuth ? 'animate-spin' : ''}`}>
+                {isSyncingAuth ? 'sync' : 'cloud_upload'}
+              </span>
+              <span>{isSyncingAuth ? 'Sincronizando Auth...' : 'Sincronizar Usuários no Supabase Auth'}</span>
+            </button>
+          </div>
+          <p className="text-[11px] text-slate-400">
+            Ao clicar, todos os perfis acadêmicos e alunos cadastrados são registrados no serviço de autenticação do Supabase. Novos cadastros na tela de login/matrícula também são adicionados automaticamente.
+          </p>
+        </div>
 
         {/* Tables & Records Overview Grid */}
         <div className="pt-4 border-t border-white/10 space-y-3">

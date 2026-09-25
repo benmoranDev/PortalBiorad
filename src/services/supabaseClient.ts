@@ -502,8 +502,219 @@ export const supabaseService = {
     return () => {
       client.removeChannel(channel);
     };
+  },
+
+  /**
+   * Realiza cadastro no Supabase Authentication (tabela auth.users do dashboard)
+   */
+  async signUpWithSupabase(
+    email: string,
+    password: string,
+    userData: Partial<User>
+  ): Promise<{ success: boolean; user?: any; session?: any; error?: string; isAlreadyRegistered?: boolean }> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return { success: false, error: 'Cliente Supabase não configurado.' };
+    }
+
+    try {
+      const cleanEmail = email.toLowerCase().trim();
+      const cleanPass = normalizeAuthPassword(password);
+
+      const { data, error } = await client.auth.signUp({
+        email: cleanEmail,
+        password: cleanPass,
+        options: {
+          data: {
+            name: userData.name || cleanEmail.split('@')[0],
+            role: userData.role || 'student',
+            enrollmentId: userData.enrollmentId || `2026-RAD-${Math.floor(1000 + Math.random() * 9000)}`,
+            specialty: userData.specialty || userData.courseName || 'Radiologia',
+            cpf: userData.cpf || '',
+            phone: userData.phone || ''
+          }
+        }
+      });
+
+      if (error) {
+        if (error.message.toLowerCase().includes('already registered')) {
+          return { success: true, isAlreadyRegistered: true, error: 'Usuário já registrado no Supabase Auth.' };
+        }
+        return { success: false, error: error.message };
+      }
+
+      // Sincroniza também na tabela radbio_users do PostgreSQL
+      if (data.user) {
+        const fullUserRecord: User = {
+          id: data.user.id || userData.id || `usr_${Date.now()}`,
+          name: userData.name || data.user.email?.split('@')[0] || 'Usuário',
+          email: cleanEmail,
+          role: userData.role || 'student',
+          avatar: userData.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+          enrollmentId: userData.enrollmentId || `2026-RAD-${Math.floor(1000 + Math.random() * 9000)}`,
+          specialty: userData.specialty || userData.courseName || 'Radiologia',
+          gpa: userData.gpa || 4.0,
+          completedHours: userData.completedHours || 0,
+          totalRequiredHours: userData.totalRequiredHours || 180,
+          attendanceRate: userData.attendanceRate || 100,
+          status: userData.status || 'regular',
+          cpf: userData.cpf,
+          phone: userData.phone,
+          courseName: userData.courseName,
+          shift: userData.shift,
+          createdAt: new Date().toLocaleDateString('pt-BR')
+        };
+
+        try {
+          await client.from('radbio_users').upsert({
+            id: fullUserRecord.id,
+            data: fullUserRecord,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+        } catch {}
+      }
+
+      return { success: true, user: data.user, session: data.session };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Erro ao registrar no Supabase Auth.' };
+    }
+  },
+
+  /**
+   * Realiza login autenticado no Supabase Authentication
+   */
+  async signInWithSupabase(
+    emailOrEnrollment: string,
+    password: string
+  ): Promise<{ success: boolean; user?: User; session?: any; error?: string }> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return { success: false, error: 'Cliente Supabase não configurado.' };
+    }
+
+    try {
+      let email = emailOrEnrollment.toLowerCase().trim();
+      const cleanPass = normalizeAuthPassword(password);
+
+      // Se for matrícula ou nome sem @, localiza o e-mail no registro local
+      if (!email.includes('@')) {
+        const users = storageService.getRegisteredUsers();
+        const found = users.find(u => u.enrollmentId.toLowerCase().trim() === email);
+        if (found) {
+          email = found.email.toLowerCase().trim();
+        } else if (email === 'adm-ben-2026' || email === 'admin') {
+          email = 'benmoran29dev@gmail.com';
+        }
+      }
+
+      // Tenta login com senha no Supabase Auth
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password: cleanPass
+      });
+
+      if (error) {
+        // Se ainda não existir no Supabase Auth, efetua auto-provisionamento (cadastro) para que apareça no dashboard!
+        if (
+          error.message.toLowerCase().includes('invalid login credentials') ||
+          error.message.toLowerCase().includes('user not found')
+        ) {
+          const registeredUsers = storageService.getRegisteredUsers();
+          const localUser = registeredUsers.find(u => u.email.toLowerCase().trim() === email);
+          if (localUser) {
+            const signUpRes = await this.signUpWithSupabase(email, cleanPass, localUser);
+            if (signUpRes.success) {
+              return { success: true, user: localUser, session: signUpRes.session };
+            }
+          }
+        }
+        return { success: false, error: error.message };
+      }
+
+      const registeredUsers = storageService.getRegisteredUsers();
+      let matchedUser = registeredUsers.find(u => u.email.toLowerCase().trim() === email);
+      if (!matchedUser) {
+        matchedUser = {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'Usuário',
+          email: data.user.email || email,
+          role: data.user.user_metadata?.role || 'student',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
+          enrollmentId: data.user.user_metadata?.enrollmentId || `2026-RAD-${Math.floor(1000 + Math.random() * 9000)}`,
+          specialty: data.user.user_metadata?.specialty || 'Radiologia',
+          gpa: 4.0,
+          completedHours: 0,
+          totalRequiredHours: 180,
+          attendanceRate: 100,
+          status: 'regular'
+        };
+      }
+
+      return { success: true, user: matchedUser, session: data.session };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Falha na autenticação Supabase.' };
+    }
+  },
+
+  /**
+   * Encerra a sessão ativa no Supabase Authentication
+   */
+  async signOutSupabase(): Promise<void> {
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        await client.auth.signOut();
+      } catch {}
+    }
+  },
+
+  /**
+   * Sincroniza todos os usuários (Admin, Docentes e Alunos) para o Supabase Authentication (auth.users)
+   */
+  async syncUsersToSupabaseAuth(): Promise<{ success: boolean; createdCount: number; alreadyCount: number; message: string }> {
+    const client = getSupabaseClient();
+    if (!client) {
+      return { success: false, createdCount: 0, alreadyCount: 0, message: 'Cliente Supabase não configurado.' };
+    }
+
+    const users = storageService.getRegisteredUsers();
+    let createdCount = 0;
+    let alreadyCount = 0;
+
+    for (const u of users) {
+      try {
+        const pass = normalizeAuthPassword(u.password || u.enrollmentId || '123456');
+        const res = await this.signUpWithSupabase(u.email, pass, u);
+        if (res.success) {
+          if (res.isAlreadyRegistered) {
+            alreadyCount++;
+          } else {
+            createdCount++;
+          }
+        }
+      } catch {
+        // prossegue para os próximos
+      }
+    }
+
+    return {
+      success: true,
+      createdCount,
+      alreadyCount,
+      message: `Sincronização com Supabase Auth concluída! ${createdCount} usuários adicionados ao painel Authentication -> Users (${alreadyCount} já estavam cadastrados).`
+    };
   }
 };
+
+/**
+ * Normaliza senhas para atender o requisito mínimo do Supabase Auth (6+ caracteres)
+ */
+export function normalizeAuthPassword(pass: string): string {
+  const p = (pass || '').trim();
+  if (p.length >= 6) return p;
+  if (p === '123' || p === 'admin') return 'RadBio2026!';
+  return p ? p.padEnd(6, '0') : 'RadBio2026!';
+}
 
 /**
  * Retorna o script SQL completo, otimizado e 100% idempotente para ser executado no SQL Editor do Supabase

@@ -25,6 +25,7 @@ import { AdminManagementView } from './components/views/AdminManagementView';
 import { PaymentCheckoutView } from './components/views/PaymentCheckoutView';
 import { CursosLivresView } from './components/views/CursosLivresView';
 import { SettingsView } from './components/views/SettingsView';
+import { StudentRegistrationView } from './components/views/StudentRegistrationView';
 import { SimulatorModal } from './components/views/SimulatorModal';
 import { SubmissionModal } from './components/modals/SubmissionModal';
 import { LabSupportModal } from './components/modals/LabSupportModal';
@@ -70,12 +71,14 @@ export default function App() {
     }
   }, [theme]);
 
-  // Sync with storage events
+  // Sync with storage and theme events
   useEffect(() => {
     const handleStorageChange = () => {
       const currentSession = storageService.getAuthSession();
       setAuthSession(currentSession);
-      setCurrentUser(storageService.getCurrentUser());
+      if (currentSession.isAuthenticated && currentSession.user) {
+        setCurrentUser(currentSession.user);
+      }
       setCourses(storageService.getCourses());
       setLessons(storageService.getLessons());
       setTasks(storageService.getTasks());
@@ -84,11 +87,20 @@ export default function App() {
       setNotifications(storageService.getNotifications());
       setSupabaseConfig(storageService.getSupabaseConfig());
       setLanguage(storageService.getLanguage());
-      setTheme(storageService.getTheme());
+    };
+
+    const handleThemeChange = (e: Event) => {
+      const customEvent = e as CustomEvent<ThemeMode>;
+      const newTheme = customEvent.detail || storageService.getTheme();
+      setTheme(newTheme);
     };
 
     window.addEventListener('radbio_state_changed', handleStorageChange);
-    return () => window.removeEventListener('radbio_state_changed', handleStorageChange);
+    window.addEventListener('radbio_theme_changed', handleThemeChange);
+    return () => {
+      window.removeEventListener('radbio_state_changed', handleStorageChange);
+      window.removeEventListener('radbio_theme_changed', handleThemeChange);
+    };
   }, []);
 
   // Supabase Realtime Listener for cloud updates
@@ -149,7 +161,7 @@ export default function App() {
         enrollmentId: 'DOC-TC-09',
         specialty: 'Especialista em Tomografia Computadorizada CBR'
       };
-      if (currentTab === 'configuracoes' || currentTab === 'admin') {
+      if (currentTab === 'configuracoes' || currentTab === 'admin' || currentTab === 'cadastro_alunos') {
         setCurrentTab('professor_notas');
       }
     } else if (newRole === 'admin') {
@@ -170,7 +182,7 @@ export default function App() {
         enrollmentId: '2025-RAD-8841',
         specialty: 'Tecnólogo em Radiologia & Tomografia Computadorizada'
       };
-      if (currentTab === 'configuracoes' || currentTab === 'admin' || currentTab === 'professor_notas') {
+      if (currentTab === 'configuracoes' || currentTab === 'admin' || currentTab === 'cadastro_alunos' || currentTab === 'professor_notas') {
         setCurrentTab('dashboard');
       }
     }
@@ -182,7 +194,7 @@ export default function App() {
   // RBAC Tab Protection Guard: Restrict sensitive views based on role
   useEffect(() => {
     if (currentUser.role !== 'admin') {
-      if (currentTab === 'configuracoes' || currentTab === 'admin') {
+      if (currentTab === 'configuracoes' || currentTab === 'admin' || currentTab === 'cadastro_alunos') {
         setCurrentTab('dashboard');
         showToast('Acesso Restrito: Apenas o Administrador Geral possui permissão para acessar esta área.');
       }
@@ -452,6 +464,7 @@ export default function App() {
                 courses={courses}
                 notifications={notifications}
                 theme={theme}
+                onNavigateTab={setCurrentTab}
                 onAddCourse={newCourse => {
                   const updated = [newCourse, ...courses];
                   setCourses(updated);
@@ -464,6 +477,18 @@ export default function App() {
                 <span className="material-symbols-outlined text-4xl text-red-400 mb-2">lock</span>
                 <h3 className="text-lg font-bold text-red-400">Acesso Restrito ao Administrador Geral</h3>
                 <p className="text-xs text-slate-400 mt-2">Você está autenticado com um perfil que não possui privilégios de gestão institucional.</p>
+              </div>
+            )
+          )}
+
+          {currentTab === 'cadastro_alunos' && (
+            currentUser.role === 'admin' ? (
+              <StudentRegistrationView theme={theme} onShowSuccessToast={showToast} />
+            ) : (
+              <div className="p-8 max-w-xl mx-auto my-12 text-center rounded-2xl border border-red-500/30 bg-red-500/10">
+                <span className="material-symbols-outlined text-4xl text-red-400 mb-2">lock</span>
+                <h3 className="text-lg font-bold text-red-400">Acesso Restrito ao Administrador Geral</h3>
+                <p className="text-xs text-slate-400 mt-2">Apenas a Coordenação e Administração possuem acesso à gestão e cadastro de alunos.</p>
               </div>
             )
           )}

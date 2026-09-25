@@ -7,13 +7,15 @@ interface AdminManagementViewProps {
   notifications: EmailNotification[];
   onAddCourse: (newCourse: Course) => void;
   theme?: ThemeMode;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
   courses,
   notifications,
   onAddCourse,
-  theme = 'dark'
+  theme = 'dark',
+  onNavigateTab
 }) => {
   const [activeTab, setActiveTab] = useState<'users' | 'courses' | 'logs'>('courses');
   const [showAddCourseModal, setShowAddCourseModal] = useState(false);
@@ -129,6 +131,15 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('cadastro_alunos')}
+              className="px-3.5 py-2 rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer hover:bg-cyan-500/20"
+            >
+              <span className="material-symbols-outlined text-sm">how_to_reg</span>
+              <span>Cadastro de Alunos</span>
+            </button>
+          )}
           <button
             onClick={() => setShowAddCourseModal(true)}
             className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-md shadow-[#06b6d4]/30 flex items-center gap-1.5 transition-all cursor-pointer hover:opacity-95"

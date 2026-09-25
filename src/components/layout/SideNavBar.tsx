@@ -43,6 +43,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
 
     // Admin (Administração Geral & TI - Acesso Exclusivo):
     { id: 'admin', label: 'Painel Administrativo', icon: 'admin_panel_settings', roles: ['admin'] },
+    { id: 'cadastro_alunos', label: 'Cadastro de Alunos', icon: 'how_to_reg', roles: ['admin'] },
     { id: 'aulas', label: 'Gestão de Aulas & TC', icon: 'biotech', roles: ['admin'] },
     { id: 'professor_notas', label: 'Auditoria de Notas', icon: 'fact_check', roles: ['admin'] },
     { id: 'certificados', label: 'Gestão de Certificados', icon: 'workspace_premium', roles: ['admin'] },
