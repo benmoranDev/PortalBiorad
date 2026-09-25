@@ -97,7 +97,7 @@ function generateVectorLandscapePdf(cert: Certificate): jsPDF {
   doc.setFont('times', 'bold');
   doc.setFontSize(15);
   doc.setTextColor(6, 78, 59); // #064e3b
-  doc.text('FACULDADE DE CIÊNCIAS MÉDICAS & RADIOLOGIA RADBIO', centerX, 25, { align: 'center', maxWidth: 240 });
+  doc.text('BIORAD CURSOS • INSTITUTO DE ESPECIALIZAÇÃO RADIOLÓGICA', centerX, 25, { align: 'center', maxWidth: 240 });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
@@ -215,7 +215,7 @@ function generateVectorLandscapePdf(cert: Certificate): jsPDF {
   doc.setFont('times', 'bold');
   doc.setFontSize(6.5);
   doc.setTextColor(197, 160, 89);
-  doc.text('RADBIO', centerX, sealY - 1.8, { align: 'center' });
+  doc.text('BIORAD', centerX, sealY - 1.8, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(4.6);
@@ -267,7 +267,7 @@ function generateVectorLandscapePdf(cert: Certificate): jsPDF {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(107, 114, 128);
-  doc.text('Administrador Geral do Sistema • RadBio', sigRightCenter, sigY + 8.8, { align: 'center', maxWidth: sigLineWidth });
+  doc.text('Administrador Geral do Sistema • Biorad Cursos', sigRightCenter, sigY + 8.8, { align: 'center', maxWidth: sigLineWidth });
 
   // Footer Information (Legal hash, registry, date - distributed with safe bounds)
   doc.setDrawColor(229, 231, 235);
@@ -475,9 +475,9 @@ export const pdfExportService = {
       <body>
         <div class="border-outer page-container">
           <div class="header">
-            <div class="title-inst">Faculdade de Ciências Médicas & Radiologia RadBio</div>
+            <div class="title-inst">Biorad Cursos • Instituto de Especialização Radiológica</div>
             <div class="subtitle-inst">Centro de Excelência em Diagnóstico por Imagem e Tomografia Computadorizada</div>
-            <div class="diploma-title">Certificado Acadêmico</div>
+            <div class="diploma-title">Certificado Acadêmico Oficial</div>
           </div>
 
           <div class="certify-text">
@@ -512,7 +512,7 @@ export const pdfExportService = {
             <div class="signature-box">
               <div class="signature-line"></div>
               <strong>Ben Moran</strong><br />
-              <span style="font-size: 10px; color: #4b5563;">Administrador Geral do Sistema • RadBio</span>
+              <span style="font-size: 10px; color: #4b5563;">Administrador Geral do Sistema • Biorad Cursos</span>
             </div>
           </div>
 
@@ -559,7 +559,7 @@ export const pdfExportService = {
       </head>
       <body>
         <div class="header">
-          <h1>RadBio Academic Portal • Histórico Escolar Oficial (Paisagem)</h1>
+          <h1>Biorad Cursos • Histórico Escolar Oficial (Paisagem)</h1>
           <p>Aluno: <strong>${studentName}</strong> | Matrícula: <strong>${enrollmentId}</strong> | Emissão: ${new Date().toLocaleDateString('pt-BR')}</p>
         </div>
         <table>
@@ -578,7 +578,7 @@ export const pdfExportService = {
         </table>
         <div class="stamp">
           <strong>DOCUMENTO AUTÊNTICO ASSINADO DIGITALMENTE</strong><br/>
-          Assinatura acadêmica com carimbo de tempo verificado no portal RadBio por Ben Moran (Admin). Válido para comprovação curricular e estágio hospitalar.
+          Assinatura acadêmica com carimbo de tempo verificado no portal Biorad Cursos por Ben Moran (Admin). Válido para comprovação curricular e estágio hospitalar.
         </div>
       </body>
       </html>
@@ -616,7 +616,7 @@ export const pdfExportService = {
         </style>
       </head>
       <body>
-        <h2>RadBio - Pauta de Avaliação da Turma (Formato Horizontal)</h2>
+        <h2>Biorad Cursos - Pauta de Avaliação da Turma (Formato Horizontal)</h2>
         <p>Disciplina: <strong>${classTitle}</strong> | Data: ${new Date().toLocaleDateString('pt-BR')}</p>
         <table>
           <thead>
@@ -663,7 +663,7 @@ export const pdfExportService = {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.setTextColor(8, 145, 178);
-    doc.text('RADBIO MEDICAL ACADEMY', 20, 25);
+    doc.text('BIORAD CURSOS • PLATAFORMA DE ENSINO', 20, 25);
 
     doc.setFontSize(10);
     doc.setTextColor(16, 185, 129);
@@ -755,7 +755,7 @@ export const pdfExportService = {
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
     doc.text(
-      'RadBio Soluções em Imagem e Educação Médica S/A • Autenticado digitalmente por Ben Moran (Admin Geral)',
+      'Biorad Cursos • Soluções em Imagem e Educação Médica S/A • Autenticado digitalmente por Ben Moran (Admin Geral)',
       pageWidth / 2,
       192,
       { align: 'center' }

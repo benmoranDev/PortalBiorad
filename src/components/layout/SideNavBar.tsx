@@ -89,18 +89,18 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
               </div>
               <div>
                 <div
-                  className={`text-xl font-bold tracking-tight flex items-center gap-1.5 font-['Plus_Jakarta_Sans'] ${
+                  className={`text-lg font-bold tracking-tight flex items-center gap-1.5 font-['Plus_Jakarta_Sans'] ${
                     isDark ? 'text-[#4cd7f6]' : 'text-cyan-800'
                   }`}
                 >
-                  RadBio
+                  Biorad Cursos
                 </div>
                 <span
                   className={`text-[10px] font-mono tracking-wider uppercase font-semibold ${
                     isDark ? 'text-[#bcc9cd]/80' : 'text-slate-400'
                   }`}
                 >
-                  TC &amp; Radio v2.4
+                  Radiologia &amp; TC
                 </span>
               </div>
             </div>

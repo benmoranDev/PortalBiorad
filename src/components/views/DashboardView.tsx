@@ -82,7 +82,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 isDark ? 'text-white' : 'text-slate-900'
               }`}
             >
-              Bem-vindo ao RadBio,{' '}
+              Bem-vindo à Biorad Cursos,{' '}
               <span className="bg-gradient-to-r from-[#06b6d4] to-[#10b981] bg-clip-text text-transparent">
                 {currentUser.name}
               </span>

@@ -44,7 +44,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
     if (found) {
       setVerificationResult(`✓ CERTIFICADO AUTÊNTICO: Emitido para ${found.studentName} em ${found.completionDate} no curso ${found.courseName}. Carga horária: ${found.workloadHours}h. Conclusão integral de 100% das aulas auditada por Ben Moran (Admin Geral).`);
     } else {
-      setVerificationResult('✕ Código não localizado na base de registros acadêmicos da RadBio.');
+      setVerificationResult('✕ Código não localizado na base de registros acadêmicos da Biorad Cursos.');
     }
   };
 
@@ -352,11 +352,11 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                 <div className="text-center relative z-10 space-y-1">
                   <div className="flex items-center justify-center gap-3 mb-1">
                     <div className="w-10 h-10 rounded-full bg-[#064e3b] text-[#c5a059] flex items-center justify-center font-bold text-sm shadow border border-[#c5a059]">
-                      RB
+                      BC
                     </div>
                     <div className="text-left">
                       <h2 className="text-base sm:text-lg font-bold uppercase tracking-wider text-[#064e3b] font-serif leading-none">
-                        Faculdade de Ciências Médicas &amp; Radiologia RadBio
+                        Biorad Cursos • Instituto de Especialização Radiológica
                       </h2>
                       <p className="text-[10px] text-gray-500 uppercase tracking-widest font-sans mt-0.5">
                         Centro de Excelência em Diagnóstico por Imagem e Tomografia Computadorizada
@@ -417,7 +417,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                       Ben Moran
                     </div>
                     <span className="text-[10px] text-gray-500 font-sans block">
-                      Administrador Geral do Sistema • RadBio Academy
+                      Administrador Geral do Sistema • Biorad Cursos
                     </span>
                   </div>
                 </div>

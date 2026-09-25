@@ -7,7 +7,7 @@ export const adminUserBen: User = {
   role: 'admin',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
   enrollmentId: 'ADM-BEN-2026',
-  specialty: 'Administrador Geral do Sistema & Diretor de Tecnologia RadBio',
+  specialty: 'Administrador Geral do Sistema & Diretor de Tecnologia Biorad Cursos',
   gpa: 4.0,
   completedHours: 500,
   totalRequiredHours: 500,
@@ -851,7 +851,7 @@ export const initialEmailNotifications: EmailNotification[] = [
   {
     id: 'notif_01',
     recipientEmail: 'lucas.mendonca@radbio.edu.br',
-    subject: '[RadBio] Nova Nota Publicada: Reconstrução MPR e Angiotomografia (Nota: 9.8)',
+    subject: '[Biorad Cursos] Nova Nota Publicada: Reconstrução MPR e Angiotomografia (Nota: 9.8)',
     body: 'Prezado Lucas, a nota do seu relatório prático sobre Angiotomografia Coronariana foi publicada pelo Prof. Dr. Aris Thorne. O parecer já se encontra disponível no seu boletim.',
     type: 'grade_published',
     timestamp: 'Hoje às 14:32',

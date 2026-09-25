@@ -236,10 +236,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             </div>
 
             <h1 className="text-2xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight">
-              RadBio Acadêmico
+              Biorad Cursos
             </h1>
             <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-              Plataforma de Ensino em Tomografia Computadorizada &amp; Radiologia
+              Plataforma de Especialização em Tomografia Computadorizada &amp; Radiologia
             </p>
           </div>
 

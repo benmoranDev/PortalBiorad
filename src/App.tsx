@@ -127,7 +127,7 @@ export default function App() {
     setAuthSession({ isAuthenticated: true, user });
     setCurrentUser(user);
     storageService.setAuthSession({ isAuthenticated: true, user });
-    showToast(`Bem-vindo ao Portal RadBio, ${user.name}!`);
+    showToast(`Bem-vindo à Biorad Cursos, ${user.name}!`);
   };
 
   const handleLogout = () => {

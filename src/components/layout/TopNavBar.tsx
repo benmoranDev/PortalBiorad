@@ -91,7 +91,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               isDark ? 'text-white' : 'text-slate-800'
             }`}
           >
-            RadBio Educacional
+            Biorad Cursos
           </span>
           <span
             className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${

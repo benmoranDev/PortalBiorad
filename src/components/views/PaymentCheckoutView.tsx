@@ -29,7 +29,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
   const [isEditingPixKey, setIsEditingPixKey] = useState(false);
   const [editPixKeyValue, setEditPixKeyValue] = useState(pixSettings.keyValue || DEFAULT_PIX_CONFIG.keyValue);
   const [editPixKeyType, setEditPixKeyType] = useState<PixConfig['keyType']>(pixSettings.keyType || 'email');
-  const [editMerchantName, setEditMerchantName] = useState(pixSettings.merchantName || 'RADBIO EDUCACAO S/A');
+  const [editMerchantName, setEditMerchantName] = useState(pixSettings.merchantName || 'BIORAD CURSOS S/A');
   const [editMerchantCity, setEditMerchantCity] = useState(pixSettings.merchantCity || 'SAO PAULO');
 
   // Tab mode: '40h_courses' | 'bundle' | 'history'

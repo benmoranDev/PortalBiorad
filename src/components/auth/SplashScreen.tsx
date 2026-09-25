@@ -11,8 +11,8 @@ interface SplashScreenProps {
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onFinish,
-  brandTitle = 'RadBio',
-  brandSubtitle = 'Portal Acadêmico de Radiologia & Tomografia Computadorizada',
+  brandTitle = 'Biorad Cursos',
+  brandSubtitle = 'Portal de Especialização em Radiologia & Tomografia Computadorizada',
   theme = 'dark',
   onToggleTheme
 }) => {

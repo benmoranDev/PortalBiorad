@@ -12,9 +12,9 @@ export interface PixConfig {
 export const DEFAULT_PIX_CONFIG: PixConfig = {
   keyType: 'email',
   keyValue: 'benmoran29dev@gmail.com', // Chave Pix Principal do Administrador
-  merchantName: 'RADBIO EDUCACAO',
+  merchantName: 'BIORAD CURSOS',
   merchantCity: 'SAO PAULO',
-  defaultDescription: 'Curso Livre 40h RadBio'
+  defaultDescription: 'Curso Livre 40h Biorad Cursos'
 };
 
 /**

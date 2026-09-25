@@ -34,7 +34,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
       email: 'benmoran29dev@gmail.com',
       role: 'admin',
       enrollment: 'ADM-BEN-2026',
-      details: 'Administrador Geral & Diretor de Tecnologia RadBio',
+      details: 'Administrador Geral & Diretor de Tecnologia Biorad Cursos',
       badge: 'Super Admin • Gestor Geral',
       badgeColor: 'amber'
     },
