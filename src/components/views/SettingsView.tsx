@@ -310,7 +310,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button
               type="button"
               onClick={() => setShowSqlModal(true)}
-              className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-[#4cd7f6] border border-[#4cd7f6]/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-[#4cd7f6] border border-[#4cd7f6]/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-base">code</span>
               <span>Script SQL</span>
@@ -320,7 +320,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               type="button"
               disabled={isPulling || !hasConfig}
               onClick={handlePullFromSupabase}
-              className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/20 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/20 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               title={!hasConfig ? 'Informe a URL e Chave primeiro' : 'Baixar dados da nuvem'}
             >
               <span className={`material-symbols-outlined text-base ${isPulling ? 'animate-spin' : ''}`}>cloud_download</span>
@@ -331,7 +331,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               type="button"
               disabled={isPushing || !hasConfig}
               onClick={handlePushToSupabase}
-              className="px-4 py-2.5 rounded-xl bg-[#3ecf8e]/15 hover:bg-[#3ecf8e]/25 text-[#3ecf8e] border border-[#3ecf8e]/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 rounded-full bg-[#3ecf8e]/15 hover:bg-[#3ecf8e]/25 text-[#3ecf8e] border border-[#3ecf8e]/40 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
               title={!hasConfig ? 'Informe a URL e Chave primeiro' : 'Enviar todos os dados para o Supabase'}
             >
               <span className={`material-symbols-outlined text-base ${isPushing ? 'animate-spin' : ''}`}>cloud_upload</span>
@@ -345,14 +345,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTabWizard('credentials')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-[24px] border text-left transition-all cursor-pointer ${
               activeTabWizard === 'credentials'
                 ? 'bg-[#1e293b] border-[#4cd7f6] shadow-md shadow-[#4cd7f6]/10'
                 : 'bg-[#0a0e17]/50 border-white/10 hover:border-white/20 text-gray-400'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-5 rounded-full bg-[#4cd7f6]/20 text-[#4cd7f6] font-mono text-xs font-bold flex items-center justify-center">1</span>
+              <span className="w-6 h-6 rounded-full bg-[#4cd7f6]/20 text-[#4cd7f6] font-mono text-xs font-bold flex items-center justify-center">1</span>
               <span className="font-bold text-white text-xs">Credenciais do Projeto</span>
             </div>
             <p className="text-[11px] text-[#bcc9cd]">Project URL &amp; Chave Anon</p>
@@ -361,14 +361,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTabWizard('schema')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-[24px] border text-left transition-all cursor-pointer ${
               activeTabWizard === 'schema'
                 ? 'bg-[#1e293b] border-[#4cd7f6] shadow-md shadow-[#4cd7f6]/10'
                 : 'bg-[#0a0e17]/50 border-white/10 hover:border-white/20 text-gray-400'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-5 rounded-full bg-[#3ecf8e]/20 text-[#3ecf8e] font-mono text-xs font-bold flex items-center justify-center">2</span>
+              <span className="w-6 h-6 rounded-full bg-[#3ecf8e]/20 text-[#3ecf8e] font-mono text-xs font-bold flex items-center justify-center">2</span>
               <span className="font-bold text-white text-xs">Criar Tabelas (SQL)</span>
             </div>
             <p className="text-[11px] text-[#bcc9cd]">9 tabelas acadêmicas &amp; RLS</p>
@@ -377,14 +377,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <button
             type="button"
             onClick={() => setActiveTabWizard('sync')}
-            className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer ${
+            className={`p-4 rounded-[24px] border text-left transition-all cursor-pointer ${
               activeTabWizard === 'sync'
                 ? 'bg-[#1e293b] border-[#4cd7f6] shadow-md shadow-[#4cd7f6]/10'
                 : 'bg-[#0a0e17]/50 border-white/10 hover:border-white/20 text-gray-400'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-5 h-5 rounded-full bg-cyan-400/20 text-cyan-400 font-mono text-xs font-bold flex items-center justify-center">3</span>
+              <span className="w-6 h-6 rounded-full bg-cyan-400/20 text-cyan-400 font-mono text-xs font-bold flex items-center justify-center">3</span>
               <span className="font-bold text-white text-xs">Testar &amp; Sincronizar</span>
             </div>
             <p className="text-[11px] text-[#bcc9cd]">Handshake &amp; Envio em Nuvem</p>

@@ -53,12 +53,12 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
           </p>
         </div>
 
-        <div className={`flex items-center gap-2 rounded-xl p-1 text-xs border ${
+        <div className={`flex items-center gap-1.5 rounded-full p-1.5 text-xs border ${
           isDark ? 'bg-[#141f38]/70 border-white/10' : 'bg-slate-100 border-slate-200'
         }`}>
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               filter === 'all'
                 ? isDark ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] font-bold' : 'bg-cyan-600 text-white font-bold'
                 : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -68,7 +68,7 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
           </button>
           <button
             onClick={() => setFilter('pending')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               filter === 'pending'
                 ? 'bg-amber-500/20 text-amber-500 font-bold'
                 : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -78,7 +78,7 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
           </button>
           <button
             onClick={() => setFilter('submitted')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
               filter === 'submitted'
                 ? 'bg-emerald-500/20 text-emerald-600 font-bold'
                 : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -96,7 +96,7 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
           return (
             <div
               key={task.id}
-              className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl flex flex-col justify-between transition-all ${
+              className={`p-6 rounded-[32px] backdrop-blur-2xl border shadow-xl flex flex-col justify-between transition-all ${
                 isDark
                   ? isUrgent
                     ? 'bg-gradient-to-br from-amber-500/10 via-[#141f38]/60 to-[#141f38]/80 border-amber-500/40 hover:border-amber-400'
@@ -154,7 +154,7 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
                   {task.description}
                 </p>
 
-                <div className={`p-3 rounded-xl border space-y-1.5 text-xs mb-4 ${
+                <div className={`p-4 rounded-[24px] border space-y-1.5 text-xs mb-4 ${
                   isDark
                     ? 'bg-[#0a0e17]/60 border-white/5 text-[#869397]'
                     : 'bg-slate-50 border-slate-200 text-slate-600'
@@ -191,7 +191,7 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleMarkSubmitted(task)}
-                      className={`px-3 py-1.5 rounded-xl text-xs transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-full text-xs transition-all cursor-pointer ${
                         isDark ? 'bg-white/5 hover:bg-white/10 text-gray-300' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                     >
@@ -199,7 +199,7 @@ export const PendenciasView: React.FC<PendenciasViewProps> = ({
                     </button>
                     <button
                       onClick={() => onOpenSubmissionModal(task)}
-                      className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-bold text-xs shadow-md shadow-[#06b6d4]/30 hover:shadow-[#06b6d4]/50 flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-bold text-xs shadow-md shadow-[#06b6d4]/30 hover:shadow-[#06b6d4]/50 flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-sm">upload_file</span>
                       <span>Enviar Trabalho</span>

@@ -308,7 +308,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
           </div>
 
           {/* Mode Switcher */}
-          <div className={`p-1.5 rounded-2xl border flex items-center gap-1 self-start lg:self-center shrink-0 ${
+          <div className={`p-1.5 rounded-full border flex items-center gap-1 self-start lg:self-center shrink-0 ${
             isDark ? 'bg-[#0f1422] border-white/10' : 'bg-white border-slate-200 shadow-sm'
           }`}>
             <button
@@ -317,7 +317,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 setCheckoutMode('40h_courses');
                 setCompletedTransaction(null);
               }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 checkoutMode === '40h_courses'
                   ? 'bg-cyan-500 text-[#090d16] shadow-md shadow-cyan-500/30'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -333,7 +333,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 setCheckoutMode('bundle');
                 setCompletedTransaction(null);
               }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 checkoutMode === 'bundle'
                   ? 'bg-cyan-500 text-[#090d16] shadow-md shadow-cyan-500/30'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -349,7 +349,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 setCheckoutMode('history');
                 setTransactionsList(storageService.getPaymentTransactions());
               }}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 checkoutMode === 'history'
                   ? 'bg-emerald-500 text-[#090d16] shadow-md shadow-emerald-500/30'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -365,7 +365,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
       {/* VIEW MODE: HISTORY OF TRANSACTIONS & RECEIPTS */}
       {checkoutMode === 'history' ? (
         <div className="space-y-6 animate-fade-in">
-          <div className={`p-6 sm:p-7 rounded-3xl border backdrop-blur-xl shadow-xl space-y-5 ${
+          <div className={`p-6 sm:p-8 rounded-[36px] border backdrop-blur-xl shadow-xl space-y-5 ${
             isDark ? 'bg-[#181b25]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-slate-200/15">
@@ -382,7 +382,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
               <button
                 type="button"
                 onClick={() => setCheckoutMode('40h_courses')}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs flex items-center gap-1.5 self-start sm:self-center cursor-pointer hover:opacity-95 shadow-md shadow-cyan-500/20"
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs flex items-center gap-1.5 self-start sm:self-center cursor-pointer hover:opacity-95 shadow-md shadow-cyan-500/20"
               >
                 <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
                 <span>Nova Matrícula</span>
@@ -396,7 +396,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setCheckoutMode('40h_courses')}
-                  className="px-4 py-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold cursor-pointer hover:bg-cyan-500/30"
+                  className="px-5 py-2.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-bold cursor-pointer hover:bg-cyan-500/30"
                 >
                   Ver Cursos Disponíveis para Matrícula
                 </button>
@@ -446,7 +446,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                           {tx.paidAt || tx.createdAt}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                             Aprovado
                           </span>
                         </td>
@@ -454,7 +454,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
                           <button
                             type="button"
                             onClick={() => pdfExportService.exportComprovante(tx)}
-                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-[11px] inline-flex items-center gap-1.5 transition-all cursor-pointer border border-white/15"
+                            className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-[11px] inline-flex items-center gap-1.5 transition-all cursor-pointer border border-white/15"
                             title="Baixar comprovante oficial em formato PDF Paisagem"
                           >
                             <span className="material-symbols-outlined text-sm text-cyan-400">download</span>
@@ -474,7 +474,7 @@ export const PaymentCheckoutView: React.FC<PaymentCheckoutViewProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Course Selector & Summary (5 cols) */}
           <div className="lg:col-span-5 space-y-6">
-            <div className={`p-6 rounded-3xl border backdrop-blur-xl shadow-xl space-y-5 ${
+            <div className={`p-6 sm:p-7 rounded-[36px] border backdrop-blur-xl shadow-xl space-y-5 ${
               isDark ? 'bg-[#181b25]/80 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-900'
             }`}>
               <div className="flex items-center justify-between border-b pb-4 border-slate-200/15">

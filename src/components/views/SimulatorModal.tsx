@@ -10,6 +10,10 @@ import {
 import {
   DicomSliceData,
   renderDicomSliceToCanvas,
+  renderOrthogonalCoronalSlice,
+  renderOrthogonalSagittalSlice,
+  calculateRoiStatistics,
+  playCanonAudioCue,
   getHuAtCoordinate,
   parseUploadedDicomFile,
   generateTestDicomSeries,
@@ -37,6 +41,29 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const axialCanvasRef = useRef<HTMLCanvasElement>(null);
+  const coronalCanvasRef = useRef<HTMLCanvasElement>(null);
+  const sagittalCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Crosshairs in fractional coordinates (0.0 to 1.0)
+  const [crosshairPos, setCrosshairPos] = useState<{ x: number; y: number }>({ x: 0.5, y: 0.5 });
+
+  // Measurement & ROI tools state
+  const [rulerPoints, setRulerPoints] = useState<{ p1: { x: number; y: number } | null; p2: { x: number; y: number } | null; distanceMm: number | null }>({
+    p1: null,
+    p2: null,
+    distanceMm: null
+  });
+  const [roiMetrics, setRoiMetrics] = useState<{
+    cx: number;
+    cy: number;
+    rx: number;
+    ry: number;
+    meanHu: number;
+    sdHu: number;
+    minHu: number;
+    maxHu: number;
+    areaCm2: number;
+  } | null>(null);
 
   // Viewport adjustments for MPR mode
   const [activeViewport, setActiveViewport] = useState<'coronal' | 'sagittal' | 'axial'>('axial');
@@ -46,7 +73,7 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
   const [panOffset, setPanOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [activeTool, setActiveTool] = useState<
-    'Filming' | 'Filter' | 'ImageSelector' | 'Measure' | 'Annotation' | 'Rotate' | 'ScreenSave' | 'Cursor' | 'Oblique' | 'Reset' | 'BatchMPR'
+    'Filming' | 'Filter' | 'ImageSelector' | 'Measure' | 'Annotation' | 'Rotate' | 'ScreenSave' | 'Cursor' | 'Oblique' | 'Reset' | 'BatchMPR' | 'ROI'
   >('Cursor');
   const [projectMode, setProjectMode] = useState<'Average' | 'MIP' | 'MinIP' | 'VR'>('Average');
   const [thicknessOption, setThicknessOption] = useState<'none' | '1.0mm' | '2.0mm' | '5.0mm'>('none');
@@ -143,15 +170,29 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
     }
   };
 
-  // Render DICOM slice to HTML5 Canvas in Axial Viewport
+  // Render DICOM slices to HTML5 Canvases in Axial, Coronal and Sagittal Viewports
   useEffect(() => {
-    if (topMode !== 'MPR' || !axialCanvasRef.current || dicomSlices.length === 0) return;
-    const currentIdx = Math.min(dicomSlices.length - 1, Math.max(0, sliceIndex - 1));
-    const slice = dicomSlices[currentIdx];
-    if (slice) {
-      renderDicomSliceToCanvas(slice, axialCanvasRef.current, ww, wl, invertGrayscale);
+    if (topMode !== 'MPR' || dicomSlices.length === 0) return;
+    
+    // 1. Axial Canvas
+    if (axialCanvasRef.current) {
+      const currentIdx = Math.min(dicomSlices.length - 1, Math.max(0, sliceIndex - 1));
+      const slice = dicomSlices[currentIdx];
+      if (slice) {
+        renderDicomSliceToCanvas(slice, axialCanvasRef.current, ww, wl, invertGrayscale);
+      }
     }
-  }, [topMode, sliceIndex, ww, wl, invertGrayscale, dicomSlices]);
+
+    // 2. Coronal Multi-Planar Orthogonal Canvas
+    if (coronalCanvasRef.current) {
+      renderOrthogonalCoronalSlice(dicomSlices, crosshairPos.y, coronalCanvasRef.current, ww, wl, invertGrayscale);
+    }
+
+    // 3. Sagittal Multi-Planar Orthogonal Canvas
+    if (sagittalCanvasRef.current) {
+      renderOrthogonalSagittalSlice(dicomSlices, crosshairPos.x, sagittalCanvasRef.current, ww, wl, invertGrayscale);
+    }
+  }, [topMode, sliceIndex, ww, wl, invertGrayscale, dicomSlices, crosshairPos]);
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!axialCanvasRef.current || dicomSlices.length === 0) return;
@@ -166,6 +207,56 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
     const py = (e.clientY - rect.top) * scaleY;
     const probe = getHuAtCoordinate(slice, px, py);
     setHoveredHu({ hu: probe.hu, tissue: probe.tissue, x: px, y: py });
+  };
+
+  const handleAxialCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!axialCanvasRef.current || dicomSlices.length === 0) return;
+    const currentIdx = Math.min(dicomSlices.length - 1, Math.max(0, sliceIndex - 1));
+    const slice = dicomSlices[currentIdx];
+    if (!slice) return;
+
+    const rect = axialCanvasRef.current.getBoundingClientRect();
+    const fracX = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const fracY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    const px = fracX * slice.columns;
+    const py = fracY * slice.rows;
+
+    if (activeTool === 'Cursor' || activeTool === 'Oblique') {
+      setCrosshairPos({ x: fracX, y: fracY });
+      playCanonAudioCue('click');
+    } else if (activeTool === 'Measure') {
+      if (!rulerPoints.p1 || (rulerPoints.p1 && rulerPoints.p2)) {
+        setRulerPoints({ p1: { x: px, y: py }, p2: null, distanceMm: null });
+        playCanonAudioCue('beep');
+      } else if (rulerPoints.p1 && !rulerPoints.p2) {
+        const dx = (px - rulerPoints.p1.x) * (slice.pixelSpacing[0] || 0.5);
+        const dy = (py - rulerPoints.p1.y) * (slice.pixelSpacing[1] || 0.5);
+        const dist = Math.hypot(dx, dy);
+        setRulerPoints({
+          p1: rulerPoints.p1,
+          p2: { x: px, y: py },
+          distanceMm: Math.round(dist * 10) / 10
+        });
+        playCanonAudioCue('success');
+      }
+    } else if (activeTool === 'ROI') {
+      // Create a 20px radius ROI around click point and compute HU metrics
+      const radiusX = 18;
+      const radiusY = 18;
+      const stats = calculateRoiStatistics(slice, px, py, radiusX, radiusY);
+      setRoiMetrics({
+        cx: px,
+        cy: py,
+        rx: radiusX,
+        ry: radiusY,
+        meanHu: stats.meanHu,
+        sdHu: stats.sdHu,
+        minHu: stats.minHu,
+        maxHu: stats.maxHu,
+        areaCm2: stats.areaCm2
+      });
+      playCanonAudioCue('success');
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -306,12 +397,17 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
     return () => window.removeEventListener('keydown', onKey);
   }, [selectedCase.totalImages]);
 
-  // Scan simulation timer
+  // Scan simulation timer with authentic voice and audio cues
   const handleTriggerScan = () => {
+    playCanonAudioCue('breath_hold');
     setScanStep('scan_running');
     setScanProgress(0);
     setVoiceCommand('Atenção: Respire Fundo e Prenda a Respiração...');
     setXrayTubeHeat(prev => Math.min(95, prev + 12));
+
+    setTimeout(() => {
+      playCanonAudioCue('exposure_start');
+    }, 1200);
 
     let current = 0;
     const interval = setInterval(() => {
@@ -321,30 +417,38 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
         clearInterval(interval);
         setScanStep('scan_completed');
         setVoiceCommand('Exame Concluído. Pode respirar normalmente.');
+        playCanonAudioCue('exposure_end');
+        setTimeout(() => playCanonAudioCue('success'), 400);
       }
     }, 350);
   };
 
   const handleExecuteReconstruction = () => {
+    playCanonAudioCue('click');
     setIsReconstructing(true);
     setReconDoneNotice(false);
     setTimeout(() => {
       setIsReconstructing(false);
       setReconDoneNotice(true);
+      playCanonAudioCue('success');
     }, 1800);
   };
 
   const handleSendToPrint = () => {
+    playCanonAudioCue('click');
     setPrintSuccessAlert(true);
-    setTimeout(() => setPrintSuccessAlert(false), 3000);
+    setTimeout(() => {
+      playCanonAudioCue('beep');
+      setPrintSuccessAlert(false);
+    }, 3000);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0.5 sm:p-2 bg-black/95 backdrop-blur-md select-none font-sans text-gray-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-3 bg-black/95 backdrop-blur-md select-none font-sans text-gray-200">
       {/* Activion 16 Physical Monitor Bezel Styling */}
-      <div className="relative w-full max-w-[1440px] h-[98vh] max-h-[960px] bg-[#22252e] rounded-xl border-4 border-[#3a3f4b] shadow-[0_0_60px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden text-[11px]">
+      <div className="relative w-full max-w-[1440px] h-[98vh] max-h-[960px] bg-[#22252e] rounded-[36px] border-4 border-[#3a3f4b] shadow-[0_0_60px_rgba(0,0,0,0.95)] flex flex-col overflow-hidden text-[11px]">
 
         {/* ===================== TOP HEADER CONSOLE (Activion 16 Style) ===================== */}
         <div className="h-8 bg-[#2d323d] border-b border-[#434958] px-3 flex items-center justify-between shrink-0 text-[#c8d1e0] font-mono text-xs">
@@ -626,23 +730,27 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
                         { id: 'Filter', label: 'Filter', icon: 'lens_blur', color: 'text-emerald-400' },
                         { id: 'ImageSelector', label: 'Image selector', icon: 'collections', color: 'text-amber-400' },
                         { id: 'Measure', label: 'Measure', icon: 'straighten', color: 'text-cyan-400' },
+                        { id: 'ROI', label: 'ROI (HU)', icon: 'adjust', color: 'text-amber-400' },
                         { id: 'Annotation', label: 'Annotation', icon: 'edit_note', color: 'text-emerald-400' },
                         { id: 'Rotate', label: 'Rotate', icon: 'rotate_right', color: 'text-amber-400' },
                         { id: 'ScreenSave', label: 'Screen Save', icon: 'photo_camera', color: 'text-cyan-400' },
                         { id: 'Cursor', label: 'Cursor', icon: 'arrow_selector_tool', color: 'text-emerald-400' },
-                        { id: 'Oblique', label: 'Oblique', icon: 'view_agenda', color: 'text-amber-400' },
+                        { id: 'Oblique', label: 'Crosshair', icon: 'crosshair', color: 'text-amber-400' },
                         { id: 'BatchMPR', label: 'Batch MPR', icon: 'layers', color: 'text-cyan-400' },
                         { id: 'Reset', label: 'Reset', icon: 'restart_alt', color: 'text-emerald-400' },
                       ].map(tool => (
                         <button
                           key={tool.id}
                           onClick={() => {
+                            playCanonAudioCue('click');
                             if (tool.id === 'Reset') {
                               setWw(selectedCase.ww);
                               setWl(selectedCase.wl);
                               setZoomLevel(1.0);
                               setPanOffset({ x: 0, y: 0 });
                               setRotationAngle(0);
+                              setRulerPoints({ p1: null, p2: null, distanceMm: null });
+                              setRoiMetrics(null);
                               setActiveTool('Cursor');
                             } else if (tool.id === 'Filming') {
                               setTopMode('Filming');
@@ -671,35 +779,66 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
                   {/* Tool2 Quick Windows */}
                   {activeTab === 'Tool2' && (
                     <div className="p-2 bg-[#242833] rounded-b-lg border-x border-b border-[#444c5d] space-y-1.5 text-[10px]">
-                      <div className="font-bold text-gray-300 mb-1">Janelas Rápidas:</div>
+                      <div className="font-bold text-gray-300 mb-1 flex items-center justify-between">
+                        <span>Janelas Clínicas Canon:</span>
+                        <span className="text-cyan-400 font-mono text-[9px]">WL: {wl} / WW: {ww}</span>
+                      </div>
                       <div className="grid grid-cols-2 gap-1.5">
                         <button
-                          onClick={() => { setWw(88); setWl(40); }}
-                          className="p-1.5 bg-[#363d4e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer"
+                          onClick={() => { playCanonAudioCue('click'); setWw(88); setWl(40); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
                         >
-                          <div>Crânio (Brain)</div>
-                          <div className="text-[9px] text-gray-400">WW:88 WL:40</div>
+                          <div className="font-bold">1. Crânio (Brain)</div>
+                          <div className="text-[8px] text-gray-400">WW:88 WL:40</div>
                         </button>
                         <button
-                          onClick={() => { setWw(2000); setWl(500); }}
-                          className="p-1.5 bg-[#363d4e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer"
+                          onClick={() => { playCanonAudioCue('click'); setWw(30); setWl(30); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
                         >
-                          <div>Óssea (Bone)</div>
-                          <div className="text-[9px] text-gray-400">WW:2000 WL:500</div>
+                          <div className="font-bold">2. AVC Agudo (Isquemia)</div>
+                          <div className="text-[8px] text-gray-400">WW:30 WL:30</div>
                         </button>
                         <button
-                          onClick={() => { setWw(1500); setWl(-600); }}
-                          className="p-1.5 bg-[#363d4e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer"
+                          onClick={() => { playCanonAudioCue('click'); setWw(130); setWl(50); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
                         >
-                          <div>Pulmão (Lung)</div>
-                          <div className="text-[9px] text-gray-400">WW:1500 WL:-600</div>
+                          <div className="font-bold">3. Subdural / Sangue</div>
+                          <div className="text-[8px] text-gray-400">WW:130 WL:50</div>
                         </button>
                         <button
-                          onClick={() => { setWw(400); setWl(40); }}
-                          className="p-1.5 bg-[#363d4e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer"
+                          onClick={() => { playCanonAudioCue('click'); setWw(2000); setWl(500); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
                         >
-                          <div>Partes Moles</div>
-                          <div className="text-[9px] text-gray-400">WW:400 WL:40</div>
+                          <div className="font-bold">4. Óssea (Bone)</div>
+                          <div className="text-[8px] text-gray-400">WW:2000 WL:500</div>
+                        </button>
+                        <button
+                          onClick={() => { playCanonAudioCue('click'); setWw(1500); setWl(-600); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
+                        >
+                          <div className="font-bold">5. Pulmão (Lung)</div>
+                          <div className="text-[8px] text-gray-400">WW:1500 WL:-600</div>
+                        </button>
+                        <button
+                          onClick={() => { playCanonAudioCue('click'); setWw(350); setWl(40); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
+                        >
+                          <div className="font-bold">6. Mediastino / Moles</div>
+                          <div className="text-[8px] text-gray-400">WW:350 WL:40</div>
+                        </button>
+                        <button
+                          onClick={() => { playCanonAudioCue('click'); setWw(280); setWl(65); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
+                        >
+                          <div className="font-bold">7. Fígado / Abdome</div>
+                          <div className="text-[8px] text-gray-400">WW:280 WL:65</div>
+                        </button>
+                        <button
+                          onClick={() => { playCanonAudioCue('click'); setWw(600); setWl(200); }}
+                          className="p-1.5 bg-[#363d4e] hover:bg-[#434b5e] border border-gray-600 rounded text-cyan-300 text-left font-mono cursor-pointer transition-colors"
+                        >
+                          <div className="font-bold">8. Angio CTA (Vascular)</div>
+                          <div className="text-[8px] text-gray-400">WW:600 WL:200</div>
                         </button>
                       </div>
                     </div>
@@ -1031,30 +1170,47 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
                     <span className="text-[7px] text-red-400">COR</span>
                   </div>
 
-                  <img
-                    src={selectedCase.images.coronal}
-                    alt="Coronal MPR"
+                  {/* Dynamic Coronal Canvas Overlay with Fallback */}
+                  <canvas
+                    ref={coronalCanvasRef}
+                    className="w-full h-full object-contain select-none"
                     style={{
-                      filter: `${invertGrayscale ? 'invert(1)' : 'none'} contrast(${Math.max(0.5, 200 / ww)}) brightness(${Math.max(0.6, 1 + wl / 500)})`
+                      display: dicomSlices.length > 0 ? 'block' : 'none',
+                      transform: `rotate(${rotationAngle}deg)`
                     }}
-                    className="w-full h-full object-contain select-none pointer-events-none"
                   />
+                  {dicomSlices.length === 0 && (
+                    <img
+                      src={selectedCase.images.coronal}
+                      alt="Coronal MPR"
+                      style={{
+                        filter: `${invertGrayscale ? 'invert(1)' : 'none'} contrast(${Math.max(0.5, 200 / ww)}) brightness(${Math.max(0.6, 1 + wl / 500)})`
+                      }}
+                      className="w-full h-full object-contain select-none pointer-events-none"
+                    />
+                  )}
 
                   {showScoutLines && (
                     <div className="absolute inset-0 pointer-events-none">
+                      {/* Axial Slice Position Marker Line */}
                       <div
-                        className="absolute inset-x-4 h-[1.5px] bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]"
-                        style={{ top: `${(sliceIndex / selectedCase.totalImages) * 100}%` }}
+                        className="absolute inset-x-2 h-[1.5px] bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]"
+                        style={{ top: `${(1.0 - (sliceIndex - 1) / Math.max(1, dicomSlices.length - 1)) * 100}%` }}
                       >
-                        <div className="absolute left-1/2 -top-1 w-2 h-2 -translate-x-1/2 border border-[#00e5ff] bg-black/50" />
+                        <div className="absolute left-1/2 -top-1 w-2 h-2 -translate-x-1/2 border border-[#00e5ff] bg-black/70 rounded-full" />
                       </div>
+                      {/* Vertical Sagittal Cut Line */}
+                      <div
+                        className="absolute inset-y-2 w-[1.5px] bg-[#4edea3]/70 shadow-[0_0_6px_#4edea3]"
+                        style={{ left: `${crosshairPos.x * 100}%` }}
+                      />
                     </div>
                   )}
 
                   <div className="absolute bottom-1.5 left-2 z-10 font-mono text-[9px] text-gray-300 pointer-events-none leading-tight drop-shadow">
                     <div>WL={wl}</div>
                     <div>WW={ww}</div>
-                    <div className="text-gray-400 text-[8px]">Activion16</div>
+                    <div className="text-cyan-400 font-bold text-[8px]">Canon Coronal MPR</div>
                   </div>
                 </div>
 
@@ -1088,30 +1244,47 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
                     <span className="text-[7px] text-emerald-400">SAG</span>
                   </div>
 
-                  <img
-                    src={selectedCase.images.sagittal}
-                    alt="Sagittal MPR"
+                  {/* Dynamic Sagittal Canvas Overlay with Fallback */}
+                  <canvas
+                    ref={sagittalCanvasRef}
+                    className="w-full h-full object-contain select-none"
                     style={{
-                      filter: `${invertGrayscale ? 'invert(1)' : 'none'} contrast(${Math.max(0.5, 200 / ww)}) brightness(${Math.max(0.6, 1 + wl / 500)})`
+                      display: dicomSlices.length > 0 ? 'block' : 'none',
+                      transform: `rotate(${rotationAngle}deg)`
                     }}
-                    className="w-full h-full object-contain select-none pointer-events-none"
                   />
+                  {dicomSlices.length === 0 && (
+                    <img
+                      src={selectedCase.images.sagittal}
+                      alt="Sagittal MPR"
+                      style={{
+                        filter: `${invertGrayscale ? 'invert(1)' : 'none'} contrast(${Math.max(0.5, 200 / ww)}) brightness(${Math.max(0.6, 1 + wl / 500)})`
+                      }}
+                      className="w-full h-full object-contain select-none pointer-events-none"
+                    />
+                  )}
 
                   {showScoutLines && (
                     <div className="absolute inset-0 pointer-events-none">
+                      {/* Axial Slice Position Marker Line */}
                       <div
-                        className="absolute inset-x-4 h-[1.5px] bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]"
-                        style={{ top: `${(sliceIndex / selectedCase.totalImages) * 100}%` }}
+                        className="absolute inset-x-2 h-[1.5px] bg-[#00e5ff] shadow-[0_0_6px_#00e5ff]"
+                        style={{ top: `${(1.0 - (sliceIndex - 1) / Math.max(1, dicomSlices.length - 1)) * 100}%` }}
                       >
-                        <div className="absolute left-1/2 -top-1 w-2 h-2 -translate-x-1/2 border border-[#00e5ff] bg-black/50" />
+                        <div className="absolute left-1/2 -top-1 w-2 h-2 -translate-x-1/2 border border-[#00e5ff] bg-black/70 rounded-full" />
                       </div>
+                      {/* Vertical Coronal Cut Line */}
+                      <div
+                        className="absolute inset-y-2 w-[1.5px] bg-red-400/70 shadow-[0_0_6px_#f87171]"
+                        style={{ left: `${crosshairPos.y * 100}%` }}
+                      />
                     </div>
                   )}
 
                   <div className="absolute bottom-1.5 left-2 z-10 font-mono text-[9px] text-gray-300 pointer-events-none leading-tight drop-shadow">
                     <div>WL={wl}</div>
                     <div>WW={ww}</div>
-                    <div className="text-gray-400 text-[8px]">Activion16</div>
+                    <div className="text-emerald-400 font-bold text-[8px]">Canon Sagittal MPR</div>
                   </div>
                 </div>
 
@@ -1161,6 +1334,20 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
                     </div>
                   )}
 
+                  {/* Live ROI Statistics Overlay HUD */}
+                  {roiMetrics && (
+                    <div className="absolute top-11 right-2 z-20 pointer-events-none bg-black/90 border border-amber-400/80 p-2 rounded shadow-xl font-mono text-[10px] space-y-0.5 text-amber-300 backdrop-blur-sm animate-fade-in">
+                      <div className="text-white font-bold flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs text-amber-400">adjust</span>
+                        <span>CANON ROI 1 STATISTICS</span>
+                      </div>
+                      <div>Média (Mean): <strong className="text-white">{roiMetrics.meanHu > 0 ? `+${roiMetrics.meanHu}` : roiMetrics.meanHu} HU</strong></div>
+                      <div>Desvio Padrão (SD): <strong className="text-white">{roiMetrics.sdHu} HU</strong></div>
+                      <div>Min / Max: <strong className="text-white">{roiMetrics.minHu} / {roiMetrics.maxHu} HU</strong></div>
+                      <div>Área: <strong className="text-emerald-400">{roiMetrics.areaCm2} cm²</strong></div>
+                    </div>
+                  )}
+
                   <div className="absolute bottom-2 right-2 w-7 h-7 border-2 border-[#00e5ff] bg-black/60 flex flex-col items-center justify-center font-mono text-[8px] text-[#00e5ff] font-bold z-10 pointer-events-none shadow-md">
                     <span className="text-[7px] text-white">H</span>
                     <span className="text-[7px] text-[#00e5ff]">AXI</span>
@@ -1186,21 +1373,71 @@ export const SimulatorModal: React.FC<SimulatorModalProps> = ({ isOpen, onClose 
                     {/* Real DICOM 16-Bit Grayscale HTML5 Canvas */}
                     <canvas
                       ref={axialCanvasRef}
+                      onClick={handleAxialCanvasClick}
                       onMouseMove={handleCanvasMouseMove}
                       onMouseLeave={() => setHoveredHu(null)}
                       className="max-w-full max-h-full object-contain cursor-crosshair shadow-2xl rounded"
                     />
 
-                    {measureActive && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <svg className="w-full h-full" viewBox="0 0 100 100">
-                          <line x1="45" y1="50" x2="55" y2="50" stroke="#f59e0b" strokeWidth="0.8" strokeDasharray="1,1" />
-                          <circle cx="45" cy="50" r="1" fill="#f59e0b" />
-                          <circle cx="55" cy="50" r="1" fill="#f59e0b" />
-                          <text x="46" y="47" fill="#f59e0b" fontSize="3.5" fontFamily="monospace" fontWeight="bold">
-                            12.4 mm
+                    {/* Interactive Caliper Distance Overlay */}
+                    {rulerPoints.p1 && rulerPoints.p2 && (
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <svg className="w-full h-full" viewBox="0 0 256 256">
+                          <line
+                            x1={rulerPoints.p1.x}
+                            y1={rulerPoints.p1.y}
+                            x2={rulerPoints.p2.x}
+                            y2={rulerPoints.p2.y}
+                            stroke="#f59e0b"
+                            strokeWidth="2"
+                            strokeDasharray="4,4"
+                          />
+                          <circle cx={rulerPoints.p1.x} cy={rulerPoints.p1.y} r="3" fill="#f59e0b" />
+                          <circle cx={rulerPoints.p2.x} cy={rulerPoints.p2.y} r="3" fill="#f59e0b" />
+                          <text
+                            x={(rulerPoints.p1.x + rulerPoints.p2.x) / 2 + 5}
+                            y={(rulerPoints.p1.y + rulerPoints.p2.y) / 2 - 5}
+                            fill="#f59e0b"
+                            fontSize="10"
+                            fontFamily="monospace"
+                            fontWeight="bold"
+                          >
+                            {rulerPoints.distanceMm} mm
                           </text>
                         </svg>
+                      </div>
+                    )}
+
+                    {/* Interactive Ellipse ROI Overlay */}
+                    {roiMetrics && (
+                      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                        <svg className="w-full h-full" viewBox="0 0 256 256">
+                          <ellipse
+                            cx={roiMetrics.cx}
+                            cy={roiMetrics.cy}
+                            rx={roiMetrics.rx}
+                            ry={roiMetrics.ry}
+                            fill="rgba(245, 158, 11, 0.15)"
+                            stroke="#f59e0b"
+                            strokeWidth="1.5"
+                            strokeDasharray="3,3"
+                          />
+                          <circle cx={roiMetrics.cx} cy={roiMetrics.cy} r="2" fill="#f59e0b" />
+                        </svg>
+                      </div>
+                    )}
+
+                    {/* Multi-planar Crosshair on Axial */}
+                    {showScoutLines && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <div
+                          className="absolute inset-x-0 h-px bg-red-500/50"
+                          style={{ top: `${crosshairPos.y * 100}%` }}
+                        />
+                        <div
+                          className="absolute inset-y-0 w-px bg-emerald-400/50"
+                          style={{ left: `${crosshairPos.x * 100}%` }}
+                        />
                       </div>
                     )}
                   </div>

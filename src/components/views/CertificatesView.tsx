@@ -95,7 +95,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
         <button
           type="button"
           onClick={() => onIssueCertificate('Tomografia Computadorizada Clínica & Operação do Activion 16 (40h)', 40, 'course_tc_701')}
-          className={`px-4 py-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full border text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
             isEligibleForCertificate
               ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-[#090d16] font-bold shadow-lg shadow-emerald-500/20 hover:opacity-95'
               : isDark
@@ -115,7 +115,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
       </section>
 
       {/* Mandatory 100% Completion Requirement Card */}
-      <div className={`p-5 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-5 ${
+      <div className={`p-6 sm:p-7 rounded-[32px] border flex flex-col md:flex-row items-center justify-between gap-5 ${
         isEligibleForCertificate
           ? isDark
             ? 'bg-emerald-950/20 border-emerald-500/30'
@@ -125,7 +125,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
             : 'bg-amber-50 border-amber-300'
       }`}>
         <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
             isEligibleForCertificate
               ? 'bg-emerald-500/20 text-emerald-400'
               : 'bg-amber-500/20 text-amber-400'
@@ -141,7 +141,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
               }`}>
                 {isEligibleForCertificate ? 'Requisito Acadêmico Concluído' : 'Regra de Emissão: Conclusão Obrigatória de 100%'}
               </span>
-              <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                 isEligibleForCertificate
                   ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
@@ -191,7 +191,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
               <div
                 key={cert.id}
                 onClick={() => setSelectedCert(cert)}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                className={`p-5 rounded-[28px] border cursor-pointer transition-all ${
                   selectedCert?.id === cert.id
                     ? isDark
                       ? 'bg-[#1c1f29] border-[#4cd7f6] shadow-[0_0_20px_rgba(6,182,212,0.2)]'
@@ -202,7 +202,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00a572]/20 text-[#4edea3]">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-[#00a572]/20 text-[#4edea3]">
                     HOMOLOGADO 100%
                   </span>
                   <span className={`text-[10px] font-mono ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
@@ -229,7 +229,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
           </div>
 
           {/* Validation Tool */}
-          <div className={`p-5 rounded-2xl border space-y-3 ${
+          <div className={`p-6 rounded-[32px] border space-y-3 ${
             isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
           }`}>
             <h4 className={`text-xs font-bold uppercase tracking-wider font-['Plus_Jakarta_Sans'] ${
@@ -246,7 +246,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                 value={verificationInput}
                 onChange={e => setVerificationInput(e.target.value)}
                 placeholder="Ex: RADBIO-CERT-2026-40H"
-                className={`w-full px-3 py-2 rounded-xl border text-xs font-mono outline-none ${
+                className={`w-full px-4 py-2.5 rounded-full border text-xs font-mono outline-none ${
                   isDark
                     ? 'bg-[#0a0e17]/80 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4cd7f6]'
                     : 'bg-slate-50 border-slate-300 text-slate-900 placeholder:text-slate-400 focus:border-cyan-500'
@@ -254,13 +254,13 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
               />
               <button
                 type="submit"
-                className="w-full py-2 rounded-xl bg-[#4cd7f6]/15 hover:bg-[#4cd7f6]/25 text-cyan-600 border border-cyan-400/40 text-xs font-bold transition-all cursor-pointer"
+                className="w-full py-2.5 rounded-full bg-[#4cd7f6]/15 hover:bg-[#4cd7f6]/25 text-cyan-600 border border-cyan-400/40 text-xs font-bold transition-all cursor-pointer"
               >
                 Checar Registro Acadêmico
               </button>
             </form>
             {verificationResult && (
-              <div className={`p-3 rounded-xl border text-xs font-mono leading-relaxed ${
+              <div className={`p-3.5 rounded-[20px] border text-xs font-mono leading-relaxed ${
                 isDark ? 'bg-[#0a0e17] border-white/10 text-[#4edea3]' : 'bg-emerald-50 border-emerald-200 text-emerald-800'
               }`}>
                 {verificationResult}
@@ -273,8 +273,8 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
         {selectedCert && (
           <div className="lg:col-span-8 space-y-4">
             {/* Action Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl border backdrop-blur-md bg-white/5 border-white/10">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 sm:p-4 rounded-full border backdrop-blur-md bg-white/5 border-white/10">
+              <div className="flex items-center gap-2 pl-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span className={`text-xs font-mono font-semibold ${isDark ? 'text-emerald-400' : 'text-emerald-700'}`}>
                   Formato Oficial A4 Horizontal (297mm × 210mm)
@@ -285,7 +285,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowFullscreenModal(true)}
-                  className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     isDark ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/10' : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
                   }`}
                   title="Expandir visualização horizontal em tela cheia"
@@ -297,7 +297,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                 <button
                   type="button"
                   onClick={handlePrintLandscape}
-                  className={`px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                     isDark ? 'bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border-cyan-400/30' : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-200'
                   }`}
                   title="Imprimir em folha paisagem"
@@ -310,7 +310,7 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
                   type="button"
                   onClick={handleDownloadPdfLandscape}
                   disabled={isExporting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-extrabold text-xs shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 flex items-center gap-2 transition-all cursor-pointer transform hover:-translate-y-0.5 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-extrabold text-xs shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 flex items-center gap-2 transition-all cursor-pointer transform hover:-translate-y-0.5 disabled:opacity-50"
                 >
                   {isExporting ? (
                     <>

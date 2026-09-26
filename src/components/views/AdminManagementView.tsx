@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Course, ThemeMode, EmailNotification } from '../../types';
+import { Course, Lesson, ThemeMode, EmailNotification } from '../../types';
 import { storageService } from '../../services/storage';
 import { formatCpf, isValidCpf } from '../../utils/cpfValidator';
 
@@ -299,7 +299,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
       <div className={`flex items-center gap-2 border-b pb-2 text-xs ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
         <button
           onClick={() => setActiveTab('courses')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full font-bold transition-all cursor-pointer ${
             activeTab === 'courses'
               ? isDark ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border border-[#4cd7f6]/30' : 'bg-cyan-50 text-cyan-700 border border-cyan-300'
               : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -309,7 +309,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full font-bold transition-all cursor-pointer ${
             activeTab === 'users'
               ? isDark ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border border-[#4cd7f6]/30' : 'bg-cyan-50 text-cyan-700 border border-cyan-300'
               : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -319,7 +319,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('logs')}
-          className={`px-4 py-2 rounded-xl font-bold transition-all cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full font-bold transition-all cursor-pointer ${
             activeTab === 'logs'
               ? isDark ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] border border-[#4cd7f6]/30' : 'bg-cyan-50 text-cyan-700 border border-cyan-300'
               : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -335,12 +335,12 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
           {courses.map(course => (
             <div
               key={course.id}
-              className={`p-5 rounded-2xl border space-y-3 ${
+              className={`p-6 rounded-[28px] border space-y-3 ${
                 isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className={`font-mono text-xs px-2 py-0.5 rounded ${
+                <span className={`font-mono text-xs px-3 py-1 rounded-full ${
                   isDark ? 'text-[#4cd7f6] bg-[#4cd7f6]/10' : 'text-cyan-700 bg-cyan-50 font-semibold'
                 }`}>
                   {course.code}
@@ -365,7 +365,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
       )}
 
       {activeTab === 'users' && (
-        <div className={`p-6 rounded-2xl border space-y-4 ${
+        <div className={`p-6 sm:p-7 rounded-[32px] border space-y-4 ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <div className="flex items-center justify-between">
@@ -380,7 +380,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
             <button
               type="button"
               onClick={() => setShowAddUserModal(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-4 py-2 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 hover:bg-cyan-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">person_add</span>
               <span>Cadastrar Aluno / Usuário</span>
@@ -391,12 +391,12 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
             {usersList.map(u => (
               <div
                 key={u.id}
-                className={`p-3 rounded-xl border flex items-center justify-between ${
+                className={`p-4 rounded-[22px] border flex items-center justify-between ${
                   isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs ${
                     u.role === 'student' ? 'bg-cyan-500/20 text-cyan-400' :
                     u.role === 'professor' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-400/20 text-amber-400'
                   }`}>
@@ -405,7 +405,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                   <div>
                     <div className={`font-semibold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       <span>{u.name}</span>
-                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                      <span className={`text-[10px] font-mono px-2.5 py-0.5 rounded-full ${
                         u.role === 'student' ? 'bg-cyan-500/10 text-cyan-400' :
                         u.role === 'professor' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
                       }`}>
@@ -418,7 +418,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+                  <span className={`px-3 py-1 rounded-full text-[11px] font-semibold ${
                     u.badgeColor === 'emerald' ? 'bg-emerald-500/15 text-emerald-400' :
                     u.badgeColor === 'cyan' ? 'bg-cyan-500/15 text-cyan-400' : 'bg-amber-400/15 text-amber-400'
                   }`}>
@@ -432,7 +432,7 @@ export const AdminManagementView: React.FC<AdminManagementViewProps> = ({
       )}
 
       {activeTab === 'logs' && (
-        <div className={`p-6 rounded-2xl border space-y-4 ${
+        <div className={`p-6 sm:p-7 rounded-[32px] border space-y-4 ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <h3 className={`text-sm font-bold font-['Plus_Jakarta_Sans'] ${isDark ? 'text-white' : 'text-slate-900'}`}>

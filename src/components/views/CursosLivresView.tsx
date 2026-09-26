@@ -243,10 +243,10 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1520px] mx-auto space-y-8">
       {/* Header Banner */}
-      <section className="relative overflow-hidden rounded-3xl border p-6 sm:p-8 backdrop-blur-2xl transition-all shadow-xl bg-gradient-to-r from-[#06b6d4]/10 via-[#10b981]/5 to-transparent border-[#4cd7f6]/30">
+      <section className="relative overflow-hidden rounded-[36px] border p-6 sm:p-8 backdrop-blur-2xl transition-all shadow-xl bg-gradient-to-r from-[#06b6d4]/10 via-[#10b981]/5 to-transparent border-[#4cd7f6]/30">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="space-y-3 max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border bg-[#06b6d4]/15 text-[#4cd7f6] border-[#4cd7f6]/30">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-semibold border bg-[#06b6d4]/15 text-[#4cd7f6] border-[#4cd7f6]/30">
               <span className="material-symbols-outlined text-sm">verified</span>
               <span>Educação Continuada • Cursos Livres de 40 Horas Reconhecidos</span>
             </div>
@@ -265,7 +265,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
               <button
                 type="button"
                 onClick={handleOpenCreateModal}
-                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/25 flex items-center gap-2 cursor-pointer hover:opacity-95 transition-all"
+                className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/25 flex items-center gap-2 cursor-pointer hover:opacity-95 transition-all"
               >
                 <span className="material-symbols-outlined text-base">add_circle</span>
                 <span>Adicionar Novo Curso (40h)</span>
@@ -275,7 +275,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
             <button
               type="button"
               onClick={() => onNavigateTab('pagamentos')}
-              className={`px-4 py-2.5 rounded-xl border text-xs font-bold flex items-center gap-2 cursor-pointer transition-all ${
+              className={`px-5 py-2.5 rounded-full border text-xs font-bold flex items-center gap-2 cursor-pointer transition-all ${
                 isDark
                   ? 'bg-white/5 hover:bg-white/10 text-cyan-400 border-cyan-400/40'
                   : 'bg-white hover:bg-slate-50 text-cyan-700 border-cyan-300 shadow-sm'
@@ -290,25 +290,25 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
 
       {/* KPI Stats Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`p-4 sm:p-5 rounded-[28px] border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className="text-[11px] font-semibold text-gray-400">Total de Cursos Ativos</div>
           <div className="text-2xl font-extrabold text-cyan-400 mt-0.5">{cursos.length} Especializações</div>
           <div className="text-[10px] text-emerald-400 mt-1">40 Horas Acadêmicas cada</div>
         </div>
 
-        <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`p-4 sm:p-5 rounded-[28px] border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className="text-[11px] font-semibold text-gray-400">Total de Horas de Formação</div>
           <div className="text-2xl font-extrabold text-emerald-400 mt-0.5">{cursos.length * 40} Horas</div>
           <div className="text-[10px] text-gray-400 mt-1">Lei 9.394/96 &amp; Dec. 5.154/04</div>
         </div>
 
-        <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`p-4 sm:p-5 rounded-[28px] border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className="text-[11px] font-semibold text-gray-400">Simulador Canon Activion 16</div>
           <div className="text-2xl font-extrabold text-cyan-400 mt-0.5">100% Integrado</div>
           <div className="text-[10px] text-cyan-400 mt-1">Estações práticas em todos os cursos</div>
         </div>
 
-        <div className={`p-4 rounded-2xl border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className={`p-4 sm:p-5 rounded-[28px] border ${isDark ? 'bg-[#141b2d]/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
           <div className="text-[11px] font-semibold text-gray-400">Satisfação dos Alunos</div>
           <div className="text-2xl font-extrabold text-amber-400 mt-0.5 flex items-center gap-1">
             <span>4.96</span>
@@ -328,7 +328,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                 key={cat.id}
                 type="button"
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   selectedCategory === cat.id
                     ? 'bg-cyan-500 text-[#090d16] shadow-md shadow-cyan-500/25'
                     : isDark
@@ -344,7 +344,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
           {/* Search and toggle enrolled */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-2.5 text-gray-400 text-sm">
+              <span className="material-symbols-outlined absolute left-3.5 top-2.5 text-gray-400 text-sm">
                 search
               </span>
               <input
@@ -352,7 +352,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                 placeholder="Buscar curso de 40h..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className={`pl-9 pr-3 py-1.5 rounded-xl text-xs border outline-none w-56 sm:w-64 ${
+                className={`pl-10 pr-4 py-2 rounded-full text-xs border outline-none w-56 sm:w-64 ${
                   isDark
                     ? 'bg-[#141824] border-white/10 text-white placeholder-gray-500 focus:border-cyan-400'
                     : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-cyan-500'
@@ -363,7 +363,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
             <button
               type="button"
               onClick={() => setFilterEnrolledOnly(!filterEnrolledOnly)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold border flex items-center gap-1.5 cursor-pointer transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold border flex items-center gap-1.5 cursor-pointer transition-all ${
                 filterEnrolledOnly
                   ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
                   : isDark
@@ -385,7 +385,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
         {filteredCourses.map(course => (
           <div
             key={course.id}
-            className={`rounded-3xl border overflow-hidden backdrop-blur-xl shadow-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] ${
+            className={`rounded-[36px] border overflow-hidden backdrop-blur-xl shadow-xl flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] ${
               course.isEnrolled
                 ? isDark
                   ? 'bg-[#151d2f]/80 border-emerald-500/40 ring-1 ring-emerald-500/30'
@@ -424,7 +424,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                       e.stopPropagation();
                       handleOpenEditModal(course);
                     }}
-                    className="p-1.5 rounded-lg bg-black/70 hover:bg-cyan-500 hover:text-[#090d16] text-white transition-all cursor-pointer backdrop-blur-md"
+                    className="p-1.5 rounded-full bg-black/70 hover:bg-cyan-500 hover:text-[#090d16] text-white transition-all cursor-pointer backdrop-blur-md"
                     title="Editar Curso"
                   >
                     <span className="material-symbols-outlined text-sm">edit</span>
@@ -435,7 +435,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                       e.stopPropagation();
                       handleDeleteCourse(course.id, course.title);
                     }}
-                    className="p-1.5 rounded-lg bg-black/70 hover:bg-red-500 hover:text-white text-red-400 transition-all cursor-pointer backdrop-blur-md"
+                    className="p-1.5 rounded-full bg-black/70 hover:bg-red-500 hover:text-white text-red-400 transition-all cursor-pointer backdrop-blur-md"
                     title="Excluir Curso"
                   >
                     <span className="material-symbols-outlined text-sm">delete</span>
@@ -445,7 +445,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
 
               {/* Rating & Review (if not admin) */}
               {userRole === 'student' && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg bg-black/70 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1">
+                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1">
                   <span className="material-symbols-outlined text-xs text-amber-400">star</span>
                   <span>{course.rating}</span>
                   <span className="text-gray-400 text-[9px]">({course.reviewCount})</span>
@@ -454,7 +454,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
 
               {/* Category label bottom left */}
               <div className="absolute bottom-3 left-3">
-                <span className="text-[10px] font-mono uppercase tracking-wider font-extrabold px-2 py-0.5 rounded bg-[#06b6d4]/20 text-[#4cd7f6] border border-[#4cd7f6]/30">
+                <span className="text-[10px] font-mono uppercase tracking-wider font-extrabold px-3 py-1 rounded-full bg-[#06b6d4]/20 text-[#4cd7f6] border border-[#4cd7f6]/30">
                   {course.category}
                 </span>
               </div>
@@ -510,7 +510,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setDetailModalCourse(course)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer text-center ${
+                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer text-center ${
                       isDark ? 'bg-white/5 hover:bg-white/10 text-gray-300 border-white/10' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                     }`}
                   >
@@ -521,7 +521,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onNavigateTab('aulas')}
-                      className="px-3.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-[#090d16] font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md shadow-emerald-500/20"
+                      className="px-4 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-600 text-[#090d16] font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md shadow-emerald-500/20"
                     >
                       <span className="material-symbols-outlined text-sm">play_circle</span>
                       <span>Acessar Aulas</span>
@@ -530,7 +530,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onSelectCourseForEnrollment(course.id)}
-                      className="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-emerald-400 hover:opacity-95 text-[#090d16] font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md shadow-cyan-500/20"
+                      className="px-4 py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400 hover:opacity-95 text-[#090d16] font-bold text-xs flex items-center justify-center gap-1 cursor-pointer transition-all shadow-md shadow-cyan-500/20"
                     >
                       <span className="material-symbols-outlined text-sm">shopping_cart</span>
                       <span>Pix / Cartão</span>
@@ -546,13 +546,13 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
       {/* Course Detail Syllabus Modal (40 Horas Breakdown) */}
       {detailModalCourse && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className={`max-w-3xl w-full p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto ${
+          <div className={`max-w-3xl w-full p-6 sm:p-8 rounded-[36px] border shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto ${
             isDark ? 'bg-[#181b25] border-cyan-400/40 text-white' : 'bg-white border-slate-200 text-slate-900'
           }`}>
             <div className="flex items-start justify-between gap-4 border-b pb-4 border-slate-200/15">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-cyan-500 text-[#090d16]">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-extrabold uppercase bg-cyan-500 text-[#090d16]">
                     40 HORAS CERTIFICADAS
                   </span>
                   <span className="text-xs font-mono text-emerald-400 font-semibold">
@@ -570,14 +570,14 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
               <button
                 type="button"
                 onClick={() => setDetailModalCourse(null)}
-                className="p-1 rounded-lg text-gray-400 hover:text-white cursor-pointer"
+                className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 cursor-pointer transition-all"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
 
             {/* Legal compliance notice box */}
-            <div className={`p-4 rounded-2xl border text-xs leading-relaxed ${
+            <div className={`p-4 sm:p-5 rounded-[24px] border text-xs leading-relaxed ${
               isDark ? 'bg-[#0f1422] border-cyan-400/20 text-gray-300' : 'bg-cyan-50/70 border-cyan-200 text-slate-700'
             }`}>
               <strong className="text-cyan-400">Regulamentação e Validade Acadêmica:</strong> {detailModalCourse.legalCompliance}
@@ -609,7 +609,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                 {detailModalCourse.modules.map(m => (
                   <div
                     key={m.id}
-                    className={`p-4 rounded-2xl border space-y-2 ${
+                    className={`p-4 sm:p-5 rounded-[24px] border space-y-2 ${
                       isDark ? 'bg-[#101522] border-white/10' : 'bg-slate-50 border-slate-200'
                     }`}
                   >
@@ -617,7 +617,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                       <h5 className="text-xs font-bold text-cyan-400">
                         {m.title}
                       </h5>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-extrabold">
+                      <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-extrabold">
                         {m.workloadHours} HORAS
                       </span>
                     </div>
@@ -625,7 +625,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                       {m.description}
                     </p>
                     {m.simulatorProtocolName && (
-                      <div className="inline-flex items-center gap-1.5 text-[11px] text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
+                      <div className="inline-flex items-center gap-1.5 text-[11px] text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full">
                         <span className="material-symbols-outlined text-xs">precision_manufacturing</span>
                         <span>Protocolo Prático: {m.simulatorProtocolName}</span>
                       </div>
@@ -634,7 +634,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                       {m.topics.map((t, idx) => (
                         <span
                           key={idx}
-                          className={`text-[10px] px-2 py-0.5 rounded-md ${
+                          className={`text-[10px] px-2.5 py-1 rounded-full ${
                             isDark ? 'bg-white/5 text-gray-400' : 'bg-white text-slate-600 border border-slate-200'
                           }`}
                         >
@@ -663,7 +663,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setDetailModalCourse(null)}
-                  className={`px-4 py-2.5 rounded-xl border text-xs font-bold cursor-pointer ${
+                  className={`px-5 py-2.5 rounded-full border text-xs font-bold cursor-pointer ${
                     isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-slate-300 text-slate-700'
                   }`}
                 >
@@ -677,7 +677,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                     setDetailModalCourse(null);
                     onSelectCourseForEnrollment(id);
                   }}
-                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/30 cursor-pointer hover:opacity-95 transition-all"
+                  className="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/30 cursor-pointer hover:opacity-95 transition-all"
                 >
                   Matricular Agora (Pix ou Cartão)
                 </button>
@@ -692,7 +692,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
           <form
             onSubmit={handleSaveCourse}
-            className={`max-w-3xl w-full p-6 sm:p-7 rounded-3xl border shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto ${
+            className={`max-w-3xl w-full p-6 sm:p-8 rounded-[36px] border shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto ${
               isDark ? 'bg-[#181b25] border-cyan-400/40 text-white' : 'bg-white border-slate-200 text-slate-900'
             }`}
           >
@@ -708,7 +708,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-white cursor-pointer"
+                className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 cursor-pointer transition-all"
               >
                 ✕
               </button>
@@ -723,7 +723,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   onChange={e => setFormTitle(e.target.value)}
                   placeholder="ex: Tomografia Cardíaca & Escore de Cálcio Coronariano"
                   required
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -736,7 +736,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   value={formSubtitle}
                   onChange={e => setFormSubtitle(e.target.value)}
                   placeholder="ex: Sincronização por ECG Gating, Artérias Coronárias e Agatston"
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -747,7 +747,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                 <select
                   value={formCategory}
                   onChange={e => setFormCategory(e.target.value)}
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 >
@@ -768,7 +768,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   onChange={e => setFormPrice(e.target.value)}
                   placeholder="169.00"
                   required
-                  className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none font-mono ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -781,7 +781,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   value={formInstructor}
                   onChange={e => setFormInstructor(e.target.value)}
                   placeholder="Prof. Dr. Marcus Vinicius"
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -794,7 +794,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   value={formInstructorTitle}
                   onChange={e => setFormInstructorTitle(e.target.value)}
                   placeholder="Especialista em Tomografia Computadorizada CBR"
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -807,7 +807,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   value={formDescription}
                   onChange={e => setFormDescription(e.target.value)}
                   placeholder="Descrição minuciosa do curso, competências desenvolvidas e relevância clínica."
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full p-3.5 rounded-[20px] border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -820,7 +820,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   value={formObjectivesText}
                   onChange={e => setFormObjectivesText(e.target.value)}
                   placeholder="Objetivo 1&#10;Objetivo 2&#10;Objetivo 3"
-                  className={`w-full p-2.5 rounded-xl border outline-none font-mono ${
+                  className={`w-full p-3.5 rounded-[20px] border outline-none font-mono ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -833,7 +833,7 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
                   value={formCoverImage}
                   onChange={e => setFormCoverImage(e.target.value)}
                   placeholder="https://images.unsplash.com/..."
-                  className={`w-full p-2.5 rounded-xl border outline-none ${
+                  className={`w-full px-4 py-2.5 rounded-full border outline-none ${
                     isDark ? 'bg-[#0e121d] border-white/10 text-white focus:border-cyan-400' : 'bg-slate-50 border-slate-300 text-slate-900'
                   }`}
                 />
@@ -866,13 +866,13 @@ export const CursosLivresView: React.FC<CursosLivresViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 text-xs font-bold cursor-pointer"
+                className="px-5 py-2.5 rounded-full border border-white/10 text-gray-300 hover:bg-white/5 text-xs font-bold cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/30 cursor-pointer hover:opacity-95"
+                className="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400 text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/30 cursor-pointer hover:opacity-95"
               >
                 {editingCourseId ? 'Salvar Alterações' : 'Publicar Curso (40 Horas)'}
               </button>

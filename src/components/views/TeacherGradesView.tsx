@@ -117,7 +117,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
           <select
             value={selectedClass}
             onChange={e => setSelectedClass(e.target.value)}
-            className={`px-3 py-2 rounded-xl border text-xs outline-none ${
+            className={`px-4 py-2 rounded-full border text-xs outline-none ${
               isDark
                 ? 'bg-[#141f38]/70 border-white/10 text-white focus:border-[#4cd7f6]'
                 : 'bg-white border-slate-300 text-slate-900 focus:border-cyan-500'
@@ -130,12 +130,12 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
             <option value="RAD-304: Radiologia Digital">RAD-304: Radiologia Digital</option>
           </select>
 
-          <div className={`flex items-center border rounded-xl p-1 text-xs ${
+          <div className={`flex items-center border rounded-full p-1 text-xs ${
             isDark ? 'bg-[#141f38]/70 border-white/10' : 'bg-slate-100 border-slate-200'
           }`}>
             <button
               onClick={() => setStatusFilter('all')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
                 statusFilter === 'all'
                   ? isDark ? 'bg-[#4cd7f6]/20 text-[#4cd7f6] font-bold' : 'bg-cyan-600 text-white font-bold'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -145,7 +145,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
             </button>
             <button
               onClick={() => setStatusFilter('risk')}
-              className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              className={`px-4 py-1.5 rounded-full transition-all cursor-pointer ${
                 statusFilter === 'risk'
                   ? 'bg-amber-500/20 text-amber-500 font-bold'
                   : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -159,7 +159,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
 
       {/* Class Metrics Bento (4 Cards) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
+        <div className={`p-6 rounded-[28px] backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <div className={`flex items-center justify-between text-xs ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
@@ -174,7 +174,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
           </div>
         </div>
 
-        <div className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
+        <div className={`p-6 rounded-[28px] backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <div className={`flex items-center justify-between text-xs ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
@@ -189,7 +189,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
           </div>
         </div>
 
-        <div className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
+        <div className={`p-6 rounded-[28px] backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <div className={`flex items-center justify-between text-xs ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
@@ -204,7 +204,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
           </div>
         </div>
 
-        <div className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
+        <div className={`p-6 rounded-[28px] backdrop-blur-2xl border shadow-xl flex flex-col justify-between ${
           isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <div className={`flex items-center justify-between text-xs ${isDark ? 'text-[#869397]' : 'text-slate-500'}`}>
@@ -214,14 +214,14 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
           <div className="flex items-center gap-2 my-2">
             <button
               onClick={handleExportExcel}
-              className="flex-1 py-1.5 px-2 rounded-lg bg-emerald-500/20 text-emerald-600 text-xs font-bold border border-emerald-500/40 hover:bg-emerald-500/30 transition-all flex items-center justify-center gap-1 cursor-pointer"
+              className="flex-1 py-2 px-3 rounded-full bg-emerald-500/20 text-emerald-600 text-xs font-bold border border-emerald-500/40 hover:bg-emerald-500/30 transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">table_view</span>
               <span>Excel</span>
             </button>
             <button
               onClick={handleExportPdf}
-              className="flex-1 py-1.5 px-2 rounded-lg bg-cyan-500/20 text-cyan-600 text-xs font-bold border border-cyan-500/40 hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-1 cursor-pointer"
+              className="flex-1 py-2 px-3 rounded-full bg-cyan-500/20 text-cyan-600 text-xs font-bold border border-cyan-500/40 hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
               <span>PDF</span>
@@ -232,7 +232,7 @@ export const TeacherGradesView: React.FC<TeacherGradesViewProps> = ({
       </section>
 
       {/* Interactive Gradebook Table */}
-      <section className={`rounded-2xl overflow-hidden backdrop-blur-2xl border shadow-xl ${
+      <section className={`rounded-[32px] overflow-hidden backdrop-blur-2xl border shadow-xl ${
         isDark ? 'bg-[#141f38]/50 border-white/10' : 'bg-white border-slate-200 shadow-sm'
       }`}>
         <div className={`p-5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${

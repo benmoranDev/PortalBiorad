@@ -530,3 +530,335 @@ export function generateDicomPart10Blob(
 
   return finalBlob;
 }
+
+/**
+ * Calculate statistical HU metrics (Mean, SD, Min, Max, Area) inside an elliptical or rectangular ROI
+ */
+export interface RoiStatistics {
+  meanHu: number;
+  sdHu: number;
+  minHu: number;
+  maxHu: number;
+  areaMm2: number;
+  areaCm2: number;
+  pixelCount: number;
+}
+
+export function calculateRoiStatistics(
+  slice: DicomSliceData,
+  centerX: number,
+  centerY: number,
+  radiusX: number,
+  radiusY: number
+): RoiStatistics {
+  const { rows, columns, pixelData, rescaleIntercept, rescaleSlope, pixelSpacing } = slice;
+  const values: number[] = [];
+
+  const minX = Math.max(0, Math.floor(centerX - radiusX));
+  const maxX = Math.min(columns - 1, Math.ceil(centerX + radiusX));
+  const minY = Math.max(0, Math.floor(centerY - radiusY));
+  const maxY = Math.min(rows - 1, Math.ceil(centerY + radiusY));
+
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      const dx = (x - centerX) / (radiusX || 1);
+      const dy = (y - centerY) / (radiusY || 1);
+      if (dx * dx + dy * dy <= 1.0) {
+        const raw = pixelData[y * columns + x];
+        if (raw !== undefined) {
+          const hu = raw * rescaleSlope + rescaleIntercept;
+          values.push(hu);
+        }
+      }
+    }
+  }
+
+  if (values.length === 0) {
+    return {
+      meanHu: 0,
+      sdHu: 0,
+      minHu: 0,
+      maxHu: 0,
+      areaMm2: 0,
+      areaCm2: 0,
+      pixelCount: 0
+    };
+  }
+
+  let sum = 0;
+  let minHu = Infinity;
+  let maxHu = -Infinity;
+
+  for (let i = 0; i < values.length; i++) {
+    const val = values[i];
+    sum += val;
+    if (val < minHu) minHu = val;
+    if (val > maxHu) maxHu = val;
+  }
+
+  const meanHu = sum / values.length;
+
+  let sumSqDiff = 0;
+  for (let i = 0; i < values.length; i++) {
+    const diff = values[i] - meanHu;
+    sumSqDiff += diff * diff;
+  }
+  const sdHu = Math.sqrt(sumSqDiff / values.length);
+
+  const pixelAreaMm2 = (pixelSpacing[0] || 0.5) * (pixelSpacing[1] || 0.5);
+  const areaMm2 = values.length * pixelAreaMm2;
+  const areaCm2 = areaMm2 / 100;
+
+  return {
+    meanHu: Math.round(meanHu * 10) / 10,
+    sdHu: Math.round(sdHu * 10) / 10,
+    minHu: Math.round(minHu),
+    maxHu: Math.round(maxHu),
+    areaMm2: Math.round(areaMm2 * 10) / 10,
+    areaCm2: Math.round(areaCm2 * 100) / 100,
+    pixelCount: values.length
+  };
+}
+
+/**
+ * Multi-Planar Orthogonal Reconstructions:
+ * Generates dynamic Coronal slice from the stack of axial slices at a specific Y coordinate
+ */
+export function renderOrthogonalCoronalSlice(
+  slices: DicomSliceData[],
+  yRatio: number, // 0.0 to 1.0
+  canvas: HTMLCanvasElement,
+  customWw?: number,
+  customWl?: number,
+  invert: boolean = false
+): void {
+  if (slices.length === 0) return;
+  const numZ = slices.length;
+  const numX = slices[0].columns;
+  const numY = slices[0].rows;
+
+  canvas.width = numX;
+  canvas.height = numZ * 8; // Stretch Z to realistic anatomical aspect ratio
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const targetY = Math.min(numY - 1, Math.max(0, Math.floor(yRatio * numY)));
+  const wl = customWl !== undefined ? customWl : slices[0].windowCenter;
+  const ww = customWw !== undefined ? customWw : slices[0].windowWidth;
+  const lowHu = wl - ww / 2;
+  const highHu = wl + ww / 2;
+  const range = ww > 0 ? ww : 1;
+
+  const outHeight = canvas.height;
+  const imgData = ctx.createImageData(numX, outHeight);
+  const data = imgData.data;
+
+  for (let zOut = 0; zOut < outHeight; zOut++) {
+    // Invert Z so superior is at the top of the canvas
+    const normZ = 1.0 - zOut / outHeight;
+    const sliceFloatIdx = normZ * (numZ - 1);
+    const z0 = Math.floor(sliceFloatIdx);
+    const z1 = Math.min(numZ - 1, z0 + 1);
+    const t = sliceFloatIdx - z0;
+
+    const slice0 = slices[z0];
+    const slice1 = slices[z1];
+
+    for (let x = 0; x < numX; x++) {
+      const idx0 = targetY * numX + x;
+      const raw0 = slice0.pixelData[idx0] ?? -1000;
+      const raw1 = slice1.pixelData[idx0] ?? -1000;
+
+      const hu0 = raw0 * slice0.rescaleSlope + slice0.rescaleIntercept;
+      const hu1 = raw1 * slice1.rescaleSlope + slice1.rescaleIntercept;
+      const hu = hu0 * (1 - t) + hu1 * t;
+
+      let gray: number;
+      if (hu <= lowHu) gray = 0;
+      else if (hu >= highHu) gray = 255;
+      else gray = Math.round(((hu - lowHu) / range) * 255);
+
+      if (invert) gray = 255 - gray;
+
+      const pIdx = (zOut * numX + x) * 4;
+      data[pIdx] = gray;
+      data[pIdx + 1] = gray;
+      data[pIdx + 2] = gray;
+      data[pIdx + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+}
+
+/**
+ * Multi-Planar Orthogonal Reconstructions:
+ * Generates dynamic Sagittal slice from the stack of axial slices at a specific X coordinate
+ */
+export function renderOrthogonalSagittalSlice(
+  slices: DicomSliceData[],
+  xRatio: number, // 0.0 to 1.0
+  canvas: HTMLCanvasElement,
+  customWw?: number,
+  customWl?: number,
+  invert: boolean = false
+): void {
+  if (slices.length === 0) return;
+  const numZ = slices.length;
+  const numX = slices[0].columns;
+  const numY = slices[0].rows;
+
+  canvas.width = numY;
+  canvas.height = numZ * 8; // Stretch Z
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const targetX = Math.min(numX - 1, Math.max(0, Math.floor(xRatio * numX)));
+  const wl = customWl !== undefined ? customWl : slices[0].windowCenter;
+  const ww = customWw !== undefined ? customWw : slices[0].windowWidth;
+  const lowHu = wl - ww / 2;
+  const highHu = wl + ww / 2;
+  const range = ww > 0 ? ww : 1;
+
+  const outHeight = canvas.height;
+  const imgData = ctx.createImageData(numY, outHeight);
+  const data = imgData.data;
+
+  for (let zOut = 0; zOut < outHeight; zOut++) {
+    const normZ = 1.0 - zOut / outHeight;
+    const sliceFloatIdx = normZ * (numZ - 1);
+    const z0 = Math.floor(sliceFloatIdx);
+    const z1 = Math.min(numZ - 1, z0 + 1);
+    const t = sliceFloatIdx - z0;
+
+    const slice0 = slices[z0];
+    const slice1 = slices[z1];
+
+    for (let y = 0; y < numY; y++) {
+      const idx0 = y * numX + targetX;
+      const raw0 = slice0.pixelData[idx0] ?? -1000;
+      const raw1 = slice1.pixelData[idx0] ?? -1000;
+
+      const hu0 = raw0 * slice0.rescaleSlope + slice0.rescaleIntercept;
+      const hu1 = raw1 * slice1.rescaleSlope + slice1.rescaleIntercept;
+      const hu = hu0 * (1 - t) + hu1 * t;
+
+      let gray: number;
+      if (hu <= lowHu) gray = 0;
+      else if (hu >= highHu) gray = 255;
+      else gray = Math.round(((hu - lowHu) / range) * 255);
+
+      if (invert) gray = 255 - gray;
+
+      const pIdx = (zOut * numY + y) * 4;
+      data[pIdx] = gray;
+      data[pIdx + 1] = gray;
+      data[pIdx + 2] = gray;
+      data[pIdx + 3] = 255;
+    }
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+}
+
+/**
+ * Web Audio API Audio Cues simulating the real Canon Aquilion / Activion console
+ */
+let audioCtx: AudioContext | null = null;
+
+function getAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (AudioContextClass) {
+      audioCtx = new AudioContextClass();
+    }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
+
+export function playCanonAudioCue(cue: 'beep' | 'exposure_start' | 'exposure_end' | 'breath_hold' | 'click' | 'success'): void {
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    if (cue === 'click') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.04);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } else if (cue === 'beep') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1046.5, now); // C6 tone
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.start(now);
+      osc.stop(now + 0.12);
+    } else if (cue === 'exposure_start') {
+      // Dual high-pitch warning beep of Canon Gantry
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1318.5, now); // E6
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.15);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1760, now + 0.18); // A6
+      gain2.gain.setValueAtTime(0.15, now + 0.18);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc2.start(now + 0.18);
+      osc2.stop(now + 0.35);
+    } else if (cue === 'exposure_end') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } else if (cue === 'breath_hold') {
+      // Speech synthesis fallback if available, plus chime
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.25);
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance('Atenção: respire fundo e prenda a respiração.');
+        utterance.lang = 'pt-BR';
+        utterance.rate = 1.05;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    } else if (cue === 'success') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(587.33, now);
+      osc.frequency.setValueAtTime(880, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    }
+  } catch {
+    // Audio optional fallback
+  }
+}

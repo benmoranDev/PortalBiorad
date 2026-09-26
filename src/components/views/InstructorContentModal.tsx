@@ -96,6 +96,8 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
 
   // Video Presets
   const videoPresets = [
+    { label: 'Google Drive Vídeo Aula TC Tórax', url: 'https://drive.google.com/file/d/1B7x_y-0vF3d3qQ5R7pW2Z1yX0A/preview' },
+    { label: 'Google Drive Angiotomografia & Contraste', url: 'https://drive.google.com/file/d/1Z8x_y-1vG4e4rR6S8qX3A2zY1B/preview' },
     { label: 'Vídeo MP4 TC Tórax & Janela Pulmonar', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4' },
     { label: 'Vídeo MP4 Angiotomografia & Contraste', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4' },
     { label: 'Vídeo MP4 Reconstruções MPR & 3D', url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4' },
@@ -492,8 +494,21 @@ export const InstructorContentModal: React.FC<InstructorContentModalProps> = ({
                   className={`w-full px-3 py-2.5 rounded-xl text-xs font-mono outline-none border ${
                     isDark ? 'bg-[#0a0e17] border-cyan-500/40 text-[#4cd7f6]' : 'bg-white border-slate-300 text-slate-900'
                   }`}
-                  placeholder="Cole aqui o link do vídeo (https://...)"
+                  placeholder="Cole aqui o link do Google Drive (ex: https://drive.google.com/file/d/ID/view?usp=sharing) ou MP4/YouTube..."
                 />
+
+                {/* Google Drive Helper Box */}
+                <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-start gap-2 text-[11px] text-cyan-300">
+                  <span className="material-symbols-outlined text-base shrink-0 text-cyan-400 mt-0.5">info</span>
+                  <div className="space-y-0.5">
+                    <p className="font-bold">Como vincular vídeos hospedados no Google Drive:</p>
+                    <p className="text-gray-300 text-[10px] leading-relaxed">
+                      1. No seu Google Drive, clique com o botão direito no vídeo e escolha <strong>Compartilhar</strong>.<br />
+                      2. Em Acesso Geral, selecione <strong>"Qualquer pessoa com o link"</strong> (Leitor).<br />
+                      3. Copie o link e cole diretamente no campo acima. O sistema converte automaticamente para streaming em alta resolução!
+                    </p>
+                  </div>
+                </div>
 
                 {/* Video Presets */}
                 <div className="pt-2">

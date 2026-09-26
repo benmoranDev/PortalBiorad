@@ -1,5 +1,5 @@
 export interface ParsedVideo {
-  type: 'youtube' | 'vimeo' | 'html5' | 'unknown';
+  type: 'gdrive' | 'youtube' | 'vimeo' | 'loom' | 'cloudflare' | 'html5' | 'unknown';
   embedUrl: string;
   originalUrl: string;
   videoId?: string;
@@ -16,8 +16,24 @@ export const parseVideoUrl = (url: string): ParsedVideo => {
 
   const clean = url.trim();
 
-  // YouTube matchers
-  const ytMatch = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/i);
+  // 1. Google Drive matchers
+  // Matches: drive.google.com/file/d/FILE_ID/..., drive.google.com/open?id=FILE_ID, drive.google.com/uc?id=FILE_ID, docs.google.com/file/d/FILE_ID
+  const gDriveFileMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i) ||
+                          clean.match(/docs\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i) ||
+                          clean.match(/drive\.google\.com\/(?:open|uc)\?(?:.*&)?id=([a-zA-Z0-9_-]+)/i);
+
+  if (gDriveFileMatch && gDriveFileMatch[1]) {
+    const fileId = gDriveFileMatch[1];
+    return {
+      type: 'gdrive',
+      embedUrl: `https://drive.google.com/file/d/${fileId}/preview`,
+      originalUrl: clean,
+      videoId: fileId
+    };
+  }
+
+  // 2. YouTube matchers
+  const ytMatch = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/i);
   if (ytMatch && ytMatch[1]) {
     const videoId = ytMatch[1];
     return {
@@ -28,7 +44,7 @@ export const parseVideoUrl = (url: string): ParsedVideo => {
     };
   }
 
-  // Vimeo matchers
+  // 3. Vimeo matchers
   const vimeoMatch = clean.match(/(?:vimeo\.com\/)(\d+)/i);
   if (vimeoMatch && vimeoMatch[1]) {
     const videoId = vimeoMatch[1];
@@ -40,8 +56,32 @@ export const parseVideoUrl = (url: string): ParsedVideo => {
     };
   }
 
-  // Direct MP4 / WebM / Google Storage / HTML5 video
-  if (clean.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || clean.includes('commondatastorage.googleapis.com')) {
+  // 4. Loom matchers
+  const loomMatch = clean.match(/loom\.com\/(?:share|embed)\/([a-zA-Z0-9_-]+)/i);
+  if (loomMatch && loomMatch[1]) {
+    const videoId = loomMatch[1];
+    return {
+      type: 'loom',
+      embedUrl: `https://www.loom.com/embed/${videoId}`,
+      originalUrl: clean,
+      videoId
+    };
+  }
+
+  // 5. Cloudflare Stream
+  if (clean.includes('videodelivery.net') || clean.includes('cloudflarestream.com')) {
+    const cfMatch = clean.match(/(?:videodelivery\.net|cloudflarestream\.com)\/([a-zA-Z0-9]+)/i);
+    const videoId = cfMatch ? cfMatch[1] : '';
+    return {
+      type: 'cloudflare',
+      embedUrl: clean.includes('/manifest/') ? clean : `https://iframe.videodelivery.net/${videoId}`,
+      originalUrl: clean,
+      videoId
+    };
+  }
+
+  // 6. Direct MP4 / WebM / Blob / Google Storage / HTML5 video
+  if (clean.match(/\.(mp4|webm|ogg|mov)(\?.*)?$/i) || clean.includes('commondatastorage.googleapis.com') || clean.startsWith('blob:')) {
     return {
       type: 'html5',
       embedUrl: clean,

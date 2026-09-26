@@ -346,7 +346,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1760px] mx-auto space-y-6">
       {/* 1. COURSE SELECTOR & INSTRUCTOR MANAGEMENT HEADER */}
-      <section className={`p-4 sm:p-5 rounded-3xl border shadow-xl backdrop-blur-2xl transition-all ${
+      <section className={`p-5 sm:p-7 rounded-[36px] border shadow-xl backdrop-blur-2xl transition-all ${
         isDark
           ? 'bg-gradient-to-r from-[#141f38]/90 via-[#18233a] to-[#0f172a] border-cyan-500/30'
           : 'bg-gradient-to-r from-cyan-50/90 via-white to-emerald-50/80 border-slate-200'
@@ -354,8 +354,8 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Course Selector Dropdown & Info */}
           <div className="flex items-center gap-3.5 flex-wrap min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0 flex items-center justify-center">
-              <div className={`w-full h-full rounded-[14px] flex items-center justify-center ${isDark ? 'bg-[#090d16]' : 'bg-white'}`}>
+            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 shrink-0 flex items-center justify-center">
+              <div className={`w-full h-full rounded-full flex items-center justify-center ${isDark ? 'bg-[#090d16]' : 'bg-white'}`}>
                 <span className="material-symbols-outlined text-2xl text-cyan-400">
                   biotech
                 </span>
@@ -367,7 +367,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-500 font-bold">
                   Biorad Cursos • Sala de Aula Virtual
                 </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${
                   courseProgressPct >= 100
                     ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                     : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
@@ -384,7 +384,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 <select
                   value={selectedCourseId}
                   onChange={e => handleCourseChange(e.target.value)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold outline-none border transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold outline-none border transition-all cursor-pointer ${
                     isDark
                       ? 'bg-[#0a0e17] border-cyan-500/50 text-white focus:border-cyan-400'
                       : 'bg-white border-slate-300 text-slate-900 focus:border-cyan-600 shadow-sm'
@@ -410,7 +410,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
             <button
               type="button"
               onClick={onOpenSimulator}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border shadow-sm ${
+              className={`px-4 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border shadow-sm ${
                 isDark
                   ? 'bg-cyan-500/15 hover:bg-cyan-500/25 border-cyan-500/40 text-cyan-400'
                   : 'bg-cyan-50 hover:bg-cyan-100 border-cyan-300 text-cyan-800'
@@ -426,7 +426,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
               <button
                 type="button"
                 onClick={() => setIsInstructorModalOpen(true)}
-                className="px-4 py-2 rounded-2xl bg-gradient-to-r from-[#06b6d4] to-[#10b981] text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:opacity-95 cursor-pointer transition-all"
+                className="px-5 py-2 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#10b981] text-slate-950 font-bold text-xs flex items-center gap-2 shadow-lg shadow-cyan-500/20 hover:opacity-95 cursor-pointer transition-all"
               >
                 <span className="material-symbols-outlined text-base">tune</span>
                 <span>Gerenciar Vídeos &amp; Anexos</span>
@@ -443,7 +443,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
           {/* Interactive Video Player Container */}
           <div
             id="lesson-player-container"
-            className="relative rounded-3xl overflow-hidden bg-[#0a0e17] border border-white/15 shadow-[0_12px_45px_-5px_rgba(0,0,0,0.8)] ring-1 ring-[#4cd7f6]/25 group"
+            className="relative rounded-[36px] overflow-hidden bg-[#0a0e17] border border-white/15 shadow-[0_12px_45px_-5px_rgba(0,0,0,0.8)] ring-1 ring-[#4cd7f6]/25 group"
           >
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#4cd7f6]/60 to-transparent z-20" />
 
@@ -459,6 +459,17 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                   onClick={togglePlayPause}
                   className="w-full h-full object-contain cursor-pointer"
                   playsInline
+                />
+              )}
+
+              {/* Google Drive Video Stream */}
+              {parsedVideo.type === 'gdrive' && (
+                <iframe
+                  src={parsedVideo.embedUrl}
+                  title={activeLesson.title}
+                  className="w-full h-full border-0"
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
                 />
               )}
 
@@ -484,11 +495,39 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 />
               )}
 
+              {/* Loom Embed */}
+              {parsedVideo.type === 'loom' && (
+                <iframe
+                  src={parsedVideo.embedUrl}
+                  title={activeLesson.title}
+                  className="w-full h-full border-0"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
+
+              {/* Cloudflare Stream */}
+              {parsedVideo.type === 'cloudflare' && (
+                <iframe
+                  src={parsedVideo.embedUrl}
+                  title={activeLesson.title}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+                  allowFullScreen
+                />
+              )}
+
               {/* Top HUD */}
               <div className="absolute top-4 left-4 flex flex-wrap items-center gap-2 pointer-events-none z-10">
                 <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0a0e17]/85 backdrop-blur-md border border-white/20 text-[#4cd7f6] text-xs font-semibold shadow-lg">
                   <span className="w-2 h-2 rounded-full bg-[#4cd7f6] animate-pulse shadow-[0_0_8px_#4cd7f6]" />
-                  AULA DIGITAL • 4K
+                  {parsedVideo.type === 'gdrive'
+                    ? 'GOOGLE DRIVE • STREAMING 4K'
+                    : parsedVideo.type === 'youtube'
+                      ? 'YOUTUBE • STREAMING HD'
+                      : parsedVideo.type === 'vimeo'
+                        ? 'VIMEO • STREAMING'
+                        : 'AULA DIGITAL • 4K'}
                 </span>
                 <span className="px-2.5 py-1 rounded-full bg-[#0a0e17]/85 backdrop-blur-md border border-white/20 text-[#bcc9cd] text-xs font-mono shadow-lg">
                   CAPÍTULO 0{activeLesson.chapterNumber} • {activeLesson.ctWindowType?.toUpperCase() || 'PULMONAR'}
@@ -671,7 +710,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectLesson(prevLesson)}
-                    className={`px-3 py-2 rounded-2xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    className={`px-4 py-2 rounded-full border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                       isDark ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
@@ -684,7 +723,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                 <button
                   type="button"
                   onClick={handleToggleComplete}
-                  className={`px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
+                  className={`px-5 py-2 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
                     activeLesson.isCompleted
                       ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/20'
                       : 'bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400 text-cyan-300'
@@ -700,7 +739,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectLesson(nextLesson)}
-                    className="px-3.5 py-2 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer shadow-md"
+                    className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-400 text-slate-950 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
                   >
                     <span className="hidden sm:inline">Próxima Aula</span>
                     <span className="material-symbols-outlined text-base">arrow_forward</span>
@@ -711,15 +750,15 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
           </div>
 
           {/* Interactive Tabs (Ementa, Downloads, Notes, Quiz) */}
-          <div className={`p-6 rounded-3xl border shadow-xl backdrop-blur-2xl transition-all ${
+          <div className={`p-6 sm:p-7 rounded-[36px] border shadow-xl backdrop-blur-2xl transition-all ${
             isDark ? 'bg-[#141c2e]/80 border-white/10' : 'bg-white border-slate-200 shadow-slate-200'
           }`}>
             {/* Tabs Row */}
-            <div className="flex items-center gap-2 sm:gap-4 border-b border-white/10 pb-4 overflow-x-auto text-xs">
+            <div className="flex items-center gap-2 sm:gap-3 border-b border-white/10 pb-4 overflow-x-auto text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('ementa')}
-                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'ementa'
                     ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
                     : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -732,7 +771,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('downloads')}
-                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'downloads'
                     ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
                     : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -745,7 +784,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('notes')}
-                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'notes'
                     ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
                     : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
@@ -758,7 +797,7 @@ export const ClassroomView: React.FC<ClassroomViewProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveTab('quiz')}
-                className={`px-4 py-2 rounded-2xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                className={`px-4 py-2 rounded-full font-bold flex items-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'quiz'
                     ? isDark ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-400/40' : 'bg-cyan-50 text-cyan-800 border border-cyan-300'
                     : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'

@@ -64,10 +64,10 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
       )}
 
       <aside
-        className={`fixed top-0 left-0 h-screen w-64 z-40 backdrop-blur-xl border-r shadow-2xl flex flex-col justify-between p-4 transition-all duration-300 ${
+        className={`fixed top-0 left-0 h-screen lg:h-[calc(100vh-1.5rem)] lg:my-3 lg:ml-3 w-64 z-40 backdrop-blur-2xl border shadow-2xl flex flex-col justify-between p-4 transition-all duration-300 rounded-r-[32px] lg:rounded-[36px] ${
           isDark
-            ? 'bg-[#181b25]/90 border-[#3d494c]/30 shadow-black/50 text-[#dfe2ef]'
-            : 'bg-white/95 border-slate-200/90 shadow-slate-200/50 text-slate-800'
+            ? 'bg-[#181b25]/95 border-white/10 shadow-black/60 text-[#dfe2ef] ring-1 ring-white/5'
+            : 'bg-white/95 border-slate-200 shadow-slate-300/60 text-slate-800 ring-1 ring-slate-200/50'
         } ${
           isOpenMobile ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
@@ -76,9 +76,9 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
         <div className="overflow-y-auto">
           <div className="flex items-center justify-between px-2 py-3 mb-5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#06b6d4] to-[#10b981] p-0.5 shadow-lg shadow-cyan-500/20 flex items-center justify-center">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#06b6d4] to-[#10b981] p-0.5 shadow-lg shadow-cyan-500/25 flex items-center justify-center">
                 <div
-                  className={`w-full h-full rounded-[10px] flex items-center justify-center ${
+                  className={`w-full h-full rounded-[14px] flex items-center justify-center ${
                     isDark ? 'bg-[#0a0e17]/90' : 'bg-white'
                   }`}
                 >
@@ -108,9 +108,9 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
             {/* Mobile close button */}
             <button
               onClick={onCloseMobile}
-              className={`p-1 rounded-lg lg:hidden ${isDark ? 'text-gray-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'}`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center lg:hidden ${isDark ? 'text-gray-400 hover:text-white bg-white/5' : 'text-slate-400 hover:text-slate-800 bg-slate-100'}`}
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-lg">close</span>
             </button>
           </div>
 
@@ -125,13 +125,13 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
                     onSelectTab(item.id);
                     onCloseMobile();
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 text-left font-medium ${
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-full text-sm transition-all duration-200 text-left font-medium ${
                     isActive
                       ? isDark
-                        ? 'bg-[#1c1f29]/90 text-[#4cd7f6] border border-[#3d494c]/60 shadow-sm shadow-[#4cd7f6]/10'
-                        : 'bg-cyan-50 text-cyan-900 border border-cyan-200 shadow-sm font-semibold'
+                        ? 'bg-[#1c1f29] text-[#4cd7f6] border border-[#4cd7f6]/30 shadow-md shadow-[#4cd7f6]/10'
+                        : 'bg-cyan-50 text-cyan-900 border border-cyan-300 shadow-sm font-semibold'
                       : isDark
-                        ? 'text-[#bcc9cd] hover:text-[#dfe2ef] hover:bg-[#1c1f29]/40'
+                        ? 'text-[#bcc9cd] hover:text-[#dfe2ef] hover:bg-white/5'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
                   }`}
                 >
@@ -171,7 +171,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
           }`}
         >
           <div
-            className={`px-3 py-3 rounded-xl border backdrop-blur-md ${
+            className={`px-3.5 py-3 rounded-[24px] border backdrop-blur-md ${
               isDark ? 'bg-[#262a34]/40 border-[#3d494c]/30' : 'bg-slate-50 border-slate-200'
             }`}
           >
@@ -191,7 +191,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
             <button
               type="button"
               onClick={onOpenLabSupport}
-              className={`w-full py-1.5 px-3 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+              className={`w-full py-2 px-3.5 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
                 isDark
                   ? 'text-[#4cd7f6] bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 border-[#4cd7f6]/30'
                   : 'text-cyan-800 bg-cyan-50 hover:bg-cyan-100 border-cyan-200'
@@ -206,7 +206,7 @@ export const SideNavBar: React.FC<SideNavBarProps> = ({
             <button
               type="button"
               onClick={onLogout}
-              className={`w-full py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
+              className={`w-full py-2 px-3.5 rounded-full text-xs font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
                 isDark
                   ? 'bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20'
                   : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100'

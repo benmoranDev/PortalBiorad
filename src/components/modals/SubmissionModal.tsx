@@ -44,7 +44,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
       <div
-        className={`max-w-md w-full p-6 rounded-3xl border shadow-2xl space-y-4 transition-all ${
+        className={`max-w-md w-full p-6 sm:p-7 rounded-[36px] border shadow-2xl space-y-4 transition-all ${
           isDark
             ? 'bg-[#1c1f29] border-[#4cd7f6]/40 text-white shadow-black/80'
             : 'bg-white border-slate-200 text-slate-800 shadow-xl'
@@ -61,7 +61,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className={`p-1 rounded-lg ${isDark ? 'text-gray-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'}`}
+            className={`p-1.5 rounded-full ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'}`}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -69,7 +69,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div
-            className={`p-3 rounded-xl border space-y-1 ${
+            className={`p-4 rounded-[22px] border space-y-1 ${
               isDark ? 'bg-[#0a0e17]/80 border-white/5 text-gray-400' : 'bg-slate-50 border-slate-200 text-slate-600'
             }`}
           >
@@ -83,7 +83,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
               Anexar Arquivo do Trabalho Acadêmico
             </label>
             <div
-              className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
+              className={`border-2 border-dashed rounded-[28px] p-6 text-center cursor-pointer transition-colors ${
                 isDark
                   ? 'border-[#3d494c] hover:border-[#4cd7f6] bg-[#0a0e17]/50'
                   : 'border-slate-300 hover:border-cyan-500 bg-slate-50'
@@ -108,7 +108,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
               />
               <label
                 htmlFor="file-upload"
-                className="inline-block mt-3 px-3.5 py-1.5 rounded-lg bg-cyan-500/15 text-cyan-600 font-semibold text-[11px] cursor-pointer hover:bg-cyan-500/25 transition-colors"
+                className="inline-block mt-3 px-4 py-2 rounded-full bg-cyan-500/15 text-cyan-600 font-semibold text-[11px] cursor-pointer hover:bg-cyan-500/25 transition-colors"
               >
                 Selecionar do Computador
               </label>
@@ -130,7 +130,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
               onChange={e => setObservations(e.target.value)}
               rows={2}
               placeholder="Ex: Trabalho individual com análise dos parâmetros técnicos e discussão anatômica."
-              className={`w-full p-2.5 rounded-xl border outline-none font-medium ${
+              className={`w-full p-3.5 rounded-[20px] border outline-none font-medium ${
                 isDark
                   ? 'bg-[#0a0e17] border-white/10 text-white focus:border-[#4cd7f6]'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-cyan-500'
@@ -144,7 +144,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
                 <span>Protocolando entrega no portal do aluno...</span>
                 <span>{progress}%</span>
               </div>
-              <div className={`w-full rounded-full h-1.5 overflow-hidden ${isDark ? 'bg-[#262a34]' : 'bg-slate-200'}`}>
+              <div className={`w-full rounded-full h-2 overflow-hidden ${isDark ? 'bg-[#262a34]' : 'bg-slate-200'}`}>
                 <div className="bg-cyan-500 h-full transition-all duration-150" style={{ width: `${progress}%` }} />
               </div>
             </div>
@@ -154,7 +154,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 rounded-xl font-medium cursor-pointer ${
+              className={`px-5 py-2 rounded-full font-medium cursor-pointer ${
                 isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -163,7 +163,7 @@ export const SubmissionModal: React.FC<SubmissionModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-bold shadow-lg shadow-[#06b6d4]/30 hover:opacity-95 flex items-center gap-1.5 cursor-pointer"
+              className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] font-bold shadow-lg shadow-[#06b6d4]/30 hover:opacity-95 flex items-center gap-1.5 cursor-pointer"
             >
               <span className="material-symbols-outlined text-sm">send</span>
               <span>Protocolar Envio</span>

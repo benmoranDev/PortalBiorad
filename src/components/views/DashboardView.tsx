@@ -43,7 +43,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       {/* SECTION 1: Liquid Glass Welcome Banner / Hero */}
       <section
         aria-label="Boas-vindas"
-        className={`relative overflow-hidden rounded-3xl backdrop-blur-2xl border p-6 sm:p-8 transition-all duration-300 ${
+        className={`relative overflow-hidden rounded-[36px] backdrop-blur-2xl border p-6 sm:p-8 transition-all duration-300 ${
           isDark
             ? 'bg-gradient-to-r from-[#141f38]/80 via-[#181b25]/90 to-[#141f38]/70 border-white/10 shadow-[0_12px_40px_-4px_rgba(0,0,0,0.65)] ring-1 ring-[#4cd7f6]/20'
             : 'bg-gradient-to-r from-cyan-50/80 via-white to-sky-50/70 border-slate-200/90 shadow-md ring-1 ring-cyan-500/20 text-slate-800'
@@ -55,7 +55,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="space-y-2 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold ${
                   currentUser.role === 'student'
                     ? isDark ? 'bg-[#00a572]/15 border border-[#4edea3]/30 text-[#4edea3]' : 'bg-emerald-50 border border-emerald-300 text-emerald-700'
                     : currentUser.role === 'professor'
@@ -67,7 +67,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 {currentUser.role === 'student' ? 'Matrícula Ativa • Período Letivo 2026.1' : currentUser.role === 'professor' ? 'Corpo Docente • Turma TC-402' : 'Gestão Acadêmica & Administração'}
               </span>
               <span
-                className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-medium ${
+                className={`px-3 py-1 rounded-full text-xs font-mono font-medium ${
                   isDark
                     ? 'bg-[#1c1f29] border border-[#3d494c]/50 text-[#bcc9cd]'
                     : 'bg-slate-100 border border-slate-200 text-slate-600'
@@ -121,7 +121,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={onOpenSimulator}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] text-xs font-bold shadow-lg shadow-[#06b6d4]/30 hover:shadow-[#06b6d4]/50 transition-all flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#0891b2] text-[#090d16] text-xs font-bold shadow-lg shadow-[#06b6d4]/30 hover:shadow-[#06b6d4]/50 transition-all flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
                 >
                   <span className="material-symbols-outlined text-base">science</span>
                   <span>Abrir Simulador de TC</span>
@@ -129,7 +129,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateTab('cursos_livres')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                  className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
                     isDark
                       ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
                       : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 shadow-sm'
@@ -141,7 +141,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateTab('aulas')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                  className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
                     isDark
                       ? 'bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/30'
                       : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300'
@@ -153,7 +153,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateTab('pendencias')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                  className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
                     isDark
                       ? 'bg-white/5 hover:bg-white/10 text-slate-200 border-white/10'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'
@@ -170,7 +170,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateTab('professor_notas')}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#059669] to-[#10b981] text-[#090d16] text-xs font-bold shadow-lg shadow-emerald-500/30 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#059669] to-[#10b981] text-[#090d16] text-xs font-bold shadow-lg shadow-emerald-500/30 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-base">fact_check</span>
                   <span>Lançamento & Homologação de Notas</span>
@@ -178,7 +178,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={onOpenSimulator}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                  className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
                     isDark
                       ? 'bg-[#4cd7f6]/10 hover:bg-[#4cd7f6]/20 text-[#4cd7f6] border-[#4cd7f6]/30'
                       : 'bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border-cyan-300'
@@ -195,7 +195,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateTab('admin')}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-[#090d16] text-xs font-bold shadow-lg shadow-amber-500/30 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-[#090d16] text-xs font-bold shadow-lg shadow-amber-500/30 hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-base">admin_panel_settings</span>
                   <span>Gerenciar Usuários & Cursos</span>
@@ -203,7 +203,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigateTab('configuracoes')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
+                  className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer border ${
                     isDark
                       ? 'bg-white/5 hover:bg-white/10 text-slate-200 border-white/10'
                       : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'
@@ -222,7 +222,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <section aria-label="Métricas Acadêmicas" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Card 1: Média Geral (GPA) */}
         <div
-          className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 ${
+          className={`p-5 rounded-[28px] backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 ${
             isDark
               ? 'bg-[#141f38]/50 border-white/10 hover:border-[#4cd7f6]/40 text-white'
               : 'bg-white border-slate-200/90 shadow-sm hover:border-cyan-400 text-slate-800'
@@ -232,7 +232,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className={`text-xs font-medium ${isDark ? 'text-[#bcc9cd]' : 'text-slate-500'}`}>
               Média Geral (GPA)
             </span>
-            <div className="w-8 h-8 rounded-lg bg-[#06b6d4]/15 border border-[#06b6d4]/30 flex items-center justify-center text-cyan-500">
+            <div className="w-8 h-8 rounded-full bg-[#06b6d4]/15 border border-[#06b6d4]/30 flex items-center justify-center text-cyan-500">
               <span className="material-symbols-outlined text-lg">grade</span>
             </div>
           </div>
@@ -241,7 +241,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className={`text-sm ${isDark ? 'text-[#869397]' : 'text-slate-400'}`}>/ 10.0</span>
           </div>
           <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-500 px-2 py-0.5 rounded bg-emerald-500/15">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-500 px-2.5 py-0.5 rounded-full bg-emerald-500/15">
               <span className="material-symbols-outlined text-xs">trending_up</span> +0.4 pts
             </span>
             <span className={`text-[11px] ${isDark ? 'text-[#bcc9cd]' : 'text-slate-500'}`}>
@@ -252,7 +252,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Card 2: Aulas Assistidas */}
         <div
-          className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 ${
+          className={`p-5 rounded-[28px] backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 ${
             isDark
               ? 'bg-[#141f38]/50 border-white/10 hover:border-[#4edea3]/40 text-white'
               : 'bg-white border-slate-200/90 shadow-sm hover:border-emerald-400 text-slate-800'
@@ -262,7 +262,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className={`text-xs font-medium ${isDark ? 'text-[#bcc9cd]' : 'text-slate-500'}`}>
               Aulas Assistidas
             </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500">
               <span className="material-symbols-outlined text-lg">smart_display</span>
             </div>
           </div>
@@ -270,15 +270,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className="text-3xl font-extrabold font-['Plus_Jakarta_Sans'] tracking-tight">84%</span>
             <span className="text-xs text-emerald-500 font-medium">Meta: 75%</span>
           </div>
-          <div className={`mt-3 w-full rounded-full h-1.5 overflow-hidden ${isDark ? 'bg-[#31353f]' : 'bg-slate-200'}`}>
+          <div className={`mt-3 w-full rounded-full h-2 overflow-hidden ${isDark ? 'bg-[#31353f]' : 'bg-slate-200'}`}>
             <div className="bg-gradient-to-r from-emerald-400 to-cyan-400 h-full rounded-full" style={{ width: '84%' }} />
           </div>
         </div>
 
-        {/* Card 3: Trabalhos (ALTERADO CONFORME SOLICITADO: APENAS "TRABALHOS") */}
+        {/* Card 3: Trabalhos */}
         <div
           onClick={() => onNavigateTab('pendencias')}
-          className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 cursor-pointer ${
+          className={`p-5 rounded-[28px] backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 cursor-pointer ${
             isDark
               ? 'bg-[#141f38]/50 border-white/10 hover:border-amber-400/40 text-white'
               : 'bg-white border-slate-200/90 shadow-sm hover:border-amber-400 text-slate-800'
@@ -288,7 +288,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className={`text-xs font-semibold ${isDark ? 'text-[#bcc9cd]' : 'text-slate-700'}`}>
               Trabalhos
             </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-400/15 border border-amber-400/25 flex items-center justify-center text-amber-500">
+            <div className="w-8 h-8 rounded-full bg-amber-400/15 border border-amber-400/25 flex items-center justify-center text-amber-500">
               <span className="material-symbols-outlined text-lg">assignment_turned_in</span>
             </div>
           </div>
@@ -306,7 +306,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Card 4: Horas de Estágio / Lab */}
         <div
-          className={`p-5 rounded-2xl backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 ${
+          className={`p-5 rounded-[28px] backdrop-blur-2xl border shadow-xl relative overflow-hidden transition-all duration-300 ${
             isDark
               ? 'bg-[#141f38]/50 border-white/10 hover:border-[#4cd7f6]/40 text-white'
               : 'bg-white border-slate-200/90 shadow-sm hover:border-cyan-400 text-slate-800'
@@ -316,7 +316,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <span className={`text-xs font-medium ${isDark ? 'text-[#bcc9cd]' : 'text-slate-500'}`}>
               Horas de Estágio / Lab
             </span>
-            <div className="w-8 h-8 rounded-lg bg-[#06b6d4]/15 border border-[#06b6d4]/30 flex items-center justify-center text-cyan-500">
+            <div className="w-8 h-8 rounded-full bg-[#06b6d4]/15 border border-[#06b6d4]/30 flex items-center justify-center text-cyan-500">
               <span className="material-symbols-outlined text-lg">schedule</span>
             </div>
           </div>
@@ -331,10 +331,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-      {/* SECTION 3: Próxima Aula ao Vivo (Callout com Vídeo & Protocolo TC) */}
+      {/* SECTION 3: Próxima Aula ao Vivo */}
       <section aria-label="Aula ao Vivo">
         <div
-          className={`p-6 sm:p-7 rounded-3xl backdrop-blur-2xl border shadow-2xl relative overflow-hidden ${
+          className={`p-6 sm:p-7 rounded-[36px] backdrop-blur-2xl border shadow-2xl relative overflow-hidden ${
             isDark
               ? 'bg-[#141f38]/60 border-white/10 shadow-black/40'
               : 'bg-gradient-to-r from-cyan-50/40 via-white to-emerald-50/40 border-slate-200 shadow-sm text-slate-800'
@@ -342,7 +342,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         >
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-              <div className="relative w-full sm:w-44 aspect-video rounded-2xl overflow-hidden shadow-lg border border-cyan-400/30 group cursor-pointer" onClick={() => onNavigateTab('aulas')}>
+              <div className="relative w-full sm:w-44 aspect-video rounded-[24px] overflow-hidden shadow-lg border border-cyan-400/30 group cursor-pointer" onClick={() => onNavigateTab('aulas')}>
                 <img
                   src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=400&q=80"
                   alt="Aula de Tomografia"
@@ -357,7 +357,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
               <div className="space-y-1.5">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 border border-cyan-500/30 uppercase">
+                  <span className="px-3 py-0.5 rounded-full text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-600 border border-cyan-500/30 uppercase">
                     Ao Vivo Hoje • 19:30 BRT
                   </span>
                   <span className="text-xs text-emerald-500 font-semibold flex items-center gap-1">
@@ -378,7 +378,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigateTab('aulas')}
-                className="w-full lg:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full lg:w-auto px-6 py-3 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span className="material-symbols-outlined text-base">videocam</span>
                 <span>Entrar na Aula Interativa</span>
@@ -388,12 +388,12 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
       </section>
 
-      {/* SECTION 4: Two Columns Grid (Disciplinas em Andamento vs Trabalhos & Notas) */}
+      {/* SECTION 4: Two Columns Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-7">
         {/* LEFT COLUMN: Disciplinas em Andamento (8 cols) */}
         <div className="lg:col-span-8 space-y-5">
           <div
-            className={`p-6 sm:p-7 rounded-3xl backdrop-blur-2xl border shadow-xl space-y-5 ${
+            className={`p-6 sm:p-7 rounded-[36px] backdrop-blur-2xl border shadow-xl space-y-5 ${
               isDark ? 'bg-[#141f38]/50 border-white/10 text-white' : 'bg-white border-slate-200/90 shadow-sm text-slate-800'
             }`}
           >
@@ -401,7 +401,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div>
                 <h2 className="text-lg font-bold font-['Plus_Jakarta_Sans'] flex items-center gap-2">
                   <span>Disciplinas em Andamento</span>
-                  <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 font-mono font-bold">
+                  <span className="text-xs px-3 py-0.5 rounded-full bg-cyan-500/15 text-cyan-600 font-mono font-bold">
                     {courses.length} ativas
                   </span>
                 </h2>
@@ -414,7 +414,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     selectedCategory === 'all'
                       ? 'bg-cyan-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -424,7 +424,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </button>
                 <button
                   onClick={() => setSelectedCategory('Tomografia')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     selectedCategory === 'Tomografia'
                       ? 'bg-cyan-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -434,7 +434,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </button>
                 <button
                   onClick={() => setSelectedCategory('Contrastados')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     selectedCategory === 'Contrastados'
                       ? 'bg-emerald-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -444,7 +444,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </button>
                 <button
                   onClick={() => setSelectedCategory('Cirúrgico')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     selectedCategory === 'Cirúrgico'
                       ? 'bg-amber-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -454,7 +454,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 </button>
                 <button
                   onClick={() => setSelectedCategory('Ressonância')}
-                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
                     selectedCategory === 'Ressonância'
                       ? 'bg-cyan-500 text-slate-950 font-semibold'
                       : isDark ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -470,7 +470,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {filteredCourses.map(course => (
                 <div
                   key={course.id}
-                  className={`p-5 rounded-2xl border transition-all duration-300 space-y-3.5 ${
+                  className={`p-5 rounded-[28px] border transition-all duration-300 space-y-3.5 ${
                     isDark
                       ? 'bg-[#0a0e17]/55 border-white/5 hover:border-[#4cd7f6]/40 hover:bg-[#0a0e17]/80'
                       : 'bg-slate-50/70 border-slate-200 hover:border-cyan-300 hover:bg-slate-50'
@@ -490,11 +490,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
+                      <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                         {course.progress > 80 ? 'Excelente' : 'Em Dia'}
                       </span>
-                      <span className={`px-2 py-0.5 rounded font-mono text-xs font-bold ${isDark ? 'bg-[#1c1f29] text-white' : 'bg-white text-slate-800 border border-slate-200'}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full font-mono text-xs font-bold ${isDark ? 'bg-[#1c1f29] text-white' : 'bg-white text-slate-800 border border-slate-200'}`}>
                         Média: {course.grade.toFixed(1)}
                       </span>
                     </div>
@@ -538,9 +538,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* RIGHT COLUMN: Trabalhos a Entregar + Notas Recentes (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Próximos Trabalhos a Entregar (ALTERADO CONFORME SOLICITADO: APENAS TRABALHOS) */}
+          {/* Próximos Trabalhos a Entregar */}
           <div
-            className={`p-6 rounded-3xl backdrop-blur-2xl border shadow-xl space-y-4 ${
+            className={`p-6 rounded-[36px] backdrop-blur-2xl border shadow-xl space-y-4 ${
               isDark ? 'bg-[#141f38]/50 border-white/10 text-white' : 'bg-white border-slate-200/90 shadow-sm text-slate-800'
             }`}
           >
@@ -549,7 +549,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="material-symbols-outlined text-amber-500 text-xl">assignment</span>
                 <h3 className="text-sm font-bold font-['Plus_Jakarta_Sans']">Trabalhos Pendentes</h3>
               </div>
-              <span className="text-xs font-mono text-amber-500 bg-amber-500/15 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-xs font-mono text-amber-500 bg-amber-500/15 px-3 py-0.5 rounded-full font-bold">
                 {pendingTasks.length} a entregar
               </span>
             </div>
@@ -558,7 +558,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {tasks.slice(0, 3).map((task, idx) => (
                 <div
                   key={task.id}
-                  className={`p-3.5 rounded-2xl border space-y-2 transition-all ${
+                  className={`p-3.5 rounded-[24px] border space-y-2 transition-all ${
                     idx === 0
                       ? isDark
                         ? 'bg-amber-500/10 border-amber-500/30'
@@ -573,7 +573,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                       Prazo: {task.deadlineDate} ({task.daysRemaining}d)
                     </span>
-                    <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-slate-500/10 text-slate-600 font-bold">
+                    <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-slate-500/10 text-slate-600 font-bold">
                       {task.format}
                     </span>
                   </div>
@@ -595,7 +595,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               type="button"
               onClick={() => onNavigateTab('pendencias')}
-              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer border ${
+              className={`w-full py-2.5 rounded-full text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer border ${
                 isDark
                   ? 'bg-[#262a34]/40 hover:bg-[#262a34] text-[#bcc9cd] hover:text-white border-white/5'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
@@ -608,7 +608,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
           {/* Notas Recentes */}
           <div
-            className={`p-6 rounded-3xl backdrop-blur-2xl border shadow-xl space-y-4 ${
+            className={`p-6 rounded-[36px] backdrop-blur-2xl border shadow-xl space-y-4 ${
               isDark ? 'bg-[#141f38]/50 border-white/10 text-white' : 'bg-white border-slate-200/90 shadow-sm text-slate-800'
             }`}
           >
@@ -617,7 +617,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 <span className="material-symbols-outlined text-emerald-500 text-xl">fact_check</span>
                 <h3 className="text-sm font-bold font-['Plus_Jakarta_Sans']">Últimas Notas</h3>
               </div>
-              <span className="text-[11px] font-mono text-emerald-600 bg-emerald-500/15 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[11px] font-mono text-emerald-600 bg-emerald-500/15 px-3 py-0.5 rounded-full font-bold">
                 Homologadas
               </span>
             </div>
@@ -626,7 +626,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               {recentGrades.map(item => (
                 <div
                   key={item.id}
-                  className={`p-3 rounded-xl border flex items-center justify-between ${
+                  className={`p-3 rounded-[20px] border flex items-center justify-between ${
                     isDark ? 'bg-[#0a0e17]/60 border-white/5' : 'bg-slate-50 border-slate-200'
                   }`}
                 >
@@ -647,7 +647,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <button
               type="button"
               onClick={() => onNavigateTab('boletim')}
-              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer border ${
+              className={`w-full py-2.5 rounded-full text-xs font-semibold transition-colors flex items-center justify-center gap-1 cursor-pointer border ${
                 isDark
                   ? 'bg-[#262a34]/40 hover:bg-[#262a34] text-[#bcc9cd] hover:text-white border-white/5'
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'

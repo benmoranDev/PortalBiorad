@@ -212,7 +212,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
           <button
             onClick={handleSyncAuthUsers}
             disabled={isSyncingAuth}
-            className="px-3.5 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            className="px-4 py-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
             title="Cria ou atualiza todos os usuários no painel Authentication -> Users do Supabase"
           >
             <span className={`material-symbols-outlined text-base ${isSyncingAuth ? 'animate-spin' : ''}`}>
@@ -223,7 +223,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
 
           <button
             onClick={openNewStudentModal}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:opacity-95"
+            className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#06b6d4] to-[#4edea3] text-[#090d16] font-bold text-xs shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all cursor-pointer hover:opacity-95"
           >
             <span className="material-symbols-outlined text-base">person_add</span>
             <span>Cadastrar Novo Aluno</span>
@@ -234,13 +234,13 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div
-          className={`p-4 rounded-2xl border ${
+          className={`p-5 rounded-[28px] border ${
             isDark ? 'bg-[#141f38]/60 border-white/5 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400 font-medium">Total de Alunos</span>
-            <span className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-lg">groups</span>
             </span>
           </div>
@@ -249,13 +249,13 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
         </div>
 
         <div
-          className={`p-4 rounded-2xl border ${
+          className={`p-5 rounded-[28px] border ${
             isDark ? 'bg-[#141f38]/60 border-white/5 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400 font-medium">Alunos Regulares</span>
-            <span className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-lg">check_circle</span>
             </span>
           </div>
@@ -266,13 +266,13 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
         </div>
 
         <div
-          className={`p-4 rounded-2xl border ${
+          className={`p-5 rounded-[28px] border ${
             isDark ? 'bg-[#141f38]/60 border-white/5 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400 font-medium">Tomografia Computadorizada</span>
-            <span className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
               <span className="material-symbols-outlined text-lg">biotech</span>
             </span>
           </div>
@@ -283,13 +283,13 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
         </div>
 
         <div
-          className={`p-4 rounded-2xl border ${
+          className={`p-5 rounded-[28px] border ${
             isDark ? 'bg-[#141f38]/60 border-white/5 text-white' : 'bg-white border-slate-200 text-slate-800 shadow-sm'
           }`}
         >
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400 font-medium">Sincronização Cloud</span>
-            <span className="w-8 h-8 rounded-lg bg-[#3ecf8e]/10 text-[#4edea3] flex items-center justify-center">
+            <span className="w-8 h-8 rounded-full bg-[#3ecf8e]/10 text-[#4edea3] flex items-center justify-center">
               <span className="material-symbols-outlined text-lg">cloud_sync</span>
             </span>
           </div>
@@ -303,12 +303,12 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
 
       {/* Filter and Search Bar */}
       <div
-        className={`p-4 rounded-2xl border flex flex-col md:flex-row items-center justify-between gap-3 ${
+        className={`p-4 sm:p-5 rounded-full border flex flex-col md:flex-row items-center justify-between gap-3 ${
           isDark ? 'bg-[#141f38]/40 border-white/5' : 'bg-white border-slate-200 shadow-sm'
         }`}
       >
         <div className="relative w-full md:max-w-md">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-base">
+          <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-base">
             search
           </span>
           <input
@@ -316,7 +316,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             placeholder="Pesquisar por nome, matrícula, e-mail ou CPF..."
-            className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs outline-none border transition-all ${
+            className={`w-full pl-10 pr-4 py-2 rounded-full text-xs outline-none border transition-all ${
               isDark
                 ? 'bg-[#0a0e17]/80 border-white/10 text-white placeholder:text-slate-500 focus:border-cyan-400'
                 : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-cyan-600'
@@ -328,7 +328,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
           <select
             value={filterCourse}
             onChange={e => setFilterCourse(e.target.value)}
-            className={`px-3 py-2 rounded-xl text-xs outline-none border cursor-pointer ${
+            className={`px-4 py-2 rounded-full text-xs outline-none border cursor-pointer ${
               isDark
                 ? 'bg-[#0a0e17]/80 border-white/10 text-slate-200'
                 : 'bg-slate-50 border-slate-200 text-slate-700'
@@ -349,7 +349,7 @@ export const StudentRegistrationView: React.FC<StudentRegistrationViewProps> = (
 
       {/* Students Table */}
       <div
-        className={`rounded-2xl border overflow-hidden ${
+        className={`rounded-[32px] border overflow-hidden ${
           isDark ? 'bg-[#141f38]/40 border-white/5' : 'bg-white border-slate-200 shadow-sm'
         }`}
       >

@@ -36,7 +36,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
       <div
-        className={`max-w-md w-full p-6 rounded-3xl border shadow-2xl space-y-4 transition-all ${
+        className={`max-w-md w-full p-6 sm:p-7 rounded-[36px] border shadow-2xl space-y-4 transition-all ${
           isDark
             ? 'bg-[#1c1f29] border-[#4edea3]/40 text-white shadow-black/80'
             : 'bg-white border-slate-200 text-slate-800 shadow-xl'
@@ -45,7 +45,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-slate-200/20">
           <div className="flex items-center gap-2.5">
             <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center ${
                 isDark
                   ? 'bg-[#00a572]/20 border border-[#4edea3]/40 text-[#4edea3]'
                   : 'bg-emerald-50 border border-emerald-300 text-emerald-700'
@@ -64,7 +64,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className={`p-1 rounded-lg ${isDark ? 'text-gray-400 hover:text-white' : 'text-slate-400 hover:text-slate-800'}`}
+            className={`p-1.5 rounded-full ${isDark ? 'text-gray-400 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-slate-800 hover:bg-slate-100'}`}
           >
             <span className="material-symbols-outlined">close</span>
           </button>
@@ -78,7 +78,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
             <select
               value={topic}
               onChange={e => setTopic(e.target.value)}
-              className={`w-full p-2.5 rounded-xl border outline-none font-medium ${
+              className={`w-full px-4 py-2.5 rounded-full border outline-none font-medium ${
                 isDark
                   ? 'bg-[#0a0e17] border-white/10 text-white focus:border-[#4edea3]'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
@@ -102,7 +102,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
               rows={3}
               placeholder="Digite sua dúvida sobre a matéria, caso prático ou interpretação das imagens..."
               required
-              className={`w-full p-2.5 rounded-xl border outline-none font-medium ${
+              className={`w-full p-3.5 rounded-[20px] border outline-none font-medium ${
                 isDark
                   ? 'bg-[#0a0e17] border-white/10 text-white focus:border-[#4edea3]'
                   : 'bg-slate-50 border-slate-300 text-slate-900 focus:border-emerald-500'
@@ -111,7 +111,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
           </div>
 
           <div
-            className={`p-3 rounded-xl border text-[11px] flex items-center gap-2 ${
+            className={`p-3.5 rounded-full border text-[11px] flex items-center gap-2 ${
               isDark
                 ? 'bg-[#0a0e17]/80 border-white/5 text-gray-400'
                 : 'bg-emerald-50/60 border-emerald-200 text-emerald-800'
@@ -125,7 +125,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className={`px-4 py-2 rounded-xl font-medium cursor-pointer ${
+              className={`px-5 py-2 rounded-full font-medium cursor-pointer ${
                 isDark ? 'text-gray-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
@@ -134,7 +134,7 @@ export const LabSupportModal: React.FC<LabSupportModalProps> = ({
             <button
               type="submit"
               disabled={sent}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#00a572] to-[#4edea3] text-[#090d16] font-bold shadow-md shadow-[#00a572]/30 flex items-center gap-1.5 cursor-pointer hover:opacity-95"
+              className="px-6 py-2 rounded-full bg-gradient-to-r from-[#00a572] to-[#4edea3] text-[#090d16] font-bold shadow-md shadow-[#00a572]/30 flex items-center gap-1.5 cursor-pointer hover:opacity-95"
             >
               <span className="material-symbols-outlined text-sm">send</span>
               <span>{sent ? 'Enviando...' : 'Enviar Dúvida'}</span>

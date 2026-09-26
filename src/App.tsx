@@ -34,7 +34,7 @@ import { LoginScreen } from './components/auth/LoginScreen';
 
 export default function App() {
   // Splash and Authentication States
-  const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [showSplash, setShowSplash] = useState<boolean>(false);
   const [authSession, setAuthSession] = useState<{ isAuthenticated: boolean; user: User | null }>(() =>
     storageService.getAuthSession()
   );
@@ -124,9 +124,9 @@ export default function App() {
   }, [supabaseConfig.url, supabaseConfig.anonKey]);
 
   const handleLoginSuccess = (user: User) => {
+    storageService.setAuthSession({ isAuthenticated: true, user });
     setAuthSession({ isAuthenticated: true, user });
     setCurrentUser(user);
-    storageService.setAuthSession({ isAuthenticated: true, user });
     showToast(`Bem-vindo à Biorad Cursos, ${user.name}!`);
   };
 
@@ -370,7 +370,7 @@ export default function App() {
         />
 
         {/* View Switcher */}
-        <main className="flex-1 lg:pl-64">
+        <main className="flex-1 lg:pl-72">
           {currentTab === 'dashboard' && (
             <DashboardView
               currentUser={currentUser}
